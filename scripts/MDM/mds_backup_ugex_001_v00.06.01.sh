@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute migrate export to /var/upgrade_export folder
-# using /var/upgrade_export/migration_tools/<version>/migrate file
+# SCRIPT for BASH to execute mds_backup to /var/upgrade_export/backups folder
+# using mds_backup
 #
-ScriptVersion=00.06.02
-ScriptDate=2018-03-29
+ScriptVersion=00.06.01
+ScriptDate=2018-05-04
 #
 
-export BASHScriptVersion=v00x06x02
+export BASHScriptVersion=v00x06x01
 
 #points to where jq is installed
 #export JQ=${CPDIR}/jq/jq
@@ -20,8 +20,8 @@ echo
 # WAITTIME in seconds for read -t commands
 export WAITTIME=60
 export outputpathroot=/var/upgrade_export
-export outputpathbase=$outputpathroot
-#export outputpathbase=$outputpathroot/$DATE
+export outputpathbase=$outputpathroot/backups
+export outputpathbase=$outputpathbase/$DATE
 
 #
 # shell meat
@@ -98,12 +98,13 @@ export targetversion=$gaiaversion
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
     echo "System is Multi-Domain Management Server!"
     echo
-    echo "This script is not meant for MDM, exiting!"
-    exit 255
+    echo "Continueing with MDS Backup..."
+    echo
 elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!"
     echo
-    echo "Continueing with SMS migrate export..."
+    echo "This script is not meant for SMS, exiting!"
+    exit 255
     echo
 else
     echo "System is a gateway!"
@@ -113,7 +114,7 @@ else
 fi
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATE
 export outputfiletype=.tgz
 
@@ -130,91 +131,94 @@ then
     mkdir $outputfilepath
 fi
 
-export migratefilefolderroot=migration_tools/$toolsversion
-export migratefilename=migrate
-
-export migratefilepath=$outputpathbase/$migratefilefolderroot/
-export migratefile=$migratefilepath$migratefilename
-
-if [ ! -r $migratefilepath ]
-then
-    echo '!! CRITICAL ERROR!!'
-    echo '  Missing migrate file folder!'
-    echo '  Missing folder : '$migratefilepath
-    echo ' EXITING...'
-    echo
-
-    exit 255
-fi
-
-if [ ! -r $migratefile ]
-then
-    echo '!! CRITICAL ERROR!!'
-    echo '  Missing migrate executable file !'
-    echo '  Missing executable file : '$migratefile
-    echo ' EXITING...'
-    echo
-
-    exit 255
-fi
+#export migratefilefolderroot=migration_tools/$toolsversion
+#export migratefilename=migrate
+#
+#export migratefilepath=$outputpathbase/$migratefilefolderroot/
+#export migratefile=$migratefilepath$migratefilename
+#
+#if [ ! -r $migratefilepath ]
+#then
+#    echo '!! CRITICAL ERROR!!'
+#    echo '  Missing migrate file folder!'
+#    echo '  Missing folder : '$migratefilepath
+#    echo ' EXITING...'
+#    echo
+#
+#    exit 255
+#fi
+#
+#if [ ! -r $migratefile ]
+#then
+#    echo '!! CRITICAL ERROR!!'
+#    echo '  Missing migrate executable file !'
+#    echo '  Missing executable file : '$migratefile
+#    echo ' EXITING...'
+#    echo
+#
+#    exit 255
+#fi
 
 echo
 echo '--------------------------------------------------------------------------'
 echo
-
-export command2run='export -n'
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute command : '$migratefile $command2run
-echo ' with ouptut to : '$outputfilefqdn
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
 
 echo
 echo 'Preparing ...'
 echo
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh
+cd "$outputfilepath"
 echo
-cpwd_admin list
-
+pwd
 echo
-echo 'cpstop ...'
-echo
-
-cpstop
-
-echo
-echo 'cpstop completed'
+mdsstat
 echo
 
+echo
+echo 'mdsstop ...'
+echo
+
+mdsstop
+
+echo
+echo 'mdsstop completed'
+echo
+
+mdsstat
+
+echo
 echo '--------------------------------------------------------------------------'
 echo
-echo 'Executing...'
-echo '-> '$migratefile $command2run $outputfilefqdn
+echo 'Executing mds_backup...'
 echo
 
 if [ $testmode -eq 0 ]; then
     # Not test mode
-    $migratefile $command2run $outputfilefqdn
+    mds_backup -b -l -i -s -d "$outputfilepath"
 else
     # test mode
     echo Test Mode!
 fi
 
 echo
-echo 'Done performing '$migratefile $command2run
+echo 'Done performing mds_backup'
 echo
-ls -alh $outputfilefqdn
+ls -alh $outputfilepath
 echo
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh
 echo
-cpwd_admin list
+echo 'mdsstart ...'
+echo
 
+mdsstart
+
+echo
+echo 'mdsstart completed'
+echo
+
+mdsstat
+
+echo
 echo
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------'
@@ -223,70 +227,7 @@ echo
 echo 'Clean-up, stop, and [re-]start services...'
 echo
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh
-echo
-cpwd_admin list
-
-echo
-echo 'cpstop ...'
-echo
-
-cpstop
-
-echo
-echo 'cpstop completed'
-echo
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
-
-echo "Short $WAITTIME second nap..."
-sleep $WAITTIME
-
-echo
-echo 'cpstart...'
-echo
-
-sleep $WAITTIME
-
-cpstart
-
-echo
-echo 'cpstart completed'
-echo
-
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh
-echo
-cpwd_admin list
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
-
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh
-echo
-cpwd_admin list
-
-if [ $CPVer80 -gt 0 ]; then
-    # R80 version so kick the API on
-    echo
-    echo 'api start ...'
-    echo
-    
-    api start
-    
-    echo
-    echo 'api start completed'
-    echo
-else
-    # not R80 version so no API
-    echo
-fi
-
-#
-# end shell meat
-#
+mdsstat
 
 
 echo '--------------------------------------------------------------------------'
@@ -300,6 +241,9 @@ echo 'CLI Operations Completed'
 echo
 ls -alh $outputpathroot
 
+cd "$outputpathroot"
+echo
+pwd
 echo
 echo 'Done!'
 echo

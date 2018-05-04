@@ -8,7 +8,7 @@
 # AUTHOR:           Nathan Davieau (Check Point Advanced Diamond Engineer)
 # AUTHOR:           Rosemarie Rodriguez (Check Point Advanced Diamond Engineer)
 # CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter
-# VERSION:		    4.08
+# VERSION:		    4.09
 # SK:               sk121447
 #====================================================================================================
 
@@ -27,7 +27,7 @@ cp_suite=$(ls /var/opt/ | grep CPsuite)
 messages_tmp_file="/var/tmp/messages_check.tmp"
 summary_error=0
 vs_error=0
-script_ver="4.08 01-29-2018"
+script_ver="4.09 04-30-2018"
 
 #====================================================================================================
 #  Text Formatting
@@ -1925,28 +1925,28 @@ check_cp_software()
     printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     
     
-    #Collect cpinfo build version
+    #Collect cpinfo build version (sk92739)
     printf "| Check Point\t\t| CPInfo Build Number\t\t|" | tee -a $output_log
     cpinfo_build_version=$(cpvinfo /opt/CPinfo-10/bin/cpinfo | grep Build | awk '{print $4}')
     printf "\n\ncpinfo build:\n$cpinfo_build_version\n"  >> $full_output_log
 	if [[ $cpinfo_build_version -ge 914000182 ]]; then
         check_passed
         printf "Check Point,CPInfo Build Number,OK,\n" >> $csv_log
-        printf "The cpinfo utility is up to date as of 01-29-2018.\n" >> $full_output_log
+        printf "The cpinfo utility is up to date as of 04-30-2018.\n" >> $full_output_log
 	else
         check_failed
         printf "Check Point,CPInfo Build Number,WARNING,sk92739\n" >> $csv_log
 		printf "The cpinfo utility is outdated. Please update cpinfo utility to the latest version using sk92739 (preferably using CPUSE).\n" | tee -a $full_output_log $logfile > /dev/null
 	fi
     
-    #Collect CPUSE build version
+    #Collect CPUSE build version (sk92449)
     test_output_error=0
     cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
     printf "|\t\t\t| CPUSE Build Number\t\t|" | tee -a $output_log
-    if [[ $cpuse_build_version -ge 1418 ]]; then
+    if [[ $cpuse_build_version -ge 1439 ]]; then
         check_passed
         printf "Check Point,CPUSE Build Number,OK,\n" >> $csv_log
-        printf "CPUSE is up to date as of 01-29-2018.\n" >> $full_output_log
+        printf "CPUSE is up to date as of 04-30-2018.\n" >> $full_output_log
 	else
         check_failed
         printf "Check Point,CPUSE Build Number,WARNING,sk92449\n" >> $csv_log

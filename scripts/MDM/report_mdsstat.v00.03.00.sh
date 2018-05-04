@@ -1,33 +1,34 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute mds_backup to /var/upgrade_export/backups folder
-# using mds_backup
+# SCRIPT for BASH to report on cp MDM management processes
 #
-ScriptVersion=00.06.00
-ScriptDate=2017-09-26
+ScriptVersion=00.03.00
+ScriptDate=2018-05-04
 #
 
-export BASHScriptVersion=v00x06x00
+export BASHScriptVersion=v00x03x00
 
 #points to where jq is installed
 #export JQ=${CPDIR}/jq/jq
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
+export DATEYMD=`date +%Y-%m-%d`
 
 echo 'Date Time Group   :  '$DATE
+echo 'Date (YYYY-MM-DD) :  '$DATEYMD
 echo
 
 # WAITTIME in seconds for read -t commands
 export WAITTIME=60
-export outputpathroot=/var/upgrade_export
-export outputpathbase=$outputpathroot/backups
-export outputpathbase=$outputpathbase/$DATE
+export outputpathroot=/var/upgrade_export/dump
+#export outputpathbase=$outputpathroot/$DATE
+export outputpathbase=$outputpathroot/$DATEYMD
 
 #
 # shell meat
 #
 OPT="$1"
-if [ $OPT = "--test" ]; then
+if [ x"$OPT" = x"--test" ]; then
     export testmode=1
     echo "Test Mode Active! testmode = $testmode"
 else
@@ -114,9 +115,9 @@ else
 fi
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATE
-export outputfiletype=.tgz
+export outputfiletype=.txt
 
 if [ ! -r $outputpathroot ] 
 then
@@ -131,124 +132,50 @@ then
     mkdir $outputfilepath
 fi
 
-#export migratefilefolderroot=migration_tools/$toolsversion
-#export migratefilename=migrate
-#
-#export migratefilepath=$outputpathbase/$migratefilefolderroot/
-#export migratefile=$migratefilepath$migratefilename
-#
-#if [ ! -r $migratefilepath ]
-#then
-#    echo '!! CRITICAL ERROR!!'
-#    echo '  Missing migrate file folder!'
-#    echo '  Missing folder : '$migratefilepath
-#    echo ' EXITING...'
-#    echo
-#
-#    exit 255
-#fi
-#
-#if [ ! -r $migratefile ]
-#then
-#    echo '!! CRITICAL ERROR!!'
-#    echo '  Missing migrate executable file !'
-#    echo '  Missing executable file : '$migratefile
-#    echo ' EXITING...'
-#    echo
-#
-#    exit 255
-#fi
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
-echo
-echo '--------------------------------------------------------------------------'
-echo
+touch $outputfilefqdn
 
-echo
-echo 'Preparing ...'
-echo
-
-cd "$outputfilepath"
-echo
-pwd
-echo
-mdsstat
-echo
-
-echo
-echo 'mdsstop ...'
-echo
-
-mdsstop
-
-echo
-echo 'mdsstop completed'
-echo
-
-mdsstat
-
-echo
-echo '--------------------------------------------------------------------------'
-echo
-echo 'Executing mds_backup...'
-echo
-
-if [ $testmode -eq 0 ]; then
-    # Not test mode
-    mds_backup -b -l -i -s -d "$outputfilepath"
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
 else
-    # test mode
-    echo Test Mode!
+    echo | tee -a -i $outputfilefqdn
+fi
+mdsstat | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh;echo;mdsstat"
+    echo
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80/fw1/scripts/cpm_status.sh;echo;mdsstat"
+    echo
+else
+    watch -d -n 1 "mdsstat"
+    echo
 fi
 
-echo
-echo 'Done performing mds_backup'
-echo
-ls -alh $outputfilepath
-echo
 
-echo
-echo 'mdsstart ...'
-echo
-
-mdsstart
-
-echo
-echo 'mdsstart completed'
-echo
-
-mdsstat
-
-echo
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
-
-echo
-echo 'Clean-up, stop, and [re-]start services...'
-echo
-
-mdsstat
-
-
-echo '--------------------------------------------------------------------------'
-echo
-echo 'CLI Operations Completed'
-
-#
-# shell clean-up and log dump
-#
-
-echo
-ls -alh $outputpathroot
-
-cd "$outputpathroot"
-echo
-pwd
-echo
-echo 'Done!'
-echo
-echo '--------------------------------------------------------------------------'
-echo '--------------------------------------------------------------------------'
-echo '--------------------------------------------------------------------------'
-echo
-echo
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
+mdsstat | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn

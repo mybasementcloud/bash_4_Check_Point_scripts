@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.06.00
-ScriptDate=2018-03-29
+ScriptVersion=00.06.03
+ScriptDate=2018-05-04
 #
 
-export BASHScriptVersion=v00x06x00
+export BASHScriptVersion=v00x06x03
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -301,8 +301,10 @@ ln -sf $sourcefolder/healthcheck.sh $workingroot/healthcheck
 #ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $workingroot/run_healthcheck_to_dump_dtg
 #ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $linksfolder/healthcheck
 #ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $workingroot/healthcheck
-ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $linksfolder/dump_healthcheck
-ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $workingroot/dump_healthcheck
+#ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $linksfolder/dump_healthcheck
+#ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $workingroot/dump_healthcheck
+ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $linksfolder/healthdump
+ln -sf $sourcefolder/run_healthcheck_to_dump_dtg.v00.01.00.sh $workingroot/healthdump
 
 
 # =============================================================================
@@ -320,15 +322,15 @@ else
     chmod 775 $linksfolder
 fi
 
-ln -sf $sourcefolder/mds_backup_ugex_001_v00.06.00.sh $linksfolder/mds_backup_ugex
-ln -sf $sourcefolder/report_mdsstat.v00.02.00.sh $linksfolder/report_mdsstat
-ln -sf $sourcefolder/watch_mdsstat.v00.02.00.sh $linksfolder/watch_mdsstat
+ln -sf $sourcefolder/mds_backup_ugex_001_v00.06.01.sh $linksfolder/mds_backup_ugex
+ln -sf $sourcefolder/report_mdsstat.v00.03.00.sh $linksfolder/report_mdsstat
+ln -sf $sourcefolder/watch_mdsstat.v00.03.00.sh $linksfolder/watch_mdsstat
 
 if [ "$sys_type_MDS" == "true" ]; then
     
-    ln -sf $sourcefolder/mds_backup_ugex_001_v00.06.00.sh $workingroot/mds_backup_ugex
-    ln -sf $sourcefolder/report_mdsstat.v00.02.00.sh $workingroot/report_mdsstat
-    ln -sf $sourcefolder/watch_mdsstat.v00.02.00.sh $workingroot/watch_mdsstat
+    ln -sf $sourcefolder/mds_backup_ugex_001_v00.06.01.sh $workingroot/mds_backup_ugex
+    ln -sf $sourcefolder/report_mdsstat.v00.03.00.sh $workingroot/report_mdsstat
+    ln -sf $sourcefolder/watch_mdsstat.v00.03.00.sh $workingroot/watch_mdsstat
     
 fi
 
@@ -365,12 +367,29 @@ if [ "$do_session_cleanup" == "true" ]; then
     ln -sf $sourcefolder/remove_zerolocks_web_api_sessions.v00.02.00.sh $linksfolder/remove_zerolocks_web_api_sessions
     ln -sf $sourcefolder/show_zerolocks_sessions.v00.02.00.sh $linksfolder/show_zerolocks_sessions
     ln -sf $sourcefolder/show_zerolocks_web_api_sessions.v00.02.00.sh $linksfolder/show_zerolocks_web_api_sessions
+
+    ln -sf $sourcefolder/mdm_remove_zerolocks_sessions.v00.03.00.sh $linksfolder/mdm_remove_zerolocks_sessions
+    ln -sf $sourcefolder/mdm_remove_zerolocks_web_api_sessions.v00.03.00.sh $linksfolder/mdm_remove_zerolocks_web_api_sessions
+    ln -sf $sourcefolder/mdm_show_zerolocks_sessions.v00.03.00.sh $linksfolder/mdm_show_zerolocks_sessions
+    ln -sf $sourcefolder/mdm_show_zerolocks_web_api_sessions.v00.03.00.sh $linksfolder/mdm_show_zerolocks_web_api_sessions
     
     if [ "$sys_type_GW" == "false" ]; then
         
-        ln -sf $sourcefolder/show_zerolocks_sessions.v00.02.00.sh $workingroot/show_zerolocks_sessions
-        ln -sf $sourcefolder/show_zerolocks_web_api_sessions.v00.02.00.sh $workingroot/show_zerolocks_web_api_sessions
-        
+        if [ "$sys_type_MDS" == "true" ]; then
+            
+            ln -sf $sourcefolder/mdm_show_zerolocks_sessions.v00.03.00.sh $workingroot/mdm_show_zerolocks_sessions
+            ln -sf $sourcefolder/mdm_show_zerolocks_web_api_sessions.v00.03.00.sh $workingroot/mdm_show_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/mdm_remove_zerolocks_sessions.v00.03.00.sh $workingroot/mdm_remove_zerolocks_sessions
+            ln -sf $sourcefolder/mdm_remove_zerolocks_web_api_sessions.v00.03.00.sh $workingroot/mdm_remove_zerolocks_web_api_sessions
+            
+        else
+            
+            ln -sf $sourcefolder/show_zerolocks_sessions.v00.02.00.sh $workingroot/show_zerolocks_sessions
+            ln -sf $sourcefolder/show_zerolocks_web_api_sessions.v00.02.00.sh $workingroot/show_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/remove_zerolocks_sessions.v00.02.00.sh $workingroot/remove_zerolocks_sessions
+            ln -sf $sourcefolder/remove_zerolocks_web_api_sessions.v00.02.00.sh $workingroot/remove_zerolocks_web_api_sessions
+            
+        fi
     fi
     
 fi
@@ -391,19 +410,19 @@ else
     chmod 775 $linksfolder
 fi
 
-ln -sf $sourcefolder/migrate_export_ugex_001_v00.06.02.sh $linksfolder/migrate_export_ugex
-ln -sf $sourcefolder/report_cpwd_admin_list.v00.02.00.sh $linksfolder/report_cpwd_admin_list
-ln -sf $sourcefolder/restart_mgmt.v00.03.00.sh $linksfolder/restart_mgmt
-ln -sf $sourcefolder/watch_cpwd_admin_list.v00.02.00.sh $linksfolder/watch_cpwd_admin_list
+ln -sf $sourcefolder/migrate_export_ugex_001_v00.07.00.sh $linksfolder/migrate_export_ugex
+ln -sf $sourcefolder/restart_mgmt.v00.04.00.sh $linksfolder/restart_mgmt
+ln -sf $sourcefolder/report_cpwd_admin_list.v00.03.00.sh $linksfolder/report_cpwd_admin_list
+ln -sf $sourcefolder/watch_cpwd_admin_list.v00.03.00.sh $linksfolder/watch_cpwd_admin_list
 
 ln -sf $sourcefolder/reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh $linksfolder/reset_hit_count_on_R80_SMS_commands
 
 if [ "$sys_type_SMS" == "true" ]; then
     
-    ln -sf $sourcefolder/migrate_export_ugex_001_v00.06.02.sh $workingroot/migrate_export_ugex
-    ln -sf $sourcefolder/report_cpwd_admin_list.v00.02.00.sh $workingroot/report_cpwd_admin_list
-    ln -sf $sourcefolder/restart_mgmt.v00.03.00.sh $workingroot/restart_mgmt
-    ln -sf $sourcefolder/watch_cpwd_admin_list.v00.02.00.sh $workingroot/watch_cpwd_admin_list
+    ln -sf $sourcefolder/migrate_export_ugex_001_v00.07.00.sh $workingroot/migrate_export_ugex
+    ln -sf $sourcefolder/restart_mgmt.v00.04.00.sh $workingroot/restart_mgmt
+    ln -sf $sourcefolder/report_cpwd_admin_list.v00.03.00.sh $workingroot/report_cpwd_admin_list
+    ln -sf $sourcefolder/watch_cpwd_admin_list.v00.03.00.sh $workingroot/watch_cpwd_admin_list
     
     ln -sf $sourcefolder/reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh $workingroot/reset_hit_count_on_R80_SMS_commands
     

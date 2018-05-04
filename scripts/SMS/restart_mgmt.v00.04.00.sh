@@ -28,7 +28,7 @@ export outputpathbase=$outputpathroot/$DATEYMD
 # shell meat
 #
 OPT="$1"
-if [ $OPT = "--test" ]; then
+if [ x"$OPT" = x"--test" ]; then
     export testmode=1
     echo "Test Mode Active! testmode = $testmode"
 else
@@ -136,39 +136,85 @@ export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 touch $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-cpwd_admin list >> $outputfilefqdn
-echo >> $outputfilefqdn
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-cpstop 2>> $outputfilefqdn
+cpstop | tee -a -i $outputfilefqdn
 
-echo >> $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-cpwd_admin list >> $outputfilefqdn
-echo >> $outputfilefqdn
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
 echo "Short $WAITTIME second nap..."
 sleep $WAITTIME
 
-cpstart  2>> $outputfilefqdn
+cpstart | tee -a -i $outputfilefqdn
 
-echo >> $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-cpwd_admin list >> $outputfilefqdn
-echo >> $outputfilefqdn
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-watch -d -n 1 "/opt/CPsuite-R80/fw1/scripts/cpm_status.sh;echo;cpwd_admin list"
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80/fw1/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo | tee -a -i $outputfilefqdn
+else
+    watch -d -n 1 "cpwd_admin list"
+    echo | tee -a -i $outputfilefqdn
+fi
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-cpwd_admin list >> $outputfilefqdn
-echo >> $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-cpwd_admin list
-echo
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+

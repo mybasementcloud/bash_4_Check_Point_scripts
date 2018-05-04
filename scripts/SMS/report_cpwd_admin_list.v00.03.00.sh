@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to report on cp MDM management processes
+# SCRIPT for BASH to report on cp management processes
 #
-ScriptVersion=00.02.00
-ScriptDate=2018-03-29
+ScriptVersion=00.03.00
+ScriptDate=2018-05-04
 #
 
 export BASHScriptVersion=v00x02x00
@@ -28,7 +28,7 @@ export outputpathbase=$outputpathroot/$DATEYMD
 # shell meat
 #
 OPT="$1"
-if [ $OPT = "--test" ]; then
+if [ x"$OPT" = x"--test" ]; then
     export testmode=1
     echo "Test Mode Active! testmode = $testmode"
 else
@@ -99,13 +99,12 @@ export targetversion=$gaiaversion
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
     echo "System is Multi-Domain Management Server!"
     echo
-    echo "Continueing with MDS Backup..."
-    echo
+    echo "This script is not meant for MDM, exiting!"
+    exit 255
 elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!"
     echo
-    echo "This script is not meant for SMS, exiting!"
-    exit 255
+    echo "Continueing with report on admin processes..."
     echo
 else
     echo "System is a gateway!"
@@ -113,6 +112,7 @@ else
     echo "This script is not meant for gateways, exiting!"
     exit 255
 fi
+
 
 export outputfilepath=$outputpathbase/
 export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
@@ -137,19 +137,51 @@ export outputfilefqdn=$outputfilepath$outputfile
 
 touch $outputfilefqdn
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-mdsstat >> $outputfilefqdn
-echo >> $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-watch -d -n 1 "/opt/CPsuite-R80/fw1/scripts/cpm_status.sh;echo;mdsstat"
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-/opt/CPsuite-R80/fw1/scripts/cpm_status.sh >> $outputfilefqdn
-echo >> $outputfilefqdn
-mdsstat >> $outputfilefqdn
-echo >> $outputfilefqdn
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    watch -d -n 1 "/opt/CPsuite-R80/fw1/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo
+else
+    watch -d -n 1 "cpwd_admin list"
+    echo
+fi
+
+
+if [ x"$toolsversion" = x"R80.20" ] ; then
+    # cpm_status.sh moved in R80.20, and only exists in R8X
+    /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+elif [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
+
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
 /opt/CPsuite-R80/fw1/scripts/cpm_status.sh
 echo
-mdsstat
+cpwd_admin list
 echo
