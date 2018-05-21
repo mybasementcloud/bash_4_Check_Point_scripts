@@ -3,11 +3,11 @@
 # SCRIPT for BASH to execute migrate export to /var/upgrade_export folder
 # using /var/upgrade_export/migration_tools/<version>/migrate file
 #
-ScriptVersion=00.07.00
-ScriptDate=2018-03-11
+ScriptVersion=00.08.00
+ScriptDate=2018-05-21
 #
 
-export BASHScriptVersion=v00x06x01
+export BASHScriptVersion=v00x08x00
 
 #points to where jq is installed
 #export JQ=${CPDIR}/jq/jq
@@ -166,27 +166,24 @@ export command2run='export -n'
 export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-export command2run2='export -n -l --include-uepm-msi-files'
-export outputfile2=$outputfileprefix'_msi_logs_'$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
-
 echo
 echo 'Execute command : '$migratefile $command2run
 echo ' with ouptut to : '$outputfilefqdn
 echo
-
-if [ $Check4EP773000 -gt 0 ]; then
-    echo 'Execute command 2 : '$migratefile $command2run2
-    echo ' with ouptut 2 to : '$outputfilefqdn2
-    echo
-fi
-
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------'
 
 echo
 echo 'Preparing ...'
 echo
+
+if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    $FWDIR/scripts/cpm_status.sh
+    echo
+else
+    echo
+fi
 
 cpwd_admin list
 
@@ -209,10 +206,6 @@ echo
 if [ $testmode -eq 0 ]; then
     # Not test mode
     $migratefile $command2run $outputfilefqdn
-
-    if [ $Check4EP773000 -gt 0 ]; then
-        $migratefile $command2run2 $outputfilefqdn2
-    fi
 else
     # test mode
     echo Test Mode!
@@ -224,6 +217,14 @@ echo
 ls -alh $outputfilefqdn
 echo
 
+if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    $FWDIR/scripts/cpm_status.sh
+    echo
+else
+    echo
+fi
+
 cpwd_admin list
 
 echo
@@ -233,6 +234,14 @@ echo '--------------------------------------------------------------------------
 echo
 echo 'Clean-up, stop, and [re-]start services...'
 echo
+
+if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    $FWDIR/scripts/cpm_status.sh
+    echo
+else
+    echo
+fi
 
 cpwd_admin list
 
@@ -265,11 +274,27 @@ echo
 echo 'cpstart completed'
 echo
 
+if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    $FWDIR/scripts/cpm_status.sh
+    echo
+else
+    echo
+fi
+
 cpwd_admin list
 
 echo
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------'
+
+if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
+    # cpm_status.sh only exists in R8X
+    $FWDIR/scripts/cpm_status.sh
+    echo
+else
+    echo
+fi
 
 cpwd_admin list
 
