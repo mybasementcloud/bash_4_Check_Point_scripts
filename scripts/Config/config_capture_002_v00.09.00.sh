@@ -45,7 +45,7 @@ export notthispath=/home/
 export outputpathroot=./host_data
 export expandedpath=$(cd $outputpathroot ; pwd)
 
-if [[ echo "${expandedpath}" | grep -q "$notthispath" ]] ; then
+if [ `echo "${expandedpath}" | grep -q "$notthispath"` ] ; then
     #Oh, Oh, we're in the home directory executing, not good!!!
     export outputpathroot=/var/tmp/host_data
 else
@@ -79,7 +79,7 @@ else
     chmod 775 $outputhomepath
 fi
 
-pushd $outputpathroot
+#pushd $outputpathroot
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -695,7 +695,7 @@ echo | tee -a -i "$outputfilefqdn"
 
 echo 'CLI Operations Completed'
 
-popd
+#popd
 
 
 #----------------------------------------------------------------------------------------
