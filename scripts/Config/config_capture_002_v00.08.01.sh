@@ -4,11 +4,11 @@
 #
 # (C) 2016-2018 Eric James Beasley
 #
-ScriptVersion=00.08.00
+ScriptVersion=00.08.01
 ScriptDate=2018-05-21
 #
 
-export BASHScriptVersion=v00x08x00
+export BASHScriptVersion=v00x08x01
 
 
 echo
@@ -289,39 +289,39 @@ export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix'.txt'
 export outputfilefqdn=$outputfilepath$outputfile
 touch "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' to '$outputhomepath' with ouptut to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'Execute '$command2run' to '$outputhomepath' with ouptut to : '$outputfilefqdn >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo "Current path : " | tee -a -i "$outputfilefqdn"
-pwd | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo "Current path : " >> "$outputfilefqdn"
+pwd >> "$outputfilefqdn"
 
-echo "Copy /home folder to $outputhomepath" | tee -a -i "$outputfilefqdn"
-cp -a -v "/home/" "$outputhomepath" | tee -a -i "$outputfilefqdn"
+echo "Copy /home folder to $outputhomepath" >> "$outputfilefqdn"
+cp -a -v "/home/" "$outputhomepath" >> "$outputfilefqdn"
 
 echo
 echo 'Execute '$command2run' to '$homebackuppath' with ouptut to : '$outputfilefqdn
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
 pushd /home
 
-echo | tee -a -i "$outputfilefqdn"
-echo "Current path : " | tee -a -i "$outputfilefqdn"
-pwd | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo "Current path : " >> "$outputfilefqdn"
+pwd >> "$outputfilefqdn"
 
-echo "Copy /home folder contents to $homebackuppath" | tee -a -i "$outputfilefqdn"
-cp -a -v "." "$homebackuppath" | tee -a -i "$outputfilefqdn"
+echo "Copy /home folder contents to $homebackuppath" >> "$outputfilefqdn"
+cp -a -v "." "$homebackuppath" >> "$outputfilefqdn"
 
 popd
 
-echo | tee -a -i "$outputfilefqdn"
-echo "Current path : " | tee -a -i "$outputfilefqdn"
-pwd | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo "Current path : " >> "$outputfilefqdn"
+pwd >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo "Current path : " | tee -a -i "$outputfilefqdn"
-pwd | tee -a -i "$outputfilefqdn"
+echo "Current path : " >> "$outputfilefqdn"
+pwd >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -351,49 +351,49 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 touch $outputfilefqdn
-echo 'Versions:' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo 'Versions:' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo 'clish : ' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-clish -c "show version all" | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'clish : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+clish -c "show version all" >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo 'cpinfo -y all : ' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-cpinfo -y all | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'cpinfo -y all : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+cpinfo -y all >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo 'fwm ver : ' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-fwm ver | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'fwm ver : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+fwm ver >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo 'fw ver : ' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-fw ver | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'fw ver : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+fw ver >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo 'installed_jumbo_take : ' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-installed_jumbo_take | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+installed_jumbo_take >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -421,19 +421,19 @@ echo
 echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
 
 touch $outputfilefqdn
-echo | tee -a -i "$outputfilefqdn"
-echo 'Memory Utilization : free -m -t' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'Memory Utilization : free -m -t' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-free -m -t | tee -a -i "$outputfilefqdn"
+free -m -t >> "$outputfilefqdn"
 
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo 'Disk Utilization : df -h' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'Disk Utilization : df -h' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
-df -h | tee -a -i "$outputfilefqdn"
+df -h >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -461,11 +461,11 @@ echo
 echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
 
 touch $outputfilefqdn
-arp -vn | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-arp -av | tee -a -i "$outputfilefqdn"
+arp -vn >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+arp -av >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -547,44 +547,37 @@ if [ $Check4GW -eq 1 ]; then
     echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
     
     touch $outputfilefqdn
-    echo | tee -a -i "$outputfilefqdn"
-    echo 'fwacell stat' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwacell stat' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
-    fwaccel stat | tee -a -i "$outputfilefqdn"
+    fwaccel stat >> "$outputfilefqdn"
     
-    echo | tee -a -i "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    echo 'fwacell stats' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwacell stats' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
-    fwaccel stats | tee -a -i "$outputfilefqdn"
+    fwaccel stats >> "$outputfilefqdn"
     
-    echo | tee -a -i "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    echo 'fwacell stats -s' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwacell stats -s' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
-    fwaccel stats -s | tee -a -i "$outputfilefqdn"
+    fwaccel stats -s >> "$outputfilefqdn"
     
-    echo | tee -a -i "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    echo '$FWDIR/scripts/cpm_status.sh' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    
-    $FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-
 fi
 
 
 #----------------------------------------------------------------------------------------
-# bash - Management Systems
+# bash - Management Systems Information
 #----------------------------------------------------------------------------------------
 
-if [ $sys_type_SMS = 'true' ] || [] || ; then
+if [[ $sys_type_MDS = 'true' ]] ; then
+
     export command2run=cpwd_admin
     export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
     export outputfilefqdn=$outputfilepath$outputfile
@@ -593,16 +586,70 @@ if [ $sys_type_SMS = 'true' ] || [] || ; then
     echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
     command > "$outputfilefqdn"
     
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
-    echo 'cpwd_admin list' | tee -a -i "$outputfilefqdn"
+    
+    if [ x"$gaiaversion" = x"R80.20" ] ; then
+        # cpm_status.sh moved in R80.20, and only exists in R8X
+        /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+        echo | tee -a -i "$outputfilefqdn"
+    elif [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
+        # cpm_status.sh only exists in R8X
+        /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+        echo | tee -a -i "$outputfilefqdn"
+    else
+        echo | tee -a -i "$outputfilefqdn"
+    fi
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cpwd_admin list' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    cpwd_admin list | tee -a "$outputfilefqdn"
+    cpwd_admin list | tee -a -i "$outputfilefqdn"
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'mdsstat' >> "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
     
+    export COLUMNS=128
+    mdsstat | tee -a -i "$outputfilefqdn"
+
+elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
+
+    export command2run=cpwd_admin
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqdn=$outputfilepath$outputfile
     
+    echo
+    echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+    command > "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo '$FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
+    
+    ${FWDIR}/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cpwd_admin list' >> "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
+    
+    cpwd_admin list | tee -a -i "$outputfilefqdn"
 
 fi
+
+echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -621,12 +668,12 @@ fi
 #echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
 #command > "$outputfilefqdn"
 
-#echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-#echo | tee -a -i "$outputfilefqdn"
-#echo 'fwacell stats -s' | tee -a -i "$outputfilefqdn"
-#echo | tee -a -i "$outputfilefqdn"
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#echo 'fwacell stats -s' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
 #
-#fwaccel stats -s | tee -a -i "$outputfilefqdn"
+#fwaccel stats -s >> "$outputfilefqdn"
 #
 
 

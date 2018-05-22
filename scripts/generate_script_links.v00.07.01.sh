@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.07.00
+ScriptVersion=00.07.01
 ScriptDate=2018-05-21
 #
 
-export BASHScriptVersion=v00x07x00
+export BASHScriptVersion=v00x07x01
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -246,8 +246,8 @@ else
     chmod 775 $linksfolder
 fi
 
-ln -sf $sourcefolder/config_capture_002_v00.08.00.sh $linksfolder/config_capture
-ln -sf $sourcefolder/config_capture_002_v00.08.00.sh $workingroot/config_capture
+ln -sf $sourcefolder/config_capture_002_v00.08.01.sh $linksfolder/config_capture
+ln -sf $sourcefolder/config_capture_002_v00.08.01.sh $workingroot/config_capture
 
 
 # =============================================================================
@@ -430,8 +430,8 @@ fi
 
 if [ $Check4EP773000 -gt 0 ]; then
 
-    ln -sf $sourcefolder/epm_migrate_export_ugex_001_v00.07.00.sh $linksfolder/epm_migrate_export_ugex
-    ln -sf $sourcefolder/epm_migrate_export_ugex_001_v00.07.00.sh $workingroot/epm_migrate_export_ugex
+    ln -sf $sourcefolder/epm_migrate_export_ugex_001_v00.08.00.sh $linksfolder/epm_migrate_export_ugex
+    ln -sf $sourcefolder/epm_migrate_export_ugex_001_v00.08.00.sh $workingroot/epm_migrate_export_ugex
 
 fi
 
