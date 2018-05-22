@@ -3,6 +3,8 @@ Collection of bash scripts for use on Check Point Gaia systems
 
 mybasementcloud operational implemented working Gaia and bash script examples
 
+NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
+
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
 Specific examples and operation for:
