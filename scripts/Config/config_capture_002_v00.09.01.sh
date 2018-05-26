@@ -4,11 +4,11 @@
 #
 # (C) 2016-2018 Eric James Beasley
 #
-ScriptVersion=00.09.00
+ScriptVersion=00.09.01
 ScriptDate=2018-05-25
 #
 
-export BASHScriptVersion=v00x09x00
+export BASHScriptVersion=v00x09x01
 
 
 echo
@@ -84,7 +84,16 @@ else
     chmod 775 $outputpathroot
 fi
 
-export outputpathbase=$outputpathroot/host_data/$DATE
+export outputpathbase=$outputpathroot/host_data
+
+if [ ! -r $outputpathbase ] ; then
+    mkdir $outputpathbase
+    chmod 775 $outputpathbase
+else
+    chmod 775 $outputpathbase
+fi
+
+export outputpathbase=$outputpathbase/$DATE
 
 if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
