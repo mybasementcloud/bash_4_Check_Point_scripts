@@ -5,7 +5,7 @@
 # (C) 2016-2018 Eric James Beasley
 #
 ScriptVersion=00.09.00
-ScriptDate=2018-05-22
+ScriptDate=2018-05-25
 #
 
 export BASHScriptVersion=v00x09x00
@@ -42,21 +42,40 @@ export workingpath=$currentlocalpath
 
 
 export notthispath=/home/
-export outputpathroot=./host_data
-export expandedpath=$(cd $outputpathroot ; pwd)
+export startpathroot=.
+export alternatepathroot=/var/tmp
 
-if [ `echo "${expandedpath}" | grep -q "$notthispath"` ] ; then
+export expandedpath=$(cd $startpathroot ; pwd)
+export startpathroot=$expandedpath
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+
+if [ $isitthispath -eq 1 ] ; then
     #Oh, Oh, we're in the home directory executing, not good!!!
-    export outputpathroot=/var/tmp/host_data
+    #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
+    export outputpathroot=$alternatepathroot
 else
-    export outputpathroot=${expandedpath}
+    #OK use the current folder and create host_data sub-folder
+    export outputpathroot=$startpathroot
 fi
-#echo 'outputpathroot = '$outputpathroot
-export outputpathbase=$outputpathroot
 
-export outputpathbase=$outputpathroot/$DATE
+if [ ! -r $outputpathroot ] ; then
+    #not where we're expecting to be, since $outputpathroot is missing here
+    #maybe this hasn't been run here yet.
+    #OK, so make the expected folder and set permissions we need
+    mkdir $outputpathroot
+    chmod 775 $outputpathroot
+else
+    #set permissions we need
+    chmod 775 $outputpathroot
+fi
 
-export outputhomepath=$outputpathbase
+#Now that outputroot is not in /home/ let's work on where we are working from
+
+export expandedpath=$(cd $outputpathroot ; pwd)
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+export outputpathroot=${expandedpath}
 
 if [ ! -r $outputpathroot ] ; then
     mkdir $outputpathroot
@@ -65,6 +84,8 @@ else
     chmod 775 $outputpathroot
 fi
 
+export outputpathbase=$outputpathroot/host_data/$DATE
+
 if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
     chmod 775 $outputpathbase
@@ -72,14 +93,14 @@ else
     chmod 775 $outputpathbase
 fi
 
+export outputhomepath=$outputpathbase
+
 if [ ! -r $outputhomepath ] ; then
     mkdir $outputhomepath
     chmod 775 $outputhomepath
 else
     chmod 775 $outputhomepath
 fi
-
-#pushd $outputpathroot
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -171,9 +192,16 @@ fi
 
 echo
 export gaia_kernel_version=$(uname -r)
-if [ "$gaia_kernel_version" == "2.6.18-92cpx86_64" ]; then
+export kernelv2x06=2.6
+export kernelv3x10=3.10
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv2x06"`
+export isitoldkernel=`test -z $checkthiskernel; echo $?`
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
+export isitnewkernel=`test -z $checkthiskernel; echo $?`
+
+if [ $isitoldkernel -eq 1 ] ; then
     echo "OLD Kernel version $gaia_kernel_version"
-elif [ "$gaia_kernel_version" == "3.10.0-514cpx86_64" ]; then
+elif [ $isitnewkernel -eq 1 ]; then
     echo "NEW Kernel version $gaia_kernel_version"
 else
     echo "Kernel version $gaia_kernel_version"
@@ -278,8 +306,33 @@ fi
 # bash - backup user's home folder
 #----------------------------------------------------------------------------------------
 
-export homebackuproot=.
-#export homebackuproot=`realpath "$homebackuproot"`
+export homebackuproot=$startpathroot
+
+export expandedpath=$(cd $homebackuproot ; pwd)
+export homebackuproot=$expandedpath
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+
+if [ $isitthispath -eq 1 ] ; then
+    #Oh, Oh, we're in the home directory executing, not good!!!
+    #Configure homebackuproot for $alternatepathroot folder since we can't run in /home/
+    export homebackuproot=$alternatepathroot
+else
+    #OK use the current folder and create host_data sub-folder
+    export homebackuproot=$startpathroot
+fi
+
+if [ ! -r $homebackuproot ] ; then
+    #not where we're expecting to be, since $homebackuproot is missing here
+    #maybe this hasn't been run here yet.
+    #OK, so make the expected folder and set permissions we need
+    mkdir $homebackuproot
+    chmod 775 $homebackuproot
+else
+    #set permissions we need
+    chmod 775 $homebackuproot
+fi
+
 export expandedpath=$(cd $homebackuproot ; pwd)
 export homebackuproot=${expandedpath}
 export homebackuppath="$homebackuproot/home.backup"
@@ -297,7 +350,7 @@ export outputfilefqdn=$outputfilepath$outputfile
 touch "$outputfilefqdn"
 
 echo >> "$outputfilefqdn"
-echo 'Execute '$command2run' to '$outputhomepath' with ouptut to : '$outputfilefqdn >> "$outputfilefqdn"
+echo 'Execute '$command2run' to '$outputhomepath' with output to : '$outputfilefqdn >> "$outputfilefqdn"
 
 echo >> "$outputfilefqdn"
 echo "Current path : " >> "$outputfilefqdn"
@@ -307,7 +360,7 @@ echo "Copy /home folder to $outputhomepath" >> "$outputfilefqdn"
 cp -a -v "/home/" "$outputhomepath" >> "$outputfilefqdn"
 
 echo
-echo 'Execute '$command2run' to '$homebackuppath' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' to '$homebackuppath' with output to : '$outputfilefqdn
 echo >> "$outputfilefqdn"
 
 pushd /home
@@ -340,7 +393,7 @@ export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 clish -c "lock database override"
 clish -c "lock database override"
 clish -c "save config"
@@ -364,6 +417,14 @@ echo '--------------------------------------------------------------------------
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 
+echo >> "$outputfilefqdn"
+echo 'uname for kernel version : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+uname -a >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 echo 'clish : ' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
@@ -394,13 +455,18 @@ echo >> "$outputfilefqdn"
 fw ver >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-installed_jumbo_take >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
+if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
+    # installed_jumbo_take only exists in R7X
+    echo >> "$outputfilefqdn"
+else
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    installed_jumbo_take >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+fi
 
 
 #----------------------------------------------------------------------------------------
@@ -412,7 +478,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 cplic print > "$outputfilefqdn"
 
 
@@ -425,7 +491,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 
 touch $outputfilefqdn
 echo >> "$outputfilefqdn"
@@ -452,7 +518,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 route -vn > "$outputfilefqdn"
 
 
@@ -465,7 +531,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 
 touch $outputfilefqdn
 arp -vn >> "$outputfilefqdn"
@@ -484,7 +550,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 ifconfig > "$outputfilefqdn"
 
 
@@ -499,7 +565,7 @@ export file2copy=00-OS-XX.rules
 export file2copypath="/etc/udev/rules.d/$file2copy"
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 cat "$file2copypath" > "$outputfilefqdn"
 cp "$file2copypath" "$outputfilepath"
 
@@ -513,7 +579,7 @@ export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfilety
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo
-echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
 dmidecode > "$outputfilefqdn"
 
 
@@ -551,7 +617,7 @@ if [ $Check4GW -eq 1 ]; then
     export outputfilefqdn=$outputfilepath$outputfile
     
     echo
-    echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn
     
     touch $outputfilefqdn
     echo >> "$outputfilefqdn"
@@ -590,7 +656,7 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     export outputfilefqdn=$outputfilepath$outputfile
     
     echo
-    echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn
     command > "$outputfilefqdn"
     
     echo >> "$outputfilefqdn"
@@ -599,13 +665,9 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    if [ x"$gaiaversion" = x"R80.20" ] ; then
-        # cpm_status.sh moved in R80.20, and only exists in R8X
-        /opt/CPsuite-R80.20/fw1/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-        echo | tee -a -i "$outputfilefqdn"
-    elif [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
+    if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
         # cpm_status.sh only exists in R8X
-        /opt/CPsuite-R80/fw1/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
         echo | tee -a -i "$outputfilefqdn"
     else
         echo | tee -a -i "$outputfilefqdn"
@@ -615,18 +677,18 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
     echo 'cpwd_admin list' >> "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
-    cpwd_admin list | tee -a -i "$outputfilefqdn"
+    cpwd_admin list >> "$outputfilefqdn"
 
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
     echo 'mdsstat' >> "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
     export COLUMNS=128
-    mdsstat | tee -a -i "$outputfilefqdn"
+    mdsstat >> "$outputfilefqdn"
 
 elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
 
@@ -635,7 +697,7 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
     export outputfilefqdn=$outputfilepath$outputfile
     
     echo
-    echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn
     command > "$outputfilefqdn"
     
     echo >> "$outputfilefqdn"
@@ -644,15 +706,15 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
     echo '$FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    ${FWDIR}/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
 
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
     echo 'cpwd_admin list' >> "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
     
-    cpwd_admin list | tee -a -i "$outputfilefqdn"
+    cpwd_admin list >> "$outputfilefqdn"
 
 fi
 
@@ -672,7 +734,7 @@ echo | tee -a -i "$outputfilefqdn"
 #export outputfilefqdn=$outputfilepath$outputfile
 
 #echo
-#echo 'Execute '$command2run' with ouptut to : '$outputfilefqdn
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn
 #command > "$outputfilefqdn"
 
 #echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
@@ -695,8 +757,6 @@ echo | tee -a -i "$outputfilefqdn"
 
 echo 'CLI Operations Completed'
 
-#popd
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -707,12 +767,25 @@ echo 'CLI Operations Completed'
 #----------------------------------------------------------------------------------------
 
 echo
-ls -alh $outputpathroot
-#ls -alhR $outputpathroot
+
+ls -alh $outputpathroot/config*
 echo
+
+ls -alh $outputpathroot/fw*
+echo
+
+#ls -alhR $outputpathroot
+#ls -alh $outputpathroot
 #echo
+
 #ls -alhR $outputpathbase
-#echo
+ls -alh $outputpathbase
+echo
+
+echo
+echo 'Output location for all results is here : '$outputpathroot
+echo 'Host Data output for this run is here   : '$outputpathbase
+echo
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

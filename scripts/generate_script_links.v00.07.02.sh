@@ -98,11 +98,29 @@ if [ $Check4GW -eq 1 ]; then
 	echo 'Gateway stuff...'
 fi
 
+#echo
+#export gaia_kernel_version=$(uname -r)
+#if [ "$gaia_kernel_version" == "2.6.18-92cpx86_64" ]; then
+#    echo "OLD Kernel version $gaia_kernel_version"
+#elif [ "$gaia_kernel_version" == "3.10.0-514cpx86_64" ]; then
+#    echo "NEW Kernel version $gaia_kernel_version"
+#else
+#    echo "Kernel version $gaia_kernel_version"
+#fi
+#echo
+
 echo
 export gaia_kernel_version=$(uname -r)
-if [ "$gaia_kernel_version" == "2.6.18-92cpx86_64" ]; then
+export kernelv2x06=2.6
+export kernelv3x10=3.10
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv2x06"`
+export isitoldkernel=`test -z $checkthiskernel; echo $?`
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
+export isitnewkernel=`test -z $checkthiskernel; echo $?`
+
+if [ $isitoldkernel -eq 1 ] ; then
     echo "OLD Kernel version $gaia_kernel_version"
-elif [ "$gaia_kernel_version" == "3.10.0-514cpx86_64" ]; then
+elif [ $isitnewkernel -eq 1 ]; then
     echo "NEW Kernel version $gaia_kernel_version"
 else
     echo "Kernel version $gaia_kernel_version"
@@ -224,7 +242,7 @@ else
     chmod 775 $linksfolder
 fi
 
-file_gaia_version=determine_gaia_version_and_installation_type.v00.04.00.sh
+file_gaia_version=determine_gaia_version_and_installation_type.v00.05.00.sh
 
 file_godump=go_dump_folder_now.v00.01.00.sh
 file_godumpdtg=go_dump_folder_now_dtg.v00.01.00.sh
