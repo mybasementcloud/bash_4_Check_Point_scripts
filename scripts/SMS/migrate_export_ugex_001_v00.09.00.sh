@@ -3,11 +3,11 @@
 # SCRIPT for BASH to execute migrate export to /var/upgrade_export folder
 # using /var/upgrade_export/migration_tools/<version>/migrate file
 #
-ScriptVersion=00.08.00
-ScriptDate=2018-05-21
+ScriptVersion=00.09.00
+ScriptDate=2018-05-30
 #
 
-export BASHScriptVersion=v00x08x00
+export BASHScriptVersion=v00x09x00
 
 #points to where jq is installed
 #export JQ=${CPDIR}/jq/jq
@@ -179,7 +179,7 @@ echo
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh
+    $MDS_FWDIR/scripts/cpm_status.sh
     echo
 else
     echo
@@ -219,7 +219,7 @@ echo
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh
+    $MDS_FWDIR/scripts/cpm_status.sh
     echo
 else
     echo
@@ -237,7 +237,7 @@ echo
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh
+    $MDS_FWDIR/scripts/cpm_status.sh
     echo
 else
     echo
@@ -276,7 +276,7 @@ echo
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh
+    $MDS_FWDIR/scripts/cpm_status.sh
     echo
 else
     echo
@@ -290,7 +290,7 @@ echo '--------------------------------------------------------------------------
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh
+    $MDS_FWDIR/scripts/cpm_status.sh
     echo
 else
     echo

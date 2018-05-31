@@ -2,11 +2,11 @@
 #
 # SCRIPT for BASH to execute restart of cp processes
 #
-ScriptVersion=00.05.00
-ScriptDate=2018-05-21
+ScriptVersion=00.06.00
+ScriptDate=2018-05-30
 #
 
-export BASHScriptVersion=v00x05x00
+export BASHScriptVersion=v00x06x00
 
 #points to where jq is installed
 #export JQ=${CPDIR}/jq/jq
@@ -138,7 +138,7 @@ export outputfilefqdn=$outputfilepath$outputfile
 touch $outputfilefqdn
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
     echo | tee -a -i $outputfilefqdn
 else
     echo | tee -a -i $outputfilefqdn
@@ -152,7 +152,7 @@ cpstop | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
     echo | tee -a -i $outputfilefqdn
 else
     echo | tee -a -i $outputfilefqdn
@@ -169,7 +169,7 @@ cpstart | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
     echo | tee -a -i $outputfilefqdn
 else
     echo | tee -a -i $outputfilefqdn
@@ -180,7 +180,7 @@ echo | tee -a -i $outputfilefqdn
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
+    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
     echo
 else
     watch -d -n 1 "cpwd_admin list"
@@ -189,7 +189,7 @@ fi
 
 if [ x"$toolsversion" = x"R80.20" ] || [ x"$toolsversion" = x"R80.10" ] || [ x"$toolsversion" = x"R80" ] ; then
     # cpm_status.sh only exists in R8X
-    $FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
     echo | tee -a -i $outputfilefqdn
 else
     echo | tee -a -i $outputfilefqdn

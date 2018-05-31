@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.07.03
-ScriptDate=2018-05-25
+ScriptVersion=00.07.05
+ScriptDate=2018-05-30
 #
 
-export BASHScriptVersion=v00x07x03
+export BASHScriptVersion=v00x07x05
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_002_v00.09.01.sh
+file_configcapture=config_capture_002_v00.09.02.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
@@ -359,8 +359,8 @@ else
 fi
 
 file_mds_backup=mds_backup_ugex_001_v00.06.01.sh
-file_report_mdsstat=report_mdsstat.v00.04.00.sh
-file_watch_mdsstat=watch_mdsstat.v00.04.00.sh
+file_report_mdsstat=report_mdsstat.v00.05.00.sh
+file_watch_mdsstat=watch_mdsstat.v00.05.00.sh
 
 ln -sf $sourcefolder/$file_mds_backup $linksfolder/mds_backup_ugex
 ln -sf $sourcefolder/$file_report_mdsstat $linksfolder/report_mdsstat
@@ -460,10 +460,10 @@ else
     chmod 775 $linksfolder
 fi
 
-file_migrate_export=migrate_export_ugex_001_v00.08.00.sh
-file_mgmt_restart=restart_mgmt.v00.05.00.sh
-file_mgmt_report=report_cpwd_admin_list.v00.04.00.sh
-file_mgmt_watch=watch_cpwd_admin_list.v00.04.00.sh
+file_migrate_export=migrate_export_ugex_001_v00.09.00.sh
+file_mgmt_restart=restart_mgmt.v00.06.00.sh
+file_mgmt_report=report_cpwd_admin_list.v00.05.00.sh
+file_mgmt_watch=watch_cpwd_admin_list.v00.05.00.sh
 file_reset_hitcount_sms=reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh
 
 ln -sf $sourcefolder/$file_migrate_export $linksfolder/migrate_export_ugex
@@ -484,7 +484,7 @@ if [ "$sys_type_SMS" == "true" ]; then
     
 fi
 
-file_migrate_export_epm=epm_migrate_export_ugex_001_v00.08.00.sh
+file_migrate_export_epm=epm_migrate_export_ugex_001_v00.09.00.sh
 
 if [ $Check4EP773000 -gt 0 ]; then
 

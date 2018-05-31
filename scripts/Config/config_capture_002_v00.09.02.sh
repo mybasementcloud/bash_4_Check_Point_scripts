@@ -4,11 +4,11 @@
 #
 # (C) 2016-2018 Eric James Beasley
 #
-ScriptVersion=00.09.01
-ScriptDate=2018-05-25
+ScriptVersion=00.09.02
+ScriptDate=2018-05-30
 #
 
-export BASHScriptVersion=v00x09x01
+export BASHScriptVersion=v00x09x02
 
 
 echo
@@ -712,7 +712,7 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
-    echo '$FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
+    echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
     $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
