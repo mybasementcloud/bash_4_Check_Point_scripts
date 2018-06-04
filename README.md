@@ -8,12 +8,14 @@ NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
 Specific examples and operation for:
+- _template - templates for bash scripts, may include some canned plumbing
 - Config - Configuration capture for Gaia (might work on SPLAT and Linux, not tested on those)
 - Common - general use scripts
 - GW - Gateway systems
 - Health_Check - System Health Check Script as provided in sk121447, including example of how to collect the generated files into a dump file location
 - MDM - Multi-Domain Management Server systems
 - Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, now includes MDM example.
+- SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
 - SMS - Security Management Server systems
 - UserConfig - User configuration actions for bash CLI operations, like adding standard alias entries, etc.  Must be run by the specific user to execute configuration, which is available at next logon.
 

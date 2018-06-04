@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.07.05
-ScriptDate=2018-05-30
+ScriptVersion=00.08.00
+ScriptDate=2018-06-03
 #
 
-export BASHScriptVersion=v00x07x05
+export BASHScriptVersion=v00x08x00
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -193,6 +193,7 @@ echo "System Type : STANDALONE :"$sys_type_STANDALONE
 echo "System Type : VSX        :"$sys_type_VSX
 echo
 
+
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 #
@@ -227,10 +228,12 @@ else
     chmod 775 $linksbase
 fi
 
+
 # =============================================================================
 # =============================================================================
 # FOLDER:  Common
 # =============================================================================
+
 
 export workingdir=Common
 export sourcefolder=$workingbase/$workingdir
@@ -244,8 +247,8 @@ fi
 
 file_gaia_version=determine_gaia_version_and_installation_type.v00.05.00.sh
 
-file_godump=go_dump_folder_now.v00.01.00.sh
-file_godumpdtg=go_dump_folder_now_dtg.v00.01.00.sh
+file_godump=go_dump_folder_now.v00.02.00.sh
+file_godumpdtg=go_dump_folder_now_dtg.v00.02.00.sh
 file_mkdump=make_dump_folder_now.v00.01.00.sh
 file_mkdumpdtg=make_dump_folder_now_dtg.v00.01.00.sh
 
@@ -262,10 +265,12 @@ ln -sf $sourcefolder/$file_mkdump $workingroot/mkdump
 ln -sf $sourcefolder/$file_mkdumpdtg $linksfolder/mkdtgdump
 ln -sf $sourcefolder/$file_mkdumpdtg $workingroot/mkdtgdump
 
+
 # =============================================================================
 # =============================================================================
 # FOLDER:  Config
 # =============================================================================
+
 
 export workingdir=Config
 export sourcefolder=$workingbase/$workingdir
@@ -287,6 +292,7 @@ ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
 # =============================================================================
 # FOLDER:  GW
 # =============================================================================
+
 
 export workingdir=GW
 export sourcefolder=$workingbase/$workingdir
@@ -323,6 +329,7 @@ fi
 # FOLDER:  Health_Check
 # =============================================================================
 
+
 export workingdir=Health_Check
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
@@ -347,6 +354,7 @@ ln -sf $sourcefolder/$file_healthdump $workingroot/healthdump
 # =============================================================================
 # FOLDER:  MDM
 # =============================================================================
+
 
 export workingdir=MDM
 export sourcefolder=$workingbase/$workingdir
@@ -379,6 +387,7 @@ fi
 # =============================================================================
 # FOLDER:  Session_Cleanup
 # =============================================================================
+
 
 export workingdir=Session_Cleanup
 export sourcefolder=$workingbase/$workingdir
@@ -447,8 +456,39 @@ fi
 
 # =============================================================================
 # =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_smev_backup=SmartEvent_Backup_R8X_v00.01.03.sh
+file_smev_restore=SmartEvent_Restore_R8X_v00.00.03.sh
+
+ln -sf $sourcefolder/$file_smev_backup $linksfolder/SmartEvent_backup
+ln -sf $sourcefolder/$file_smev_restore $linksfolder/SmartEvent_restore
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_smev_backup $workingroot/SmartEvent_backup
+    #ln -sf $sourcefolder/$file_smev_restore $workingroot/SmartEvent_restore
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
 # FOLDER:  SMS
 # =============================================================================
+
 
 export workingdir=SMS
 export sourcefolder=$workingbase/$workingdir
@@ -493,10 +533,12 @@ if [ $Check4EP773000 -gt 0 ]; then
 
 fi
 
+
 # =============================================================================
 # =============================================================================
 # FOLDER:  UserConfig
 # =============================================================================
+
 
 export workingdir=UserConfig
 export sourcefolder=$workingbase/$workingdir
@@ -518,6 +560,7 @@ ln -sf $sourcefolder/$file_add_allias_all $workingroot/add_alias_commands
 ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands.all
 ln -sf $sourcefolder/$file_add_allias_000 $linksfolder/add_alias_commands.000
 ln -sf $sourcefolder/$file_add_allias_001 $linksfolder/add_alias_commands.001
+
 
 # =============================================================================
 # =============================================================================
