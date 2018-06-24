@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.08.00
-ScriptDate=2018-06-03
+ScriptVersion=00.09.00
+ScriptDate=2018-06-22
 #
 
-export BASHScriptVersion=v00x08x00
+export BASHScriptVersion=v00x09x00
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_002_v00.09.02.sh
+file_configcapture=config_capture_002_v00.10.00.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture

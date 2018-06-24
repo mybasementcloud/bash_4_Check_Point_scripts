@@ -4,11 +4,11 @@
 #
 # (C) 2016-2018 Eric James Beasley
 #
-ScriptVersion=00.09.02
-ScriptDate=2018-05-30
+ScriptVersion=00.10.00
+ScriptDate=2018-06-22
 #
 
-export BASHScriptVersion=v00x09x02
+export BASHScriptVersion=v00x10x00
 
 
 echo
@@ -119,10 +119,12 @@ fi
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
+export gaiaversionoutputfile=/var/tmp/gaiaversion_$DATE.txt
+echo > $gaiaversionoutputfile
 
 export gaiaversion=$(clish -c "show version product" | cut -d " " -f 6)
-echo 'Gaia Version : $gaiaversion = '$gaiaversion
-echo
+echo 'Gaia Version : $gaiaversion = '$gaiaversion | tee -a -i $gaiaversionoutputfile
+echo | tee -a -i $gaiaversionoutputfile
 
 Check4SMS=0
 Check4EPM=0
@@ -146,57 +148,57 @@ else
 fi
 
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
+    echo "System is Multi-Domain Management Server!" | tee -a -i $gaiaversionoutputfile
     Check4GW=0
 elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
+    echo "System is Security Management Server!" | tee -a -i $gaiaversionoutputfile
     Check4SMS=1
     Check4GW=0
 else
-    echo "System is a gateway!"
+    echo "System is a gateway!" | tee -a -i $gaiaversionoutputfile
     Check4GW=1
 fi
-echo
+echo | tee -a -i $gaiaversionoutputfile
 
 if [ $Check4EP773000 -gt 0 ] && [ $Check4EP773003 -gt 0 ]; then
-    echo "Endpoint Security Server version R77.30.03"
+    echo "Endpoint Security Server version R77.30.03" | tee -a -i $gaiaversionoutputfile
     export gaiaversion=R77.30.03
     Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ] && [ $Check4EP773002 -gt 0 ]; then
-    echo "Endpoint Security Server version R77.30.02"
+    echo "Endpoint Security Server version R77.30.02" | tee -a -i $gaiaversionoutputfile
     export gaiaversion=R77.30.02
     Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ] && [ $Check4EP773001 -gt 0 ]; then
-    echo "Endpoint Security Server version R77.30.01"
+    echo "Endpoint Security Server version R77.30.01" | tee -a -i $gaiaversionoutputfile
     export gaiaversion=R77.30.01
     Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ]; then
-    echo "Endpoint Security Server version R77.30"
+    echo "Endpoint Security Server version R77.30" | tee -a -i $gaiaversionoutputfile
     export gaiaversion=R77.30
     Check4EPM=1
 else
-    echo "Not Gaia Endpoint Security Server"
+    echo "Not Gaia Endpoint Security Server" | tee -a -i $gaiaversionoutputfile
     Check4EPM=0
 fi
 
-echo
-echo 'Final $gaiaversion = '$gaiaversion
-echo
+echo | tee -a -i $gaiaversionoutputfile
+echo 'Final $gaiaversion = '$gaiaversion | tee -a -i $gaiaversionoutputfile
+echo | tee -a -i $gaiaversionoutputfile
 
 if [ $Check4MDS -eq 1 ]; then
-	echo 'Multi-Domain Management stuff...'
+	echo 'Multi-Domain Management stuff...' | tee -a -i $gaiaversionoutputfile
 fi
 
 if [ $Check4SMS -eq 1 ]; then
-	echo 'Security Management Server stuff...'
+	echo 'Security Management Server stuff...' | tee -a -i $gaiaversionoutputfile
 fi
 
 if [ $Check4EPM -eq 1 ]; then
-	echo 'Endpoint Security Management Server stuff...'
+	echo 'Endpoint Security Management Server stuff...' | tee -a -i $gaiaversionoutputfile
 fi
 
 if [ $Check4GW -eq 1 ]; then
-	echo 'Gateway stuff...'
+	echo 'Gateway stuff...' | tee -a -i $gaiaversionoutputfile
 fi
 
 echo
@@ -209,13 +211,13 @@ export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
 export isitnewkernel=`test -z $checkthiskernel; echo $?`
 
 if [ $isitoldkernel -eq 1 ] ; then
-    echo "OLD Kernel version $gaia_kernel_version"
+    echo "OLD Kernel version $gaia_kernel_version" | tee -a -i $gaiaversionoutputfile
 elif [ $isitnewkernel -eq 1 ]; then
-    echo "NEW Kernel version $gaia_kernel_version"
+    echo "NEW Kernel version $gaia_kernel_version" | tee -a -i $gaiaversionoutputfile
 else
-    echo "Kernel version $gaia_kernel_version"
+    echo "Kernel version $gaia_kernel_version" | tee -a -i $gaiaversionoutputfile
 fi
-echo
+echo | tee -a -i $gaiaversionoutputfile
 
 # Alternative approach from Health Check
 
@@ -273,15 +275,15 @@ else
     sys_type_GW=false
 fi
 
-echo "sys_type = "$sys_type
-echo
-echo "System Type : SMS        :"$sys_type_SMS
-echo "System Type : MDS        :"$sys_type_MDS
-echo "System Type : SmartEvent :"$sys_type_SmartEvent
-echo "System Type : GATEWAY    :"$sys_type_GW
-echo "System Type : STANDALONE :"$sys_type_STANDALONE
-echo "System Type : VSX        :"$sys_type_VSX
-echo
+echo "sys_type = "$sys_type | tee -a -i $gaiaversionoutputfile
+echo | tee -a -i $gaiaversionoutputfile
+echo "System Type : SMS        :"$sys_type_SMS | tee -a -i $gaiaversionoutputfile
+echo "System Type : MDS        :"$sys_type_MDS | tee -a -i $gaiaversionoutputfile
+echo "System Type : SmartEvent :"$sys_type_SmartEvent | tee -a -i $gaiaversionoutputfile
+echo "System Type : GATEWAY    :"$sys_type_GW | tee -a -i $gaiaversionoutputfile
+echo "System Type : STANDALONE :"$sys_type_STANDALONE | tee -a -i $gaiaversionoutputfile
+echo "System Type : VSX        :"$sys_type_VSX | tee -a -i $gaiaversionoutputfile
+echo | tee -a -i $gaiaversionoutputfile
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -310,6 +312,19 @@ else
     chmod 775 $outputfilepath
 fi
 
+
+#----------------------------------------------------------------------------------------
+# bash - Gaia Version information 
+#----------------------------------------------------------------------------------------
+
+export command2run=Gaia_version
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# This was already collected earlier and saved in a dedicated file
+
+cp $gaiaversionoutputfile $outputfilefqdn
+rm $gaiaversionoutputfile
 
 #----------------------------------------------------------------------------------------
 # bash - backup user's home folder
@@ -391,91 +406,6 @@ echo >> "$outputfilefqdn"
 
 echo "Current path : " >> "$outputfilefqdn"
 pwd >> "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# clish - save configuration to file
-#----------------------------------------------------------------------------------------
-
-export command2run=config
-export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-clish -c "lock database override"
-clish -c "lock database override"
-clish -c "save config"
-clish -c "save configuration $outputfile"
-clish -c "save config"
-cp "$outputfile" "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# clish and bash - Gather version information from all possible methods
-#----------------------------------------------------------------------------------------
-
-export command2run=versions
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-touch $outputfilefqdn
-echo 'Versions:' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo 'uname for kernel version : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-uname -a >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'clish : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-clish -c "show version all" >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'cpinfo -y all : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-cpinfo -y all >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'fwm ver : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-fwm ver >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'fw ver : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-fw ver >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-    # installed_jumbo_take only exists in R7X
-    echo >> "$outputfilefqdn"
-else
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    installed_jumbo_take >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-fi
 
 
 #----------------------------------------------------------------------------------------
@@ -735,6 +665,52 @@ echo | tee -a -i "$outputfilefqdn"
 #
 
 #----------------------------------------------------------------------------------------
+# bash - GW - status of Identity Awareness
+#----------------------------------------------------------------------------------------
+
+if [ $Check4GW -eq 1 ]; then
+    
+    export command2run=identity_awareness_details
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqdn=$outputfilepath$outputfile
+    
+    echo
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn
+    
+    touch $outputfilefqdn
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'pdp status show' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    pdp status show >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'pep show pdp all' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    pep show pdp all >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'pdp auth kerberos_encryption get' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    pdp auth kerberos_encryption get >> "$outputfilefqdn"
+    
+fi
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
 # bash - ?what next?
 #----------------------------------------------------------------------------------------
 
@@ -753,6 +729,144 @@ echo | tee -a -i "$outputfilefqdn"
 #
 #fwaccel stats -s >> "$outputfilefqdn"
 #
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# clish operations - might have issues if user is in Gaia webUI
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+export command2run=clish_commands
+export clishoutputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export clishoutputfilefqdn=$outputfilepath$clishoutputfile
+
+
+#----------------------------------------------------------------------------------------
+# clish - save configuration to file
+#----------------------------------------------------------------------------------------
+
+export command2run=clish_config
+export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a $clishoutputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a $clishoutputfilefqdn
+echo | tee -a $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "save config" >> $clishoutputfilefqdn
+
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "save configuration $outputfile" >> $clishoutputfilefqdn
+
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "save config" >> $clishoutputfilefqdn
+
+cp "$outputfile" "$outputfilefqdn" >> $clishoutputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
+# clish - show assets
+#----------------------------------------------------------------------------------------
+
+export command2run=clish_assets
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a $clishoutputfilefqdn
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a $clishoutputfilefqdn
+echo | tee -a $clishoutputfilefqdn
+touch $outputfilefqdn
+
+echo 'clish show asset all :' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "show asset all" >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo 'clish show asset system :' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "show asset system" >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# clish and bash - Gather version information from all possible methods
+#----------------------------------------------------------------------------------------
+
+export command2run=versions
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+touch $outputfilefqdn
+echo 'Versions:' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo 'uname for kernel version : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+uname -a >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'clish : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "show version all" >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'cpinfo -y all : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+cpinfo -y all >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'fwm ver : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+fwm ver >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'fw ver : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+fw ver >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
+    # installed_jumbo_take only exists in R7X
+    echo >> "$outputfilefqdn"
+else
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    installed_jumbo_take >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+fi
 
 
 #----------------------------------------------------------------------------------------
