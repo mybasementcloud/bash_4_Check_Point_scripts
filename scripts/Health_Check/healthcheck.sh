@@ -5,10 +5,10 @@
 #
 # DESCRIPTION:	    Checks the system for things that may adversely impact performance or reliability.
 #
-# AUTHOR:           Nathan Davieau (Check Point Advanced Diamond Engineer)
+# AUTHOR:           Nathan Davieau (Check Point Diamond Services Tech Lead)
 # AUTHOR:           Rosemarie Rodriguez (Check Point Advanced Diamond Engineer)
 # CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter
-# VERSION:		    4.11
+# VERSION:  	    4.12
 # SK:               sk121447
 #====================================================================================================
 
@@ -28,7 +28,7 @@ messages_tmp_file="/var/tmp/messages_check.tmp"
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="4.11 05-07-2018"
+script_ver="4.12 06-21-2018"
 
 
 #====================================================================================================
@@ -59,15 +59,12 @@ elif [[ $current_version == *"R77.10"* ]]; then
     current_version="7710"
 elif [[ $current_version == *"R77"* ]]; then
     current_version="7700"
-elif [[ $current_version == *"R76"* ]]; then
-    current_version="7600"
 else
     yesno_loop=1
     printf "\nSupported Versions:\n" | tee -a $output_log
 	printf "\tR80.20\n" | tee -a $output_log
 	printf "\tR80.10\n" | tee -a $output_log
     printf "\tR77.xx\n" | tee -a $output_log
-	printf "\tR76\n" | tee -a $output_log
     printf "\nDetected local system version:\n$current_version\n\n" | tee -a $output_log
     printf "This script has not been certified for this version and may not function properly on this system.\n" | tee -a $output_log
     
@@ -109,52 +106,11 @@ else
 fi
 
 
-#====================================================================================================
-#  Misc
-#====================================================================================================
-# Ensure we have the clish database lock
-clish -c "lock database override" >> /dev/null 2>&1
-clish -c "lock database override" >> /dev/null 2>&1
-
-# Initialize temp log files
-printf "\n\n#######################################\n" >> $full_output_log
-printf "# Full system diagnostic information  #\n" >> $full_output_log
-printf "#######################################\n" >> $full_output_log
-
-# Initialize CSV log
-printf "Category,Check,Status,SK\n" >> $csv_log
-
-
-#====================================================================================================
-#  Detect CPU info for later checks
-#====================================================================================================
-mpstat_p_all=$(mpstat -P ALL)
-for (( i=1; i<20; i++ )); do
-    if [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep idle) ]]; then
-        mpstat_idle=$i
-    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep us) ]]; then
-        mpstat_user=$i
-    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep sys) ]]; then
-        mpstat_system=$i
-    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep wait) ]]; then
-        mpstat_wait=$i
-    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep soft) ]]; then
-        mpstat_soft=$i
-    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep CPU) ]]; then
-        mpstat_cpu=$i
-    fi
-done
-all_cpu_list=$(echo "$mpstat_p_all" | grep -v Linux | awk -v temp=$mpstat_cpu '{print $temp}' | grep ^[0-9])
-all_cpu_count=$(echo "$mpstat_p_all" | grep ^[0-9] | grep -v CPU | grep -v all | wc -l)
-
-
-
 #####################################################################################################
 #
 #  Start of Functions section
 #
 #####################################################################################################
-
 
 #====================================================================================================
 #  Function to end a check as "OK"
@@ -171,21 +127,33 @@ check_passed()
 #====================================================================================================
 check_failed()
 {
+    #Insert blank line between individual errors of the same overall section
+    if [[ $all_checks_passed == false ]]; then
+        printf "\n" >> $logfile
+    fi
+    
+    #Insert VS name between VS checks
     if [[ $vs_error -eq 2 ]]; then
         vs_error=1
         printf "\n\nVirtual System $vs:\n====================================" >> $logfile
     fi
+    
+    #Set output of specific check to WARNING
     if [[ $test_output_error -eq 0 ]]; then
         printf " WARNING\t|\n" >> $output_log
         printf "${text_red} WARNING${text_reset}\t|\n"
         test_output_error=1
     fi
+    
+    #Display summary error for overall section
     if [[ $summary_error -eq 0 ]]; then
         summary_error=1
         echo "" >> $logfile
         echo $current_check_message >> $logfile
         echo "##########################" >> $logfile
     fi
+    
+    #Set flag that a check failed
     all_checks_passed=false
 }
 
@@ -195,21 +163,33 @@ check_failed()
 #====================================================================================================
 check_info()
 {
+    #Insert blank line between individual errors of the same overall section
+    if [[ $all_checks_passed == false ]]; then
+        printf "\n" >> $logfile
+    fi
+    
+    #Insert VS name between VS checks
     if [[ $vs_error -eq 2 ]]; then
         vs_error=1
         printf "\n\nVirtual System $vs:\n====================================" >> $logfile
     fi
+    
+    #Set output of specific check to INFO
     if [[ $test_output_error -eq 0 ]]; then
         printf " INFO\t\t|\n" >> $output_log
         printf "${text_yellow} INFO${text_reset}\t\t|\n"
         test_output_error=1
     fi
+    
+    #Display summary error for overall section
     if [[ $summary_error -eq 0 ]]; then
         summary_error=1
         echo "" >> $logfile
         echo $current_check_message >> $logfile
         echo "##########################" >> $logfile
     fi
+    
+    #Set flag that a check failed
     all_checks_passed=false
 }
 
@@ -543,51 +523,52 @@ check_memory()
         
         #Historic checks using CPViewDB.dat
         if [[ -e /var/log/CPView_history/CPViewDB.dat ]]; then
-            #====================================================================================================
-            #  Memory 30-Day Average Check
-            #====================================================================================================
-            printf "|\t\t\t| Memory 30-Day Average\t\t|" | tee -a $output_log
-            test_output_error=0
+            #Collect CPView info
+            mem_total=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(real_total) from UM_STAT_UM_MEMORY;" 2> /dev/null)
+            mem_avg=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(real_used) from UM_STAT_UM_MEMORY;" 2> /dev/null)
+            mem_peak=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(real_used) from UM_STAT_UM_MEMORY;" 2> /dev/null)
             
-            #Collect total memory and average usage
-            mem_total=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(real_total) from UM_STAT_UM_MEMORY;")
-            mem_avg=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(real_used) from UM_STAT_UM_MEMORY;")
-            
-            #Turn average usage into a percent
-            mem_average_used=$(echo $mem_avg/$mem_total*100 | bc -l | awk '{printf "%.0f", int($1+0.5)}')
-            
-            #Log final output
-            if [[ $mem_average_used -ge 80 ]]; then
-                check_failed
-                printf "Memory,Memory 30-Day Average,WARNING,sk98348\n" >> $csv_log
-                printf "The average memory usage over the last month was $mem_average_used percent.\nPlease check to see if there are any configuration optimizations from sk98348 that can be used or see if additional RAM can be installed in this system.\n" >> $logfile
-            else
-                check_passed
-                printf "Memory,Memory 30-Day Average,OK,\n" >> $csv_log
+            if [[ -n $mem_total && -n $mem_avg ]]; then
+                #====================================================================================================
+                #  Memory 30-Day Average Check
+                #====================================================================================================
+                printf "|\t\t\t| Memory 30-Day Average\t\t|" | tee -a $output_log
+                test_output_error=0
+                
+                
+                #Turn average usage into a percent
+                mem_average_used=$(echo $mem_avg/$mem_total*100 | bc -l | awk '{printf "%.0f", int($1+0.5)}')
+                
+                #Log final output
+                if [[ $mem_average_used -ge 80 ]]; then
+                    check_failed
+                    printf "Memory,Memory 30-Day Average,WARNING,sk98348\n" >> $csv_log
+                    printf "The average memory usage over the last month was $mem_average_used percent.\nPlease check to see if there are any configuration optimizations from sk98348 that can be used or see if additional RAM can be installed in this system.\n" >> $logfile
+                else
+                    check_passed
+                    printf "Memory,Memory 30-Day Average,OK,\n" >> $csv_log
+                fi
             fi
             
-            #====================================================================================================
-            #  Memory 30-Day Max Check
-            #====================================================================================================
-            printf "|\t\t\t| Memory 30-Day Peak\t\t|" | tee -a $output_log
-            test_output_error=0
-            
-            #Collect memory peak
-            mem_peak=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(real_used) from UM_STAT_UM_MEMORY;")
-            
-            #Turn max usage into a percent
-            mem_average_used=$(echo $mem_peak/$mem_total*100 | bc -l | awk '{printf "%.0f", int($1+0.5)}')
-
-
-            
-            #Log final output
-            if [[ $cpu_over_80 -ge 1 ]]; then
-                check_failed
-                printf "Memory,Memory 30-Day Peak,WARNING,\n" >> $csv_log
-                printf "$cpu_over_80 core(s) out of $all_cpu_count went over 80%% in the last month.\nPlease review the CPU usage on this device to see if a configuration change or hardware upgrade is needed.\n" >> $logfile
-            else
-                check_passed
-                printf "Memory,Memory 30-Day Peak,OK,\n" >> $csv_log
+            if [[ -n $mem_total && -n $mem_peak ]]; then
+                #====================================================================================================
+                #  Memory 30-Day Max Check
+                #====================================================================================================
+                printf "|\t\t\t| Memory 30-Day Peak\t\t|" | tee -a $output_log
+                test_output_error=0
+                
+                #Turn max usage into a percent
+                mem_average_used=$(echo $mem_peak/$mem_total*100 | bc -l | awk '{printf "%.0f", int($1+0.5)}')
+                
+                #Log final output
+                if [[ $cpu_over_80 -ge 1 ]]; then
+                    check_failed
+                    printf "Memory,Memory 30-Day Peak,WARNING,\n" >> $csv_log
+                    printf "$cpu_over_80 core(s) out of $all_cpu_count went over 80%% in the last month.\nPlease review the CPU usage on this device to see if a configuration change or hardware upgrade is needed.\n" >> $logfile
+                else
+                    check_passed
+                    printf "Memory,Memory 30-Day Peak,OK,\n" >> $csv_log
+                fi
             fi
         fi
     fi
@@ -750,7 +731,7 @@ check_cpu()
         cpu_over_80=0
         test_output_error=0
         for current_cpu in $all_cpu_list; do
-            current_cpu_avg=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" | awk '{printf "%.0f", int($1+0.5)}')
+            current_cpu_avg=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" 2> /dev/null | awk '{printf "%.0f", int($1+0.5)}')
             if [[ $current_cpu_avg -ge 80 ]]; then
                 ((cpu_over_80++))
                 check_failed
@@ -775,7 +756,7 @@ check_cpu()
         cpu_over_80=0
         test_output_error=0
         for current_cpu in $all_cpu_list; do
-            current_cpu_peak=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" | awk '{printf "%.0f", int($1+0.5)}')
+            current_cpu_peak=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select max(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" 2> /dev/null | awk '{printf "%.0f", int($1+0.5)}')
             if [[ $current_cpu_peak -ge 80 ]]; then
                 ((cpu_over_80++))
                 check_failed
@@ -1053,201 +1034,292 @@ check_misc_messages()
     printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     
     #Combine /var/log/messages and /var/log/dmesg then start log.
-    cat /var/log/messages* /var/log/dmesg >> $messages_tmp_file
+    cat /var/log/messages* /var/log/dmesg >> $messages_tmp_file 2> /dev/null
     printf "| Misc. Messages\t| Known issues in logs\t\t|" | tee -a $output_log
     
     #Check Neighbor table overflow
-    if [[ $(grep "Neighbor table overflow" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "neighbour table overflow" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,Neighbor table overflow,WARNING,sk43772\n" >> $csv_log
-        printf "\"Neighbor table overflow\" message detected:\n" >> $logfile
-        printf "See sk43772 to resolve.\n\n" >> $logfile
+        printf "\"neighbour table overflow\" message detected:\n" >> $logfile
+        printf "For more information, refer to sk43772.\n" >> $logfile
     fi
     
     #Check synchronization risk
-    if [[ $(grep "State synchronization is in risk" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "State synchronization is in risk" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,State synchronization is in risk,WARNING,sk23695\n" >> $csv_log
         printf "\"State synchronization is in risk\" message detected:\n" >> $logfile
-        printf "See sk23695 to resolve.\n\n" >> $logfile
+        printf "For more information, refer to sk23695.\n" >> $logfile
     fi
     
     #Check SecureXL Templates
-    if [[ $(grep "Connection templates are not possible for the installed policy" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "Connection templates are not possible for the installed policy" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,SecureXL templates are not possible for the installed policy,WARNING,sk31630\n" >> $csv_log
         printf "\"SecureXL templates are not possible for the installed policy\" message detected:\n" >> $logfile
-        printf "See sk31630 to resolve.\n\n" >> $logfile
+        printf "For more information, refer to sk31630.\n" >> $logfile
     fi
     
     #Check Out of Memory
-    if [[ $(grep "Out of Memory: Killed" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "Out of Memory: Killed" $messages_tmp_file) ]]; then
         check_failed
-        printf "Misc. Messages,Out of Memory: Killed process,WARNING,\n" >> $csv_log
+        printf "Misc. Messages,Out of Memory: Killed process,WARNING,sk33219\n" >> $csv_log
         printf "\"Out of Memory: Killed process\" message detected:\n" >> $logfile
         printf "This message means there is no more memory available in the user space.\n" >> $logfile
-        printf "As a result, Gaia or SecurePlatform starts to kill processes.\n\n" >> $logfile
+        printf "As a result, Gaia or SecurePlatform starts to kill processes.\n" >> $logfile
+        printf "For more information, refer to sk33219.\n" >> $logfile
     fi
     
     #Check Additional Sync problem
-    if [[ $(grep "fwlddist_adjust_buf: record too big for sync" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "fwlddist_adjust_buf: record too big for sync" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,Record too big for Sync,WARNING,sk35466\n" >> $csv_log
         printf "\"Record too big for Sync\" message detected:" >> $logfile
         printf "This message may indicate problems with the sync network.\n" >> $logfile
         printf "It can cause traffic loss, unsynchronized kernel tables, and connectivity problems." >> $logfile
-        printf "For more information, refer to sk35466.\n\n" >> $logfile
+        printf "For more information, refer to sk35466.\n" >> $logfile
     fi
     
     #Check Dead loop on virtual device 
-    if [[ $(grep "Dead loop on virtual device" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "Dead loop on virtual device" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,Dead Loop on virtual device,WARNING,sk32765\n" >> $csv_log
         printf "\"Dead Loop on virtual device\" message detected:\n" >> $logfile
         printf "This message is a SecureXL notification on the outbound connection that may cause the gateway to lose sync traffic.\n" >> $logfile
-        printf "For more information, refer to sk32765.\n\n" >> $logfile
+        printf "For more information, refer to sk32765.\n" >> $logfile
     fi
     
     #Check Stack Overflow 
-    if [[ $(grep "fw_runfilter_ex" $messages_tmp_file | grep "stack overflow") ]]; then
+    if [[ $(grep -i "fw_runfilter_ex" $messages_tmp_file | grep -i "stack overflow") ]]; then
         check_failed
         printf "Misc. Messages,Stack Overflow,WARNING,sk99329\n" >> $csv_log
         printf "\"Stack Overflow\" message detected:\n" >> $logfile
         printf "It is possible that the number of security rules has exceeded a limit or some file became corrupted.\n" >> $logfile
-        printf "For more information, refer to sk99329.\n\n" >> $logfile
+        printf "For more information, refer to sk99329.\n" >> $logfile
     fi
     
     #Check Log buffer full 
-    if [[ $(grep "FW-1: Log Buffer is full" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "FW-1: Log Buffer is full" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,FW-1: Log Buffer is full,WARNING,sk52100\n" >> $csv_log
         printf "\"FW-1: Log Buffer is full\" message detected:\n" >> $logfile
         printf "The kernel module maintains a cyclic buffer of waiting log messages.\n" >> $logfile
         printf "This log buffer queue was overflown (i.e., new logs are added before all the previous ones are being read - causing messages to be overwritten) resulting in the above messages.\n" >> $logfile
         printf "The most probable causes can be: high CPU utilization, high levels of logging, increased traffic, or change in logging.\n" >> $logfile
-        printf "For more information, refer to sk52100.\n\n" >> $logfile
+        printf "For more information, refer to sk52100.\n" >> $logfile
     fi
     
     #Check Log buffer tsid 0 full 
-    if [[ $(grep "FW-1: Log buffer for tsid 0 is full" $messages_tmp_file) ]]; then
+    if [[ $(grep -i "FW-1: Log buffer for tsid 0 is full" $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,FW-1: Log buffer for tsid 0 is full,WARNING,sk114616\n" >> $csv_log
         printf "\"FW-1: Log buffer for tsid 0 is full\" message detected:\n" >> $logfile
         printf "Log buffer used by the FWD daemon gets full.\n" >> $logfile
         printf "As a result, FireWall log messages are not processed in time.\n" >> $logfile
-        printf "For more information, refer to sk114616.\n\n" >> $logfile
+        printf "For more information, refer to sk114616.\n" >> $logfile
     fi
     
     #Check Max entries in state on conn
-    if [[ $(grep "number of entries in state on conn" $messages_tmp_file | grep "has reached maximum allowed") ]]; then
+    if [[ $(grep -i "number of entries in state on conn" $messages_tmp_file | grep -i "has reached maximum allowed") ]]; then
         check_failed
         printf "Misc. Messages,Number of entries in state on conn has reached maximum allowed,WARNING,sk52101\n" >> $csv_log
         printf "\"number of entries in state on conn has reached maximum allowed\" message detected:\n" >> $logfile
         printf "The \"sd_conn_state_max_entries\" kernel parameter is used by IPS.\n" >> $logfile
         printf "All connections/packets are held in this kernel table, so IPS protections can be run against them.\n" >> $logfile
         printf "If too many connections/packets are held, then the buffer will be overrun.\n" >> $logfile
-        printf "For more information, refer to sk52101.\n\n" >> $logfile
+        printf "For more information, refer to sk52101.\n" >> $logfile
     fi
     
     #Check Connections table 80% full
-    if [[ $(grep 'The connections table is 80% full' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'The connections table is 80% full' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,The connections table is 80% full,WARNING,sk35627\n" >> $csv_log
         printf "\"The connections table is 80% full\" message detected:\n" >> $logfile
         printf "Traffic might be dropped by Security Gateway.\n" >> $logfile
-        printf "For more information, refer to sk35627.\n\n" >> $logfile
+        printf "For more information, refer to sk35627.\n" >> $logfile
     fi
     
     #Check Different versions
-    if [[ $(grep 'fwsync: there is a different installation of Check Point' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'fwsync: there is a different installation of Check Point' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,there is a different installation of Check Point products on each member of this cluster,WARNING,sk41023\n" >> $csv_log
         printf "\"fwsync: there is a different installation of Check Point products on each member of this cluster\" message detected:\n" >> $logfile
         printf "This issue can be seen if some Check Point packages were manually deleted or disabled on one of cluster members, bit not on others.\n" >> $logfile
-        printf "For more information, refer to sk41023.\n\n" >> $logfile
+        printf "For more information, refer to sk41023.\n" >> $logfile
     fi
     
     #Check too many internal hosts
-    if [[ $(grep 'too many internal hosts' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'too many internal hosts' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,too many internal hosts,WARNING,sk10200\n" >> $csv_log
         printf "\"too many internal hosts\" message detected:\n" >> $logfile
         printf "Traffic may pass through Security Gateway very slowly.\n" >> $logfile
-        printf "For more information, refer to sk10200.\n\n" >> $logfile
+        printf "For more information, refer to sk10200.\n" >> $logfile
     fi
     
     #Check Interface configured in Management
-    if [[ $(grep 'kernel: FW-1: No interface configured in SmartCenter server with name' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'kernel: FW-1: No interface configured in SmartCenter server with name' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,No interface configured in SmartCenter server,WARNING,sk36849\n" >> $csv_log
         printf "\"kernel: FW-1: No interface configured in SmartCenter server with name\" message detected:\n" >> $logfile
         printf "In the SmartDashboard there were no interface(s) with such name(s) - as appear on the Security Gateway machine.\n" >> $logfile
         printf "Therefore, by design, the Firewall tries to match the interface in question by IP address.\n" >> $logfile
-        printf "For more information, refer to sk36849.\n\n" >> $logfile
+        printf "For more information, refer to sk36849.\n" >> $logfile
     fi
     
     #Check alternate Sync in risk
-    if [[ $(grep 'sync in risk: did not receive ack for the last' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'sync in risk: did not receive ack for the last' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,sync in risk: did not receive ack,WARNING,sk82080\n" >> $csv_log
         printf "\"sync in risk: did not receive ack for the last x packets\" message detected:\n" >> $logfile
         printf "Amount of outgoing Delta Sync packets is too high for the current Sending Queue size.\n" >> $logfile
-        printf "For more information, refer to sk82080.\n\n" >> $logfile
+        printf "For more information, refer to sk82080.\n" >> $logfile
     fi
     
     #Check OSPF messages
-    if [[ $(grep 'cpcl_should_send' $messages_tmp_file | grep 'returns -3') ]]; then
+    if [[ $(grep -i 'cpcl_should_send' $messages_tmp_file | grep -i 'returns -3') ]]; then
         check_failed
         printf "Misc. Messages,cpcl_should_send returns -3,WARNING,sk106129\n" >> $csv_log
         printf "\"cpcl_should_send returns -3\" message detected:\n" >> $logfile
         printf "OSPF routes may not be synced between the Active member and the other cluster members.\n" >> $logfile
-        printf "For more information, refer to sk106129.\n\n" >> $logfile
+        printf "For more information, refer to sk106129.\n" >> $logfile
     fi
     
     #Check cphwd_pslglue_can_offload_template
-    if [[ $(grep 'cphwd_pslglue_can_offload_template: error, psl_opaque is NULL' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'cphwd_pslglue_can_offload_template: error, psl_opaque is NULL' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,cphwd_pslglue_can_offload_template: error,WARNING,sk107258\n" >> $csv_log
         printf "\"cphwd_pslglue_can_offload_template: error, psl_opaque is NULL\" message detected:\n" >> $logfile
         printf "This issue can be resolved by either disabling SecureXL or installing the latest jumbo.\n" >> $logfile
-        printf "For more information, refer to sk107258.\n\n" >> $logfile
+        printf "For more information, refer to sk107258.\n" >> $logfile
     fi
     
     #Check RIP message
-    if [[ $(grep 'cpcl_should_send' $messages_tmp_file | grep 'returns -1') ]]; then
+    if [[ $(grep -i 'cpcl_should_send' $messages_tmp_file | grep -i 'returns -1') ]]; then
         check_failed
         printf "Misc. Messages,cpcl_should_send returns -1,WARNING,sk106128\n" >> $csv_log
         printf "\"cpcl_should_send returns -1\" message detected:\n" >> $logfile
         printf "When RIP is configured, RouteD does not check correctly if RIP sync state should be sent to other cluster members.\n" >> $logfile
-        printf "For more information, refer to sk106128.\n\n" >> $logfile
+        printf "For more information, refer to sk106128.\n" >> $logfile
     fi
     
     #Check Enter/Leave cpcl_vfr_recv_from_instance_manager
-    if [[ $(grep -e 'entering cpcl_vrf_recv_from_instance_manager' -e'leaving cpcl_vrf_recv_from_instance_manager' $messages_tmp_file) ]]; then
+    if [[ $(grep -i -e 'entering cpcl_vrf_recv_from_instance_manager' -e'leaving cpcl_vrf_recv_from_instance_manager' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,entering/leaving cpcl_vrf_recv_from_instance_manager,WARNING,sk108233\n" >> $csv_log
         printf "\"entering/leaving cpcl_vrf_recv_from_instance_manager\" message detected:\n" >> $logfile
         printf "Cluster state may be changing repeatedly.\n" >> $logfile
-        printf "For more information, refer to sk108233.\n\n" >> $logfile
+        printf "For more information, refer to sk108233.\n" >> $logfile
     fi
     
     #Check duplicate address detected
-    if [[ $(grep 'if_get_address: duplicate address detected:' $messages_tmp_file) ]]; then
+    if [[ $(grep -i 'if_get_address: duplicate address detected:' $messages_tmp_file) ]]; then
         check_failed
         printf "Misc. Messages,if_get_address: duplicate address detected,WARNING,sk94466\n" >> $csv_log
         printf "\"if_get_address: duplicate address detected\" message detected:\n" >> $logfile
         printf "Assigning a cluster IP address in the range of the VSX internal communication network causes an IP address conflict and causes RouteD daemon to crash.\n" >> $logfile
-        printf "For more information, refer to sk94466.\n\n" >> $logfile
+        printf "For more information, refer to sk94466.\n" >> $logfile
     fi
     
     #Check vmalloc
-    if [[ $(grep 'Failed to allocate' $messages_tmp_file | grep 'bytes from vmalloc') ]]; then
+    if [[ $(grep -i 'Failed to allocate' $messages_tmp_file | grep -i 'bytes from vmalloc') ]]; then
         check_failed
         printf "Misc. Messages,Failed to allocate bytes from vmalloc,WARNING,sk90043\n" >> $csv_log
         printf "\"Failed to allocate bytes from vmalloc\" message detected:\n" >> $logfile
-        printf "Linux \"vmalloc\" reserved memory area is exhausted.\," >> $logfile
+        printf "Linux \"vmalloc\" reserved memory area is exhausted.\n" >> $logfile
         printf "Critical allocations, which are needed for a Virtual System, can not be allocated.\n" >> $logfile
-        printf "For more information, refer to sk90043.\n\n" >> $logfile
+        printf "For more information, refer to sk90043.\n" >> $logfile
+    fi
+    
+    #Check Soft Lockup
+    if [[ $(grep -i 'kernel: BUG: soft lockup - CPU' $messages_tmp_file | grep -i 'stuck for 10s') ]]; then
+        check_failed
+        printf "Misc. Messages,kernel: BUG: soft lockup - CPU#x stuck for 10s,WARNING,sk116870 and sk105729\n" >> $csv_log
+        printf "\"kernel: BUG: soft lockup - CPU#x stuck for 10s\" message detected:\n" >> $logfile
+        printf "A soft lockup isn't necessarily anything 'crashing', it is the symptom of a task or kernel thread using and not releasing a CPU for a longer period of time than allowed; in Check Point the default fault is 10 seconds.\n" >> $logfile
+        printf "For more information, refer to sk116870 and sk105729.\n" >> $logfile
+    fi
+    
+    #Check LOM not responding
+    if [[ $(grep -i 'The LOM is not accepting our command' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Misc. Messages,LOM is not accepting our command,WARNING,sk92788 or sk94639\n" >> $csv_log
+        printf "\"Max retry count exceeded. The LOM is not accepting our command\" message detected:\n" >> $logfile
+        printf "A delay in synchronization of hardware sensor information between Gaia OS and LOM card has occurred.\n" >> $logfile
+        printf "For more information, refer to sk92788 and sk94639.\n" >> $logfile
+    fi
+    
+    #Check IPv6
+    if [[ $(grep -i 'modprobe: FATAL: Could not open' $messages_tmp_file | grep -i '/lib/modules/2.6.18-92cpx86_64/kernel/net/ipv6/ipv6.ko') ]]; then
+        check_failed
+        printf "Misc. Messages,Could not open ipv6.ko,WARNING,sk95222\n" >> $csv_log
+        printf "\"modprobe: FATAL: Could not open /lib/modules/2.6.18-92cpx86_64/kernel/net/ipv6/ipv6.ko\" message detected:\n" >> $logfile
+        printf "If IPv6 is disabled, this message can be safely ignored.\n" >> $logfile
+        printf "For more information, refer to sk95222.\n" >> $logfile
+    fi
+    
+    #Check syslogd sendto errors
+    if [[ $(grep -i 'syslogd: sendto' $messages_tmp_file | grep -i -e 'Invalid argument' -e 'Bad File Descriptor' -e 'Connection refused') ]]; then
+        check_failed
+        printf "Misc. Messages,syslogd sendto errors,WARNING,sk83160\n" >> $csv_log
+        printf "\"syslogd: sendto:\" failure message detected:\n" >> $logfile
+        printf "Syslog messages are not forwarded from Security Gateway to Security Management Server, although \"Send Syslog messages to management server\" option is activated in Gaia Portal on Security Gateway.\n" >> $logfile
+        printf "For more information, refer to sk83160.\n" >> $logfile
+    fi
+    
+    #Check Incorrect validation of SNMP traps 
+    if [[ $(grep -i 'xpand' $messages_tmp_file | grep -i 'The value of sensor could not be read') ]]; then
+        check_failed
+        printf "Misc. Messages,Incorrect validation of SNMP traps,WARNING,sk101898\n" >> $csv_log
+        printf "\"xpand[PID]: The value of sensor could not be read\" message detected:\n" >> $logfile
+        printf "SNMP Traps may be sent due to incorrect validation of the values returned by sensors.\n" >> $logfile
+        printf "For more information, refer to sk101898.\n" >> $logfile
+    fi
+    
+    #Check Open Server blank hardware sensors
+    if [[ $(grep -i 'SQL error: columns time_stamp, sensor_name are not unique rc=19' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Misc. Messages,Blank hardware sensors on open server,WARNING,sk97109\n" >> $csv_log
+        printf "\"SQL error: columns time_stamp, sensor_name are not unique rc=19\" message detected:\n" >> $logfile
+        printf "On Open Server, hardware sensor names are all empty causing duplicate entries appear in the SQL database of sensor data.\n" >> $logfile
+        printf "For more information, refer to sk97109.\n" >> $logfile
+    fi
+    
+    #Check Kernel Parameters
+    if [[ $(grep -i 'Global param: operation failed: Unknown parameter' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Misc. Messages,Global param: operation failed: Unknown parameter,WARNING,sk87006\n" >> $csv_log
+        printf "\"Global param: operation failed: Unknown parameter\" message detected:\n" >> $logfile
+        printf "Defined kernel parameters or their values are not valid.\n" >> $logfile
+        printf "For more information, refer to sk87006.\n" >> $logfile
+    fi
+    
+    #Check DHCP config
+    if [[ $(grep -i 'DHCPINFORM' $messages_tmp_file | grep -i 'not authoritative for subnet') ]]; then
+        check_failed
+        printf "Misc. Messages,DHCP not authoritative for subnet,WARNING,sk92436\n" >> $csv_log
+        printf "\"DHCP not authoritative for subnet\" message detected:\n" >> $logfile
+        printf "This is not specific to Check Point Software. This is a global DHCP message.\n" >> $logfile
+        printf "For more information, refer to sk92436.\n" >> $logfile
+    fi
+    
+    #Check /var/log/db
+    if [[ $(grep -i 'SQL error: database disk image is malformed' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Misc. Messages,SQL error: database disk image is malformed,WARNING,sk98338\n" >> $csv_log
+        printf "\"SQL error: database disk image is malformed\" message detected:\n" >> $logfile
+        printf "Possible reason: /var/log/db database might be corrupted.\n" >> $logfile
+        printf "For more information, refer to sk98338.\n" >> $logfile
+    fi
+    
+    #Check TSO offload
+    if [[ $(grep -i 'e1000_set_tso: TSO is enabled' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Misc. Messages,e1000_set_tso: TSO is enabled,WARNING,sk52761\n" >> $csv_log
+        printf "\"e1000_set_tso: TSO is enabled\" message detected:\n" >> $logfile
+        printf "TCP Segmentation Offload (TSO) is not supported by the FireWall.\n" >> $logfile
+        printf "For more information, refer to sk52761.\n" >> $logfile
     fi
     
     if [[ $test_output_error -eq 0 ]]; then
@@ -2118,7 +2190,7 @@ check_coreXL_stats()
             if [[ -e /var/log/CPView_history/CPViewDB.dat ]]; then
                 #Add CPU averages to array
                 for current_cpu in $all_cpu_list; do
-                    cpu_usage[$current_cpu]=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" | awk '{printf "%.0f", int($1+0.5)}')
+                    cpu_usage[$current_cpu]=$(sqlite3 /var/log/CPView_history/CPViewDB.dat "select avg(cpu_usage) from UM_STAT_UM_CPU_UM_CPU_ORDERED_TABLE where name_of_cpu=$current_cpu;" 2> /dev/null | awk '{printf "%.0f", int($1+0.5)}')
                 done
                 
                 #Add up CPU average for all SNDs
@@ -2333,6 +2405,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
+    script_build_date="06-21-2018"
     current_check_message="# Check Point Software:"
     printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     
@@ -2342,15 +2415,18 @@ check_cp_software()
     #====================================================================================================
     printf "| Check Point\t\t| CPInfo Build Number\t\t|" | tee -a $output_log
     cpinfo_build_version=$(cpvinfo /opt/CPinfo-10/bin/cpinfo | grep Build | awk '{print $4}')
+    latest_cpinfo_build="914000182"
     printf "\n\ncpinfo build:\n$cpinfo_build_version\n"  >> $full_output_log
-	if [[ $cpinfo_build_version -ge 914000182 ]]; then
+	if [[ $cpinfo_build_version -ge $latest_cpinfo_build ]]; then
         check_passed
         printf "Check Point,CPInfo Build Number,OK,\n" >> $csv_log
-        printf "The cpinfo utility is up to date as of 05-07-2018.\n" >> $full_output_log
+        printf "The cpinfo utility is up to date as of $script_build_date.\n" >> $full_output_log
 	else
         check_failed
         printf "Check Point,CPInfo Build Number,WARNING,sk92739\n" >> $csv_log
-		printf "The cpinfo utility is outdated. Please update cpinfo utility to the latest version using sk92739 (preferably using CPUSE).\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "An updated version of the CPInfo utility is available (as of $script_build_date).\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "Local Build:  $cpinfo_build_version\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "Latest Build: $latest_cpinfo_build\n" | tee -a $full_output_log $logfile > /dev/null
 	fi
     
     
@@ -2358,16 +2434,19 @@ check_cp_software()
     #  CPUSE Build Check (sk92449)
     #====================================================================================================
     test_output_error=0
-    cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
     printf "|\t\t\t| CPUSE Build Number\t\t|" | tee -a $output_log
-    if [[ $cpuse_build_version -ge 1483 ]]; then
+    cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
+    latest_cpuse_build="1508"
+    if [[ $cpuse_build_version -ge $latest_cpuse_build ]]; then
         check_passed
         printf "Check Point,CPUSE Build Number,OK,\n" >> $csv_log
-        printf "CPUSE is up to date as of 05-07-2018.\n" >> $full_output_log
+        printf "CPUSE is up to date as of $script_build_date.\n" >> $full_output_log
 	else
         check_failed
         printf "Check Point,CPUSE Build Number,WARNING,sk92449\n" >> $csv_log
-		printf "CPUSE is outdated. Please update CPUSE to the latest version using sk92449.\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "An updated version of CPUSE is available (as of $script_build_date).\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "Local Build:  $cpuse_build_version\n" | tee -a $full_output_log $logfile > /dev/null
+        printf "Latest Build: $latest_cpuse_build\n" | tee -a $full_output_log $logfile > /dev/null
 	fi
 
     #====================================================================================================
@@ -2435,6 +2514,40 @@ check_blades_enabled()
 #====================================================================================================
 # Main Script
 #====================================================================================================
+
+#Ensure we have the clish database lock
+clish -c "lock database override" >> /dev/null 2>&1
+clish -c "lock database override" >> /dev/null 2>&1
+
+#Initialize temp log files
+printf "\n\n#######################################\n" >> $full_output_log
+printf "# Full system diagnostic information  #\n" >> $full_output_log
+printf "#######################################\n" >> $full_output_log
+
+#Initialize CSV log
+printf "Category,Check,Status,SK\n" >> $csv_log
+
+#Detect CPU info for later checks
+mpstat_p_all=$(mpstat -P ALL)
+for (( i=1; i<20; i++ )); do
+    if [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep idle) ]]; then
+        mpstat_idle=$i
+    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep us) ]]; then
+        mpstat_user=$i
+    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep sys) ]]; then
+        mpstat_system=$i
+    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep wait) ]]; then
+        mpstat_wait=$i
+    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep soft) ]]; then
+        mpstat_soft=$i
+    elif [[ $(echo "$mpstat_p_all" | awk -v temp=$i '{print $temp}' | grep CPU) ]]; then
+        mpstat_cpu=$i
+    fi
+done
+all_cpu_list=$(echo "$mpstat_p_all" | grep -v Linux | awk -v temp=$mpstat_cpu '{print $temp}' | grep ^[0-9])
+all_cpu_count=$(echo "$mpstat_p_all" | grep ^[0-9] | grep -v CPU | grep -v all | wc -l)
+
+#Display check header
 printf "\n\n##############################\n# Health Check Results Report\n########################################\n\n" >> $output_log
 printf "\n\nCurrent Script Release: $script_ver\n" | tee -a $output_log
 printf "Current time: $(date)\n" | tee -a $output_log
@@ -2447,7 +2560,7 @@ printf "+=======================+===============================+===============
 printf "##############################\n# Health Check Summary Report\n##############################\n" >> $logfile
 
 
-#Checks to run
+#Checks to run for all devices
 check_system
 check_ntp
 check_disk_space
@@ -2458,6 +2571,7 @@ check_misc_messages
 check_application_processes
 check_core_files
 check_cp_software
+
 
 #Checks for firewall applications
 if [[ $sys_type == "STANDALONE" || $sys_type == "GATEWAY" ]]; then
