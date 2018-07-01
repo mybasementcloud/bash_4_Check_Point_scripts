@@ -9,11 +9,12 @@ These scripts are currently in deployment in the mybasementcloud environment and
 
 Specific examples and operation for:
 - _template - templates for bash scripts, may include some canned plumbing
-- Config - Configuration capture for Gaia (might work on SPLAT and Linux, not tested on those)
 - Common - general use scripts
+- Config - Configuration capture for Gaia (might work on SPLAT and Linux, not tested on those)
 - GW - Gateway systems
 - Health_Check - System Health Check Script as provided in sk121447, including example of how to collect the generated files into a dump file location
 - MDM - Multi-Domain Management Server systems
+- Patch_HotFix - scripts that fix things
 - Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, now includes MDM example.
 - SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
 - SMS - Security Management Server systems
@@ -25,6 +26,9 @@ NOTES:
   Examples:  
     mdm_show_zerolocks_sessions.v00.03.00.sh --port 4434 -d "Global"
     mdm_show_zerolocks_sessions.v00.03.00.sh --port 4434 -d "System Data"
+
+- Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1 (and later)
+
 
 Reference Check Point Secure Knowledge (SK) articles:
 sk121447 (https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447)

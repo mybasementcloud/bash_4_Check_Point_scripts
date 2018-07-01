@@ -1,14 +1,15 @@
 #!/bin/bash
 #
-# SCRIPT test stuff for config
+# SCRIPT for BASH to generate a dump folder based on the current time and date
+# run healthcheck script, and dump result files into the dtg folder
 #
-# (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.10.00
+ScriptVersion=00.03.00
 ScriptDate=2018-06-30
 #
 
-export BASHScriptVersion=v00x10x00
+export BASHScriptVersion=v00x03x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -50,7 +51,7 @@ export JQ=${CPDIR}/jq/jq
 # START: Root Script Configuration
 # -------------------------------------------------------------------------------------------------
 
-export scriptspathroot=/var/upgrade_export/scripts
+export scriptspathroot=/var/log/__customer/upgrade_export/scripts
 export rootscriptconfigfile=__root_script_config.sh
 
 
@@ -66,9 +67,10 @@ localrootscriptconfiguration () {
     # WAITTIME in seconds for read -t commands
     export WAITTIME=60
     
-    export customerpathroot=/var/upgrade_export
-    export outputpathroot=$customerpathroot/dump
-    export changelogpathroot=$customerpathroot/Change_Log
+    export customerpathroot=/var/log/__customer
+    export customerworkpathroot=$customerpathroot/upgrade_export
+    export outputpathroot=$customerworkpathroot/dump
+    export changelogpathroot=$customerworkpathroot/Change_Log
     
     echo
     return 0
@@ -111,70 +113,31 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-export notthispath=/home/
-export startpathroot=.
-export alternatepathroot=$customerpathroot
+#export outputpathbase=$outputpathroot/$DATE
+export outputpathbase=$outputpathroot/$DATEDTGS
+#export outputpathbase=$outputpathroot/$DATEYMD
 
-export expandedpath=$(cd $startpathroot ; pwd)
-export startpathroot=$expandedpath
-export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
-export isitthispath=`test -z $checkthispath; echo $?`
-
-if [ $isitthispath -eq 1 ] ; then
-    #Oh, Oh, we're in the home directory executing, not good!!!
-    #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
-    echo 'looks like we are in home path'
-    export outputpathroot=$alternatepathroot
-else
-    #OK use the current folder and create host_data sub-folder
-    echo 'NOT in home path'
-    export outputpathroot=$startpathroot
-fi
-
-echo '1 expandedpath   = '\"$expandedpath\"
-echo '1 checkthispath  = '\"$checkthispath\"
-echo '1 isitthispath   = '\"$isitthispath\"
-echo '1 outputpathroot = '\"$outputpathroot\"
-echo
-
-if [ ! -r $outputpathroot ] ; then
-    #not where we're expecting to be, since $outputpathroot is missing here
-    #OK, so make the expected folder and set permissions we need
+if [ ! -r $outputpathroot ] 
+then
     mkdir $outputpathroot
-    chmod 775 $outputpathroot
-else
-    #set permissions we need
-    chmod 775 $outputpathroot
+fi
+if [ ! -r $outputpathbase ] 
+then
+    mkdir $outputpathbase
 fi
 
-#Now that outputroot is not in /home/ let's work on where we are working from
-
-export expandedpath=$(cd $outputpathroot ; pwd)
-export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
-export isitthispath=`test -z $checkthispath; echo $?`
-export outputpathroot=${expandedpath}
-
-echo '2 expandedpath   = '\"$expandedpath\"
-echo '2 checkthispath  = '\"$checkthispath\"
-echo '2 isitthispath   = '\"$isitthispath\"
-echo '2 outputpathroot = '\"$outputpathroot\"
+echo 'Created folder :  '$outputpathbase
 echo
 
-echo
-export gaia_kernel_version=$(uname -r)
-export kernelv2x06=2.6
-export kernelv3x10=3.10
-export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv2x06"`
-export isitoldkernel=`test -z $checkthiskernel; echo $?`
-export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
-export isitnewkernel=`test -z $checkthiskernel; echo $?`
+./healthcheck
 
-if [ $isitoldkernel -eq 1 ] ; then
-    echo "OLD Kernel version $gaia_kernel_version"
-elif [ $isitnewkernel -eq 1 ]; then
-    echo "NEW Kernel version $gaia_kernel_version"
-else
-    echo "Kernel version $gaia_kernel_version"
-fi
-echo
+export hclogfilebase=/var/log/$(hostname)-health_check-*
 
+echo
+echo 'Moving healthcheck log files to '$outputpathbase
+echo
+mv $hclogfilebase $outputpathbase
+
+echo
+ls -al $outputpathbase
+echo

@@ -2,18 +2,20 @@
 #
 # SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
 #
-ScriptVersion=00.01.02  Generic
-ScriptDate=2018-05-11
+# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+ScriptVersion=00.02.00  Generic
+ScriptDate=2018-06-30
 #
 
-export BASHScriptVersion=v00x01x00
+export BASHScriptVersion=v00x02x00
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTSG=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-echo 'Date Time Group   :  '$DATE
+echo 'Date Time Group   :  '$DATEDTGS
 echo 'Date (YYYY-MM-DD) :  '$DATEYMD
 echo
 
@@ -21,7 +23,7 @@ echo
 export WAITTIME=60
 
 export outputpathroot=/var/tmp/Change_Log
-export outputpathbase=$outputpathroot/$DATEDTG
+export outputpathbase=$outputpathroot/$DATEDTGS
 
 if [ ! -r $outputpathroot ] 
 then
