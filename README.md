@@ -24,10 +24,11 @@ NOTES:
 - Session_Cleanup 
   For MDM operations include "-d <MDM_Domain>" and any other specific command extensions to mgmt_cli which is run with "-r true".  So if you need to specify the management server web ssl-port add "--port <port>".
   Examples:  
-    mdm_show_zerolocks_sessions.v00.03.00.sh --port 4434 -d "Global"
-    mdm_show_zerolocks_sessions.v00.03.00.sh --port 4434 -d "System Data"
+    mdm_show_zerolocks_sessions.v00.05.00.sh --port 4434 -d "Global"
+    mdm_show_zerolocks_sessions.v00.05.00.sh --port 4434 -d "System Data"
 
 - Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1 (and later)
+- Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03
 
 
 Reference Check Point Secure Knowledge (SK) articles:
