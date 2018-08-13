@@ -1,18 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT Template for bash scripts - 003
+# SCRIPT Configure Gateway to enable TLS ECDHE and ECDSA ciphers
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptVersion=00.01.00
-ScriptDate=2018-06-30
+ScriptDate=2018-07-20
 #
 
 export BASHScriptVersion=v00x01x00
 
+export ScriptName=config_gw_TLS_ECDHE_ECDSA
 
 echo
-echo 'Template for bash scripts, script version '$ScriptVersion' from '$ScriptDate
+echo 'Configure Gateway to enable TLS ECDHE and ECDSA ciphers, script version '$ScriptVersion' from '$ScriptDate
 echo
 
 # -------------------------------------------------------------------------------------------------
@@ -137,7 +138,7 @@ export workingpath=$currentlocalpath
 
 export notthispath=/home/
 export startpathroot=.
-export alternatepathroot=$customerworkpathroot
+export alternatepathroot=$changelogpathroot
 
 export expandedpath=$(cd $startpathroot ; pwd)
 export startpathroot=$expandedpath
@@ -178,7 +179,7 @@ else
     chmod 775 $outputpathroot
 fi
 
-export outputpathbase=$outputpathroot/target_sub_folder
+export outputpathbase=$outputpathroot/Change_Log
 
 if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
@@ -204,6 +205,25 @@ if [ ! -r $outputhomepath ] ; then
 else
     chmod 775 $outputhomepath
 fi
+
+#----------------------------------------------------------------------------------------
+# Set LogFile Information
+#----------------------------------------------------------------------------------------
+
+export logpathroot=$outputpathroot/Change_Log
+
+if [ ! -r $logpathroot ]; then
+    mkdir $logpathroot
+fi
+
+export logpathbase=$logpathroot/$DATEDTGS
+
+if [ ! -r $logpathbase ]; then
+    mkdir $logpathbase
+fi
+
+export logfilepath=$logpathbase/$ScriptName'_'$DATEDTGS.log
+touch $logfilepath
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -482,6 +502,20 @@ rm $gaiaversionoutputfile
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
+if [ $Check4GW -gt 0 ]; then
+    echo "System is Gateway!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "Continueing with TLS configuration..." | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo "System is NOT a gateway!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "This script is meant for gateways, exiting!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    exit 255
+fi
+
+
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 #
@@ -490,26 +524,88 @@ rm $gaiaversionoutputfile
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
+#
+# Backup registry before making changes and document original in Change Log
+#
+echo | tee -a -i $logfilepath
+echo 'Backup registry before making changes and document original in Change Log' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cp -v $CPDIR/registry/HKLM_registry.data $CPDIR/registry/HKLM_registry.data.$DATEDTGS.BKP | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+
+cp -v $CPDIR/registry/HKLM_registry.data $outputpathbase/HKLM_registry.data.$DATEDTGS.original | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+
+#
+# Make the changes
+#
+echo | tee -a -i $logfilepath
+echo 'Make Registry Changes, these are boot resilient!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_ACCEPT_ECDHE 1
+ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_PROPOSE_ECDHE 1
+ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_ACCEPT_ECDSA 1
+ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_PROPOSE_ECDSA 1
+
+echo | tee -a -i $logfilepath
+grep -C 2 --color CPTLS $CPDIR/registry/HKLM_registry.data | tee -a -i $logfilepath
+
+#
+# Document modification in Change Log
+#
+echo | tee -a -i $logfilepath
+echo 'Document changed registry in Change Log' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+
+cp -v $CPDIR/registry/HKLM_registry.data $outputpathbase/HKLM_registry.data.$DATEDTGS.modified | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+
+
+#
+# Handle service stop
+#
+echo | tee -a -i $logfilepath
+echo 'Handle service cpstop, cpstart' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Stopping with cpstop!' | tee -a -i $logfilepath
+cpstop | tee -a -i $logfilepath
 
 #----------------------------------------------------------------------------------------
-# bash - ?what next?
+# shell clean-up and log dump - do this now since cpstart will kill SSH connection to GW
 #----------------------------------------------------------------------------------------
 
-#export command2run=command
-#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-#export outputfilefqdn=$outputfilepath$outputfile
+echo
+ls -alh $outputpathbase
+echo
 
-#echo
-#echo 'Execute '$command2run' with output to : '$outputfilefqdn
-#command > "$outputfilefqdn"
+echo
+echo 'Output location for all results is here : '$outputpathbase
+echo 'Results documented in this log file     : '$logfilepath
+echo
 
-#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
-#echo 'fwacell stats -s' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
+#----------------------------------------------------------------------------------------
+# shell clean-up and log dump - do this now since cpstart will kill SSH connection to GW
+#----------------------------------------------------------------------------------------
+
 #
-#fwaccel stats -s >> "$outputfilefqdn"
+# Handle service start
 #
+echo 'this SSH connection will most likely disconnect due to cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Starting with cpstart!' | tee -a -i $logfilepath
+cpstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
 
 
 #----------------------------------------------------------------------------------------
@@ -526,7 +622,7 @@ rm $gaiaversionoutputfile
 #----------------------------------------------------------------------------------------
 
 
-echo 'CLI Operations Completed'
+echo 'CLI Operations Completed' | tee -a -i $logfilepath
 
 
 #----------------------------------------------------------------------------------------
@@ -548,9 +644,8 @@ ls -alh $outputpathbase
 echo
 
 echo
-echo 'Output location for all results is here : '$outputpathroot
-echo 'Host Data output for this run is here   : '$outputpathbase
-echo 'Results documented in this file here    : '$outputfilefqdn
+echo 'Output location for all results is here : '$outputpathbase
+echo 'Results documented in this log file     : '$logfilepath
 echo
 
 #----------------------------------------------------------------------------------------

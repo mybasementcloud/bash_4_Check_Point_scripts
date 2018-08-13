@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.12.00
-ScriptDate=2018-07-18
+ScriptVersion=00.14.00
+ScriptDate=2018-08-12
 #
 
-export BASHScriptVersion=v00x12x00
+export BASHScriptVersion=v00x14x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -470,7 +470,7 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_002_v00.13.00.sh
+file_configcapture=config_capture_003_v00.14.00.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
@@ -530,7 +530,7 @@ fi
 
 
 file_healthcheck=healthcheck.sh
-file_healthdump=run_healthcheck_to_dump_dtg.v00.03.00.sh
+file_healthdump=run_healthcheck_to_dump_dtg.v00.04.00.sh
 file_cpservicecheck=check_status_checkpoint_services.v00.00.00.sh
 
 ln -sf $sourcefolder/$file_healthcheck $linksfolder/healthcheck

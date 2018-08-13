@@ -5,11 +5,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.03.00
-ScriptDate=2018-06-30
+ScriptVersion=00.04.00
+ScriptDate=2018-08-12
 #
 
-export BASHScriptVersion=v00x03x00
+export BASHScriptVersion=v00x04x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -131,7 +131,18 @@ echo
 
 ./healthcheck
 
-export hclogfilebase=/var/log/$(hostname)-health_check-*
+# logfile=/var/log/$(hostname)-health_check-$(date +%Y%m%d%H%M).txt
+# full_output_log=/var/log/$(hostname)-health_check_full-$(date +%Y%m%d%H%M).log
+# csv_log=/var/log/$(hostname)-health_check-summary-$(date +%Y%m%d%H%M).csv
+#
+#export hclogfilebase=/var/log/$(hostname)-health_check-*
+#
+# Modified in healthcheck.sh v 05.04
+# logfile=/var/log/$(hostname)_health-check_$(date +%Y%m%d%H%M).txt
+# full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).log
+# csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
+#
+export hclogfilebase=/var/log/$(hostname)_health-check_*
 
 echo
 echo 'Moving healthcheck log files to '$outputpathbase

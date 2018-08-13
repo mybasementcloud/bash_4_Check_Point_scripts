@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT capture configuration values for bash and clish level 002
+# SCRIPT capture configuration values for bash and clish level 003
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.13.00
-ScriptDate=2018-07-19
+ScriptVersion=00.14.00
+ScriptDate=2018-08-10
 #
 
-export BASHScriptVersion=v00x13x00
+export BASHScriptVersion=v00x14x00
 
 
 echo
@@ -711,13 +711,108 @@ dmidecode > "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# Special files to collect and backup (at some time)
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+#    user.def - sk98239 (Location of 'user.def' file on Management Server
+#
+#    table.def - sk98339 (Location of 'table.def' files on Management Server)
+#
+#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
+#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
+#
+#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
+#
+#    base.def - sk95147 (Modifying definitions of packet inspection on Security Gateway for different protocols - 'base.def' file)
+#
+#    vpn_table.def - sk92332 (Customizing the VPN configuration for Check Point Security Gateway - 'vpn_table.def' file)
+#
+#    DCE RPC files - sk42402 (Legitimate DCE-RPC (MS DCOM) bind packets dropped by IPS)
+#
+#    rtsp.def - sk35945 (RTSP traffic is dropped when SecureXL is enabled)
+#
+#    ftp.def - sk61781 (FTP packet is dropped - Attack Information: The packet was modified due to a potential Bounce Attack Evasion Attempt (Telnet Options))
+#
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/user.def and backup if it exists - sk98239
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/user.def
+#export file2copy=user.def
+#export file2copypath="$FWDIR/conf/$file2copy"
+#export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+#export outputfilefqdn=$outputfilepath$outputfile
+#
+#if [[ $sys_type_MDS = 'true' ]] ; then
+#    
+#    # HANDLE MDS and Domains
+#    
+#else
+#    # System is not MDS, so no need to cycle through domains
+#    
+#    if [ ! -r $file2copypath ] ; then
+#        echo
+#        echo 'No '$file2copy' file at :  '$file2copypath
+#    else
+#        echo
+#        echo 'found '$file2copy' file at :  '$file2copypath
+#        echo
+#        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+#        cp "$file2copypath" "$outputfilefqdn"
+#        cp "$file2copypath" "$outputfilepath"
+#        cp "$file2copypath" .
+#    fi
+#    echo
+#    
+#fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/lib/table.def and backup if it exists - sk98339
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/lib/table.def
+#export file2copy=table.def
+#export file2copypath="$FWDIR/lib/$file2copy"
+#export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+#export outputfilefqdn=$outputfilepath$outputfile
+#
+#if [[ $sys_type_MDS = 'true' ]] ; then
+#    
+#    # HANDLE MDS and Domains
+#    
+#else
+#    # System is not MDS, so no need to cycle through domains
+#    
+#    if [ ! -r $file2copypath ] ; then
+#        echo
+#        echo 'No '$file2copy' file at :  '$file2copypath
+#    else
+#        echo
+#        echo 'found '$file2copy' file at :  '$file2copypath
+#        echo
+#        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+#        cp "$file2copypath" "$outputfilefqdn"
+#        cp "$file2copypath" "$outputfilepath"
+#        cp "$file2copypath" .
+#    fi
+#    echo
+#    
+#fi
+
+
+#----------------------------------------------------------------------------------------
 # bash - collect $FWDIR/boot/modules/fwkern.conf and backup if it exists
 #----------------------------------------------------------------------------------------
 
 # $FWDIR/boot/modules/fwkern.conf
 export file2copy=fwkern.conf
 export file2copypath="$FWDIR/boot/modules/$file2copy"
-export outputfile=$outputfileprefix'_'$file2copy$outputfilesuffix
+export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
 export outputfilefqdn=$outputfilepath$outputfile
 
 if [ $Check4GW -eq 1 ]; then
@@ -726,10 +821,10 @@ if [ $Check4GW -eq 1 ]; then
     
     if [ ! -r $file2copypath ] ; then
         echo
-        echo 'No fwkern.conf file at :  '$file2copypath
+        echo 'No '$file2copy' file at :  '$file2copypath
     else
         echo
-        echo 'found fwkern.conf file at :  '$file2copypath
+        echo 'found '$file2copy' file at :  '$file2copypath
         echo
         echo 'copy '$file2copy' to : '"$outputfilefqdn"
         cp "$file2copypath" "$outputfilefqdn"
@@ -744,7 +839,97 @@ else
 
     if [ -r $file2copypath ] ; then
         echo
-        echo 'found fwkern.conf file at :  '$file2copypath
+        echo 'found '$file2copy' file at :  '$file2copypath
+        echo
+        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        cp "$file2copypath" "$outputfilefqdn"
+        cp "$file2copypath" "$outputfilepath"
+        cp "$file2copypath" .
+    fi
+    echo
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/boot/modules/vpnkern.conf and backup if it exists - SK101219
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/boot/modules/vpnkern.conf
+export file2copy=vpnkern.conf
+export file2copypath="$FWDIR/boot/modules/$file2copy"
+export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+export outputfilefqdn=$outputfilepath$outputfile
+
+if [ $Check4GW -eq 1 ]; then
+    # Gateways generally could have $FWDIR/boot/modules/vpnkern.conf file
+    #
+    
+    if [ ! -r $file2copypath ] ; then
+        echo
+        echo 'No '$file2copy' file at :  '$file2copypath
+    else
+        echo
+        echo 'found '$file2copy' file at :  '$file2copypath
+        echo
+        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        cp "$file2copypath" "$outputfilefqdn"
+        cp "$file2copypath" "$outputfilepath"
+        cp "$file2copypath" .
+    fi
+    echo
+    
+else
+    # not expecting a $FWDIR/boot/modules/vpnkern.conf file, but collect if it exists
+    #
+
+    if [ -r $file2copypath ] ; then
+        echo
+        echo 'found '$file2copy' file at :  '$file2copypath
+        echo
+        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        cp "$file2copypath" "$outputfilefqdn"
+        cp "$file2copypath" "$outputfilepath"
+        cp "$file2copypath" .
+    fi
+    echo
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/boot/modules/fwkern.conf
+export file2copy=TPAPI.ini
+export file2copypath="/opt/CPUserCheckPortal/phpincs/conf/$file2copy"
+export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+export outputfilefqdn=$outputfilepath$outputfile
+
+if [ $Check4GW -eq 1 ]; then
+    # Gateways generally could have /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini
+    #
+    
+    if [ ! -r $file2copypath ] ; then
+        echo
+        echo 'No '$file2copy'i file at :  '$file2copypath
+    else
+        echo
+        echo 'found '$file2copy' file at :  '$file2copypath
+        echo
+        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        cp "$file2copypath" "$outputfilefqdn"
+        cp "$file2copypath" "$outputfilepath"
+        cp "$file2copypath" .
+    fi
+    echo
+    
+else
+    # not expecting a /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini file, but collect if it exists
+    #
+
+    if [ -r $file2copypath ] ; then
+        echo
+        echo 'found '$file2copy' file at :  '$file2copypath
         echo
         echo 'copy '$file2copy' to : '"$outputfilefqdn"
         cp "$file2copypath" "$outputfilefqdn"
