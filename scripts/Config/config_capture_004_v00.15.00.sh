@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT capture configuration values for bash and clish level 003
+# SCRIPT capture configuration values for bash and clish level 004
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.14.00
-ScriptDate=2018-08-10
+ScriptVersion=00.15.00
+ScriptDate=2018-08-31
 #
 
-export BASHScriptVersion=v00x14x00
+export BASHScriptVersion=v00x15x00
 
 
 echo
@@ -600,7 +600,7 @@ pwd >> "$outputfilefqdn"
 # bash - gather licensing information
 #----------------------------------------------------------------------------------------
 
-export command2run=cplic
+export command2run=cplic_print
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
@@ -634,6 +634,19 @@ echo 'Disk Utilization : df -h' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 
 df -h >> "$outputfilefqdn"
+
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'Disk Mount : mount' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+mount >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -682,19 +695,209 @@ ifconfig > "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
+# bash - Collect Interface Information per interface
+#----------------------------------------------------------------------------------------
+
+export command2run=interfaces_details
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo > $outputfilefqdn
+echo 'Executing commands for '$command2run' with output to file : '$outputfilefqdn | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+clish -c "show interfaces" | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+IFARRAY=()
+
+GETINTERFACES="`clish -c "show interfaces"`"
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo 'Build array of interfaces : ' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+arraylength=0
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo -n 'Interfaces :  ' | tee -a -i $outputfilefqdn
+    else
+    	echo -n ', ' | tee -a -i $outputfilefqdn
+    fi
+
+    #IFARRAY+=("$line")
+    if [ "$line" == 'lo' ]; then
+        echo -n 'Not adding '$line | tee -a -i $outputfilefqdn
+    else 
+        IFARRAY+=("$line")
+    	echo -n $line | tee -a -i $outputfilefqdn
+    fi
+	
+	arraylength=${#IFARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETINTERFACES"
+
+echo | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+echo 'Identified Interfaces in array for detail data collection :' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+for j in "${IFARRAY[@]}"
+do
+    #echo "$j, ${j//\'/}"  | tee -a -i $outputfilefqdn
+    echo $j | tee -a -i $outputfilefqdn
+done
+echo | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+for i in "${IFARRAY[@]}"
+do
+    
+    export interfaceoutputfile=$outputfileprefix'_'$command2run'_'$i$outputfilesuffix$outputfiletype
+    export interfaceoutputfilefqdn=$outputfilepath$interfaceoutputfile
+    
+    echo 'Executing commands for interface : '$i' with output to file : '$interfaceoutputfilefqdn | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    
+    ifconfig $i | tee -a -i $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -i '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -i $i >> $interfaceoutputfilefqdn
+
+    echo | tee -a -i $outputfilefqdn
+    cat $interfaceoutputfilefqdn | grep bus | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -g '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -g $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -k '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -k $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -S '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -S $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    
+    cat $interfaceoutputfilefqdn >> $outputfilefqdn
+    echo >> $outputfilefqdn
+
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+    echo >> $outputfilefqdn
+
+    
+done
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
 # bash - gather interface name rules
 #----------------------------------------------------------------------------------------
 
-export command2run=interface-naming-rules
+export command2run=interfaces_naming_rules
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
+
 export file2copy=00-OS-XX.rules
 export file2copypath="/etc/udev/rules.d/$file2copy"
+export file2findpath="/"
 
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-cat "$file2copypath" > "$outputfilefqdn"
-cp "$file2copypath" "$outputfilepath"
+echo | tee -a -i "$outputfilefqdn"
+echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+find $file2copy -name $file2find | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cat "$file2copypath" | tee -a -i "$outputfilefqdn"
+cp "$file2copypath" "$outputfilepath" | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+
+export file2copy=00-ANACONDA.rules
+export file2copypath="/etc/sysconfig/$file2copy"
+export file2findpath="/"
+
+echo | tee -a -i "$outputfilefqdn"
+echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+find $file2copy -name $file2find | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cat "$file2copypath" | tee -a -i "$outputfilefqdn"
+cp "$file2copypath" "$outputfilepath" | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -709,6 +912,47 @@ echo
 echo 'Execute '$command2run' with output to : '$outputfilefqdn
 dmidecode > "$outputfilefqdn"
 
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details - lspci
+#----------------------------------------------------------------------------------------
+
+export command2run=lspci
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+lspci -n -v > "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/sysconfig/hwconf and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/hwconf
+export file2copy=hwconf
+export file2copypath="/etc/sysconfig/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# Gaia sould have /etc/sysconfig/hwconf file
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo
+    echo 'No '$file2copy' file at :  '$file2copypath
+else
+    echo
+    echo 'found '$file2copy' file at :  '$file2copypath
+    echo
+    echo 'copy '$file2copy' to : '"$outputfilepath"
+    cp "$file2copypath" "$outputfilefqdn"
+    cp "$file2copypath" "$outputfilepath"
+    #cp "$file2copypath" .
+fi
+echo
+    
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -738,13 +982,37 @@ dmidecode > "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
+# bash - identify user.def files - sk98239
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/user.def
+export file2find=user.def
+export file2findpath="/"
+export command2run=find
+export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+find $file2find -name $file2find | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
 # bash - collect $FWDIR/conf/user.def and backup if it exists - sk98239
 #----------------------------------------------------------------------------------------
 
 # $FWDIR/conf/user.def
 #export file2copy=user.def
 #export file2copypath="$FWDIR/conf/$file2copy"
-#export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
 #export outputfilefqdn=$outputfilepath$outputfile
 #
 #if [[ $sys_type_MDS = 'true' ]] ; then
@@ -761,7 +1029,7 @@ dmidecode > "$outputfilefqdn"
 #        echo
 #        echo 'found '$file2copy' file at :  '$file2copypath
 #        echo
-#        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+#        echo 'copy '$file2copy' to : '"$outputfilepath"
 #        cp "$file2copypath" "$outputfilefqdn"
 #        cp "$file2copypath" "$outputfilepath"
 #        cp "$file2copypath" .
@@ -769,6 +1037,30 @@ dmidecode > "$outputfilefqdn"
 #    echo
 #    
 #fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - identify table.def files - sk98339
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/lib/table.def
+export file2find=table.def
+export file2findpath="/"
+export command2run=find
+export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+find $file2find -name $file2find | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
 
 #----------------------------------------------------------------------------------------
@@ -778,7 +1070,7 @@ dmidecode > "$outputfilefqdn"
 # $FWDIR/lib/table.def
 #export file2copy=table.def
 #export file2copypath="$FWDIR/lib/$file2copy"
-#export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
 #export outputfilefqdn=$outputfilepath$outputfile
 #
 #if [[ $sys_type_MDS = 'true' ]] ; then
@@ -795,7 +1087,7 @@ dmidecode > "$outputfilefqdn"
 #        echo
 #        echo 'found '$file2copy' file at :  '$file2copypath
 #        echo
-#        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+#        echo 'copy '$file2copy' to : '"$outputfilepath"
 #        cp "$file2copypath" "$outputfilefqdn"
 #        cp "$file2copypath" "$outputfilepath"
 #        cp "$file2copypath" .
@@ -806,13 +1098,68 @@ dmidecode > "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
+# bash - identify crypt.def files - sk98241 and sk108600
+#----------------------------------------------------------------------------------------
+
+#
+#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
+#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
+#
+
+export file2find=crypt.def
+export file2findpath="/"
+export command2run=find
+export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+find $file2find -name $file2find | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
+# bash - identify implied_rules.def files - sk92281
+#----------------------------------------------------------------------------------------
+
+#
+#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
+#
+
+export file2find=implied_rules.def
+export file2findpath="/"
+export command2run=find
+export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+find $file2find -name $file2find | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
 # bash - collect $FWDIR/boot/modules/fwkern.conf and backup if it exists
 #----------------------------------------------------------------------------------------
 
 # $FWDIR/boot/modules/fwkern.conf
 export file2copy=fwkern.conf
 export file2copypath="$FWDIR/boot/modules/$file2copy"
-export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 if [ $Check4GW -eq 1 ]; then
@@ -826,7 +1173,7 @@ if [ $Check4GW -eq 1 ]; then
         echo
         echo 'found '$file2copy' file at :  '$file2copypath
         echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        echo 'copy '$file2copy' to : '"$outputfilepath"
         cp "$file2copypath" "$outputfilefqdn"
         cp "$file2copypath" "$outputfilepath"
         cp "$file2copypath" .
@@ -841,7 +1188,7 @@ else
         echo
         echo 'found '$file2copy' file at :  '$file2copypath
         echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
+        echo 'copy '$file2copy' to : '"$outputfilepath"
         cp "$file2copypath" "$outputfilefqdn"
         cp "$file2copypath" "$outputfilepath"
         cp "$file2copypath" .
@@ -857,7 +1204,7 @@ fi
 # $FWDIR/boot/modules/vpnkern.conf
 export file2copy=vpnkern.conf
 export file2copypath="$FWDIR/boot/modules/$file2copy"
-export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 if [ $Check4GW -eq 1 ]; then
@@ -899,10 +1246,10 @@ fi
 # bash - collect /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini and backup if it exists
 #----------------------------------------------------------------------------------------
 
-# $FWDIR/boot/modules/fwkern.conf
+# /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini
 export file2copy=TPAPI.ini
 export file2copypath="/opt/CPUserCheckPortal/phpincs/conf/$file2copy"
-export outputfile=$outputfileprefix.$file2copy$outputfilesuffix
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 if [ $Check4GW -eq 1 ]; then
@@ -919,7 +1266,7 @@ if [ $Check4GW -eq 1 ]; then
         echo 'copy '$file2copy' to : '"$outputfilefqdn"
         cp "$file2copypath" "$outputfilefqdn"
         cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
+        #cp "$file2copypath" .
     fi
     echo
     
@@ -934,7 +1281,7 @@ else
         echo 'copy '$file2copy' to : '"$outputfilefqdn"
         cp "$file2copypath" "$outputfilefqdn"
         cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
+        #cp "$file2copypath" .
     fi
     echo
 fi
