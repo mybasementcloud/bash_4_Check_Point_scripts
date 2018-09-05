@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.15.00
-ScriptDate=2018-08-31
+ScriptVersion=00.16.01
+ScriptDate=2018-09-04
 #
 
-export BASHScriptVersion=v00x15x00
+export BASHScriptVersion=v00x16x01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -437,6 +437,8 @@ rm $workingroot/gaia_version_type
 
 rm $workingroot/godump
 rm $workingroot/godtgdump
+
+rm $workingroot/goChangeLog
 
 rm $workingroot/mkdump
 rm $workingroot/mkdtgdump

@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.15.00
-ScriptDate=2018-08-31
+ScriptVersion=00.16.01
+ScriptDate=2018-09-04
 #
 
-export BASHScriptVersion=v00x15x00
+export BASHScriptVersion=v00x16x01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -439,6 +439,7 @@ file_godump=go_dump_folder_now.v00.04.00.sh
 file_mkdump=make_dump_folder_now.v00.04.00.sh
 file_godumpdtg=go_dump_folder_now_dtg.v00.04.00.sh
 file_mkdumpdtg=make_dump_folder_now_dtg.v00.04.00.sh
+file_goChgLogdtg=go_change_log_folder_now_dtg.v00.04.00.sh
 
 ln -sf $sourcefolder/$file_gaia_version $linksfolder/gaia_version_type
 ln -sf $sourcefolder/$file_gaia_version $workingroot/gaia_version_type
@@ -447,6 +448,9 @@ ln -sf $sourcefolder/$file_godump $linksfolder/godump
 ln -sf $sourcefolder/$file_godump $workingroot/godump
 ln -sf $sourcefolder/$file_godumpdtg $linksfolder/godtgdump
 ln -sf $sourcefolder/$file_godumpdtg $workingroot/godtgdump
+
+ln -sf $sourcefolder/$file_goChgLogdtg $linksfolder/goChangeLog
+ln -sf $sourcefolder/$file_goChgLogdtg $workingroot/goChangeLog
 
 ln -sf $sourcefolder/$file_mkdump $linksfolder/mkdump
 ln -sf $sourcefolder/$file_mkdump $workingroot/mkdump
@@ -470,8 +474,8 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_004_v00.15.00.sh
-file_interface_info=show_interface_information_v00.01.00.sh
+file_configcapture=config_capture_005_v00.16.00.sh
+file_interface_info=show_interface_information_v00.02.00.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info

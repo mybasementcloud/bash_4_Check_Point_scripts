@@ -4,11 +4,11 @@
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.15.00
-ScriptDate=2018-08-31
+ScriptVersion=00.16.00
+ScriptDate=2018-09-04
 #
 
-export BASHScriptVersion=v00x15x00
+export BASHScriptVersion=v00x16x00
 
 
 echo
@@ -682,6 +682,60 @@ arp -av >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
+# bash - generate device and system information via dmidecode
+#----------------------------------------------------------------------------------------
+
+export command2run=dmidecode
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+dmidecode > "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /var/log/dmesg and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /var/log/dmesg
+export file2copy=dmesg
+export file2copypath="/var/log/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+dmesg > $outputfilefqdn
+
+# Gaia should have /var/log/dmesg file
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo
+    echo 'No '$file2copy' file at :  '$file2copypath
+else
+    echo
+    echo 'found '$file2copy' file at :  '$file2copypath
+    echo
+    echo 'copy '$file2copy' to : '"$outputfilepath"
+    cp "$file2copypath" "$outputfilepath"
+fi
+echo
+    
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details - lspci
+#----------------------------------------------------------------------------------------
+
+export command2run=lspci
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+lspci -n -v > "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
 # bash - gather interface details
 #----------------------------------------------------------------------------------------
 
@@ -701,6 +755,20 @@ ifconfig > "$outputfilefqdn"
 export command2run=interfaces_details
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
+
+export dmesgfilefqdn=$outputfilepath'dmesg'
+if [ ! -r $dmesgfilefqdn ] ; then
+    echo
+    echo 'No dmesg file at :  '$dmesgfilefqdn
+    echo 'Generating dmesg file!'
+    echo
+    dmesg > $dmesgfilefqdn
+else
+    echo
+    echo 'found dmesg file at :  '$dmesgfilefqdn
+    echo
+fi
+echo
 
 echo > $outputfilefqdn
 echo 'Executing commands for '$command2run' with output to file : '$outputfilefqdn | tee -a -i $outputfilefqdn
@@ -763,10 +831,28 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
+export ifshortoutputfile=$outputfileprefix'_'$command2run'_short'$outputfilesuffix$outputfiletype
+export ifshortoutputfilefqdn=$outputfilepath$ifshortoutputfile
+touch $ifshortoutputfilefqdn
+echo >> $ifshortoutputfilefqdn
+echo '----------------------------------------------------------------------------------------' >> $ifshortoutputfilefqdn
 
 for i in "${IFARRAY[@]}"
 do
     
+    #------------------------------------------------------------------------------------------------------------------
+    # Short Information
+    #------------------------------------------------------------------------------------------------------------------
+
+    echo 'Interface : '$i >> $ifshortoutputfilefqdn
+    ifconfig $i | grep -i HWaddr >> $ifshortoutputfilefqdn
+    ethtool -i $i | grep -i bus >> $ifshortoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $ifshortoutputfilefqdn
+
+    #------------------------------------------------------------------------------------------------------------------
+    # Detailed Information
+    #------------------------------------------------------------------------------------------------------------------
+
     export interfaceoutputfile=$outputfileprefix'_'$command2run'_'$i$outputfilesuffix$outputfiletype
     export interfaceoutputfilefqdn=$outputfilepath$interfaceoutputfile
     
@@ -822,6 +908,14 @@ do
     echo >> $interfaceoutputfilefqdn
     echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
     echo >> $interfaceoutputfilefqdn
+    echo 'Execute grep of dmesg for '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    cat $dmesgfilefqdn | grep -i $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
     
     cat $interfaceoutputfilefqdn >> $outputfilefqdn
     echo >> $outputfilefqdn
@@ -830,12 +924,92 @@ do
     echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
     echo >> $outputfilefqdn
 
-    
+   
 done
 
 echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/sysconfig/network and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/network
+export file2copy=network
+export file2copypath="/etc/sysconfig/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# Gaia sould have /etc/sysconfig/network file
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo
+    echo 'No '$file2copy' file at :  '$file2copypath
+else
+    echo
+    echo 'found '$file2copy' file at :  '$file2copypath
+    echo
+    echo 'copy '$file2copy' to : '"$outputfilepath"
+    cp "$file2copypath" "$outputfilefqdn"
+    cp "$file2copypath" "$outputfilepath"
+    #cp "$file2copypath" .
+fi
+echo
+    
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/networking
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/networking
+
+export command2run=etc_sysconfig_networking
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export sourcepath=/etc/sysconfig/networking
+export targetpath=$outputfilepath$command2run/
+
+echo | tee -a -i "$outputfilefqdn"
+echo 'Copy files from '$sourcepath' to '$targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+mkdir $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/network-scripts
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/network-scripts
+
+export command2run=etc_sysconfig_networking_scripts
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export sourcepath=/etc/sysconfig/network-scripts
+export targetpath=$outputfilepath$command2run/
+
+echo | tee -a -i "$outputfilefqdn"
+echo 'Copy files from '$sourcepath' to '$targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+mkdir $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -856,7 +1030,7 @@ echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
 echo | tee -a -i "$outputfilefqdn"
 
-find $file2copy -name $file2find | tee -a -i "$outputfilefqdn"
+find / -name $file2copy | tee -a -i "$outputfilefqdn"
 
 echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
@@ -883,7 +1057,7 @@ echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
 echo | tee -a -i "$outputfilefqdn"
 
-find $file2copy -name $file2find | tee -a -i "$outputfilefqdn"
+find / -name $file2copy | tee -a -i "$outputfilefqdn"
 
 echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
@@ -898,32 +1072,6 @@ cp "$file2copypath" "$outputfilepath" | tee -a -i "$outputfilefqdn"
 echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
 echo | tee -a -i "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - generate device and system information via dmidecode
-#----------------------------------------------------------------------------------------
-
-export command2run=dmidecode
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-dmidecode > "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather interface details - lspci
-#----------------------------------------------------------------------------------------
-
-export command2run=lspci
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-lspci -n -v > "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -998,7 +1146,7 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-find $file2find -name $file2find | tee -a -i $outputfilefqdn
+find / -name $file2find | tee -a -i $outputfilefqdn
 
 echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -1056,7 +1204,7 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-find $file2find -name $file2find | tee -a -i $outputfilefqdn
+find / -name $file2find | tee -a -i $outputfilefqdn
 
 echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -1118,7 +1266,7 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-find $file2find -name $file2find | tee -a -i $outputfilefqdn
+find / -name $file2find | tee -a -i $outputfilefqdn
 
 echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -1145,7 +1293,7 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-find $file2find -name $file2find | tee -a -i $outputfilefqdn
+find / -name $file2find | tee -a -i $outputfilefqdn
 
 echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
