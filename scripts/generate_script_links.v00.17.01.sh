@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT Configure script link files and copy versioned scripts to generics
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.16.01
-ScriptDate=2018-09-04
+ScriptVersion=00.17.01
+ScriptDate=2018-09-07
 #
 
-export BASHScriptVersion=v00x16x01
+export BASHScriptVersion=v00x17x01
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -408,20 +408,14 @@ else
     chmod 775 $workingbase
 fi
 
-#
-#if [ ! -r $linksbase ] ; then
-#    mkdir $linksbase
-#    chmod 775 $linksbase
-#else
-#    chmod 775 $linksbase
-#fi
-#
-chmod 775 $linksbase
 
+if [ ! -r $linksbase ] ; then
+    mkdir $linksbase
+    chmod 775 $linksbase
+else
+    chmod 775 $linksbase
+fi
 
-echo
-echo 'Start with links clean-up!'
-echo
 
 # =============================================================================
 # =============================================================================
@@ -432,16 +426,36 @@ echo
 export workingdir=Common
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
 
-rm $workingroot/gaia_version_type
+file_gaia_version=determine_gaia_version_and_installation_type.v00.08.00.sh
 
-rm $workingroot/godump
-rm $workingroot/godtgdump
+file_godump=go_dump_folder_now.v00.04.00.sh
+file_mkdump=make_dump_folder_now.v00.04.00.sh
+file_godumpdtg=go_dump_folder_now_dtg.v00.04.00.sh
+file_mkdumpdtg=make_dump_folder_now_dtg.v00.04.00.sh
+file_goChgLogdtg=go_change_log_folder_now_dtg.v00.04.00.sh
 
-rm $workingroot/goChangeLog
+ln -sf $sourcefolder/$file_gaia_version $linksfolder/gaia_version_type
+ln -sf $sourcefolder/$file_gaia_version $workingroot/gaia_version_type
 
-rm $workingroot/mkdump
-rm $workingroot/mkdtgdump
+ln -sf $sourcefolder/$file_godump $linksfolder/godump
+ln -sf $sourcefolder/$file_godump $workingroot/godump
+ln -sf $sourcefolder/$file_godumpdtg $linksfolder/godtgdump
+ln -sf $sourcefolder/$file_godumpdtg $workingroot/godtgdump
+
+ln -sf $sourcefolder/$file_goChgLogdtg $linksfolder/goChangeLog
+ln -sf $sourcefolder/$file_goChgLogdtg $workingroot/goChangeLog
+
+ln -sf $sourcefolder/$file_mkdump $linksfolder/mkdump
+ln -sf $sourcefolder/$file_mkdump $workingroot/mkdump
+ln -sf $sourcefolder/$file_mkdumpdtg $linksfolder/mkdtgdump
+ln -sf $sourcefolder/$file_mkdumpdtg $workingroot/mkdtgdump
 
 
 # =============================================================================
@@ -453,9 +467,20 @@ rm $workingroot/mkdtgdump
 export workingdir=Config
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
 
-rm $workingroot/config_capture
-rm $workingroot/interface_info
+file_configcapture=config_capture_005_v00.16.00.sh
+file_interface_info=show_interface_information_v00.02.00.sh
+
+ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
+ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info
+ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
+ln -sf $sourcefolder/$file_interface_info $workingroot/interface_info
 
 
 # =============================================================================
@@ -467,13 +492,29 @@ rm $workingroot/interface_info
 export workingdir=GW
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_watch_accel_stats=watch_accel_stats.v00.01.00.sh
+file_set_inf_log_implied=set_informative_logging_implied_rules_on_R8x.v00.03.00.sh
+file_reset_hitcount_w_bu=reset_hit_count_with_backup_001_v00.03.00.sh
+
+
+ln -sf $sourcefolder/$file_watch_accel_stats $linksfolder/watch_accel_stats
+ln -sf $sourcefolder/$file_set_inf_log_implied $linksfolder/set_informative_logging_implied_rules_on_R8x
+
+ln -sf $sourcefolder/$file_reset_hitcount_w_bu $linksfolder/reset_hit_count_with_backup
 
 if [ "$sys_type_GW" == "true" ]; then
     
-    rm $workingroot/watch_accel_stats
-    rm $workingroot/set_informative_logging_implied_rules_on_R8x
+    ln -sf $sourcefolder/$file_watch_accel_stats $workingroot/watch_accel_stats
+    ln -sf $sourcefolder/$file_set_inf_log_implied $workingroot/set_informative_logging_implied_rules_on_R8x
     
-    rm $workingroot/reset_hit_count_with_backup
+    ln -sf $sourcefolder/$file_reset_hitcount_w_bu $workingroot/reset_hit_count_with_backup
     
 fi
 
@@ -487,10 +528,24 @@ fi
 export workingdir=Health_Check
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
 
-rm $workingroot/healthcheck
-rm $workingroot/healthdump
-rm $workingroot/checkpoint_service_status_check
+
+file_healthcheck=healthcheck.sh
+file_healthdump=run_healthcheck_to_dump_dtg.v00.04.00.sh
+file_cpservicecheck=check_status_checkpoint_services.v00.00.00.sh
+
+ln -sf $sourcefolder/$file_healthcheck $linksfolder/healthcheck
+ln -sf $sourcefolder/$file_healthcheck $workingroot/healthcheck
+ln -sf $sourcefolder/$file_healthdump $linksfolder/healthdump
+ln -sf $sourcefolder/$file_healthdump $workingroot/healthdump
+ln -sf $sourcefolder/$file_cpservicecheck $linksfolder/checkpoint_service_status_check
+ln -sf $sourcefolder/$file_cpservicecheck $workingroot/checkpoint_service_status_check
 
 
 # =============================================================================
@@ -502,12 +557,29 @@ rm $workingroot/checkpoint_service_status_check
 export workingdir=MDM
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_mds_backup=mds_backup_ugex_001_v00.09.00.sh
+file_report_mdsstat=report_mdsstat.v00.08.00.sh
+file_watch_mdsstat=watch_mdsstat.v00.07.00.sh
+file_show_domains_in_array=show_all_domains_in_array.v00.04.00.sh
+
+ln -sf $sourcefolder/$file_mds_backup $linksfolder/mds_backup_ugex
+ln -sf $sourcefolder/$file_report_mdsstat $linksfolder/report_mdsstat
+ln -sf $sourcefolder/$file_watch_mdsstat $linksfolder/watch_mdsstat
+ln -sf $sourcefolder/$file_show_domains_in_array $linksfolder/show_domains_in_array
 
 if [ "$sys_type_MDS" == "true" ]; then
     
-    rm $workingroot/mds_backup_ugex
-    rm $workingroot/report_mdsstat
-    rm $workingroot/watch_mdsstat
+    ln -sf $sourcefolder/$file_mds_backup $workingroot/mds_backup_ugex
+    ln -sf $sourcefolder/$file_report_mdsstat $workingroot/report_mdsstat
+    ln -sf $sourcefolder/$file_watch_mdsstat $workingroot/watch_mdsstat
+    ln -sf $sourcefolder/$file_show_domains_in_array $workingroot/show_domains_in_array
     
 fi
 
@@ -521,6 +593,15 @@ fi
 export workingdir=Patch_HotFix
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_patch_fix_webui_standard=fix_gaia_webui_login_dot_js.sh
+file_patch_fix_webui_generic=fix_gaia_webui_login_dot_js_generic.sh
 
 export need_fix_webui=false
 
@@ -535,8 +616,11 @@ esac
 
 if [ "$need_fix_webui" == "true" ]; then
     
-    rm $workingroot/fix_gaia_webui_login_dot_js
+    ln -sf $sourcefolder/$file_patch_fix_webui_standard $linksfolder/fix_gaia_webui_login_dot_js
+    ln -sf $sourcefolder/$file_patch_fix_webui_standard $workingroot/fix_gaia_webui_login_dot_js
     
+    ln -sf $sourcefolder/$file_patch_fix_webui_generic $linksfolder/fix_gaia_webui_login_dot_js_generic
+
 fi
 
 
@@ -549,6 +633,22 @@ fi
 export workingdir=Session_Cleanup
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_rem_zl_sessions=remove_zerolocks_sessions.v00.05.00.sh
+file_rem_zl_sessions_webapi=remove_zerolocks_web_api_sessions.v00.05.00.sh
+file_mdm_rem_zl_sessions=mdm_remove_zerolocks_sessions.v00.05.00.sh
+file_mdm_rem_zl_sessions_webapi=mdm_remove_zerolocks_web_api_sessions.v00.05.00.sh
+
+file_show_zl_sessions=show_zerolocks_sessions.v00.05.00.sh
+file_show_zl_sessions_webapi=show_zerolocks_web_api_sessions.v00.05.00.sh
+file_mdm_show_zl_sessions=mdm_show_zerolocks_sessions.v00.05.00.sh
+file_mdm_show_zl_sessions_webapi=mdm_show_zerolocks_web_api_sessions.v00.05.00.sh
 
 export do_session_cleanup=false
 
@@ -563,21 +663,31 @@ esac
 
 if [ "$do_session_cleanup" == "true" ]; then
     
+    ln -sf $sourcefolder/$file_show_zl_sessions $linksfolder/show_zerolocks_sessions
+    ln -sf $sourcefolder/$file_show_zl_sessions_webapi $linksfolder/show_zerolocks_web_api_sessions
+    ln -sf $sourcefolder/$file_rem_zl_sessions $linksfolder/remove_zerolocks_sessions
+    ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $linksfolder/remove_zerolocks_web_api_sessions
+
+    ln -sf $sourcefolder/$file_mdm_show_zl_sessions $linksfolder/mdm_show_zerolocks_sessions
+    ln -sf $sourcefolder/$file_mdm_show_zl_sessions_webapi $linksfolder/mdm_show_zerolocks_web_api_sessions
+    ln -sf $sourcefolder/$file_mdm_rem_zl_sessions $linksfolder/mdm_remove_zerolocks_sessions
+    ln -sf $sourcefolder/$file_mdm_rem_zl_sessions_webapi $linksfolder/mdm_remove_zerolocks_web_api_sessions
+    
     if [ "$sys_type_GW" == "false" ]; then
         
         if [ "$sys_type_MDS" == "true" ]; then
             
-            rm $workingroot/mdm_show_zerolocks_sessions
-            rm $workingroot/mdm_show_zerolocks_web_api_sessions
-            rm $workingroot/mdm_remove_zerolocks_sessions
-            rm $workingroot/mdm_remove_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/$file_mdm_show_zl_sessions $workingroot/mdm_show_zerolocks_sessions
+            ln -sf $sourcefolder/$file_mdm_show_zl_sessions_webapi $workingroot/mdm_show_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/$file_mdm_rem_zl_sessions $workingroot/mdm_remove_zerolocks_sessions
+            ln -sf $sourcefolder/$file_mdm_rem_zl_sessions_webapi $workingroot/mdm_remove_zerolocks_web_api_sessions
             
         else
             
-            rm $workingroot/show_zerolocks_sessions
-            rm $workingroot/show_zerolocks_web_api_sessions
-            rm $workingroot/remove_zerolocks_sessions
-            rm $workingroot/remove_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/$file_show_zl_sessions $workingroot/show_zerolocks_sessions
+            ln -sf $sourcefolder/$file_show_zl_sessions_webapi $workingroot/show_zerolocks_web_api_sessions
+            ln -sf $sourcefolder/$file_rem_zl_sessions $workingroot/remove_zerolocks_sessions
+            ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $workingroot/remove_zerolocks_web_api_sessions
             
         fi
     fi
@@ -594,11 +704,23 @@ fi
 export workingdir=SmartEvent
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_smev_backup=SmartEvent_Backup_R8X_v00.04.00.sh
+file_smev_restore=SmartEvent_Restore_R8X_v00.00.06.sh
+
+ln -sf $sourcefolder/$file_smev_backup $linksfolder/SmartEvent_backup
+ln -sf $sourcefolder/$file_smev_restore $linksfolder/SmartEvent_restore
 
 if [ "$sys_type_SmartEvent" == "true" ]; then
     
-    rm $workingroot/SmartEvent_backup
-    #rm $workingroot/SmartEvent_restore
+    ln -sf $sourcefolder/$file_smev_backup $workingroot/SmartEvent_backup
+    #ln -sf $sourcefolder/$file_smev_restore $workingroot/SmartEvent_restore
     
 fi
 
@@ -612,21 +734,42 @@ fi
 export workingdir=SMS
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
+
+file_migrate_export_epm=migrate_export_epm_ugex_001_v00.13.00.sh
+file_migrate_export_npm=migrate_export_npm_ugex_001_v00.13.00.sh
+file_mgmt_report=report_cpwd_admin_list.v00.08.00.sh
+file_mgmt_restart=restart_mgmt.v00.09.00.sh
+file_mgmt_watch=watch_cpwd_admin_list.v00.05.00.sh
+file_reset_hitcount_sms=reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh
+
+ln -sf $sourcefolder/$file_migrate_export_npm $linksfolder/migrate_export_npm_ugex
+ln -sf $sourcefolder/$file_mgmt_restart $linksfolder/restart_mgmt
+ln -sf $sourcefolder/$file_mgmt_report $linksfolder/report_cpwd_admin_list
+ln -sf $sourcefolder/$file_mgmt_watch $linksfolder/watch_cpwd_admin_list
+
+ln -sf $sourcefolder/$file_reset_hitcount_sms $linksfolder/reset_hit_count_on_R80_SMS_commands
 
 if [ "$sys_type_SMS" == "true" ]; then
     
-    rm $workingroot/migrate_export_npm_ugex
-    rm $workingroot/restart_mgmt
-    rm $workingroot/report_cpwd_admin_list
-    rm $workingroot/watch_cpwd_admin_list
+    ln -sf $sourcefolder/$file_migrate_export_npm $workingroot/migrate_export_npm_ugex
+    ln -sf $sourcefolder/$file_mgmt_restart $workingroot/restart_mgmt
+    ln -sf $sourcefolder/$file_mgmt_report $workingroot/report_cpwd_admin_list
+    ln -sf $sourcefolder/$file_mgmt_watch $workingroot/watch_cpwd_admin_list
     
-    rm $workingroot/reset_hit_count_on_R80_SMS_commands
+    ln -sf $sourcefolder/$file_reset_hitcount_sms $workingroot/reset_hit_count_on_R80_SMS_commands
     
 fi
 
 if [ $Check4EPM -gt 0 ]; then
 
-    rm $workingroot/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_migrate_export_epm $linksfolder/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_migrate_export_epm $workingroot/migrate_export_epm_ugex
 
 fi
 
@@ -640,8 +783,19 @@ fi
 export workingdir=UserConfig
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder
+    chmod 775 $linksfolder
+else
+    chmod 775 $linksfolder
+fi
 
-rm $workingroot/add_alias_commands
+file_add_allias_all=add_alias_commands.all.v00.07.00.sh
+
+ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands
+ln -sf $sourcefolder/$file_add_allias_all $workingroot/add_alias_commands
+
+ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands.all
 
 
 # =============================================================================
@@ -651,25 +805,3 @@ rm $workingroot/add_alias_commands
 
 # =============================================================================
 # =============================================================================
-
-rm -f -r -d $linksbase
-
-# =============================================================================
-# =============================================================================
-
-echo
-
-ls -alh $workingroot
-
-echo
-
-ls -alh $workingbase
-
-echo
-
-echo 'Done with links clean-up!'
-echo
-
-# =============================================================================
-# =============================================================================
-

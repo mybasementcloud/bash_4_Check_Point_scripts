@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT Configure script link files and copy versioned scripts to generics
+# SCRIPT generate an array of domains and show that array
 #
-# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.16.01
-ScriptDate=2018-09-04
+ScriptVersion=00.04.00
+ScriptDate=2018-09-07
 #
 
-export BASHScriptVersion=v00x16x01
+export BASHScriptVersion=v00x04x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -385,420 +385,95 @@ rm $gaiaversionoutputfile
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 #
-# Scripts link generation and setup
+# Generate list of domains in Array
 #
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
 
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
-
-
-if [ ! -r $workingbase ] ; then
+if [ "$sys_type_MDS" != "true" ]; then
+    
     echo
-    echo Error!
-    echo Missing folder $workingbase
-    echo
-    echo Exiting!
+    echo '!!!! This script is expected to run on Multi-Domain Management !!!!'
+    echo 'Exiting...!'
     echo
     exit 255
-else
-    chmod 775 $workingbase
-fi
-
-
-if [ ! -r $linksbase ] ; then
-    mkdir $linksbase
-    chmod 775 $linksbase
-else
-    chmod 775 $linksbase
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_gaia_version=determine_gaia_version_and_installation_type.v00.08.00.sh
-
-file_godump=go_dump_folder_now.v00.04.00.sh
-file_mkdump=make_dump_folder_now.v00.04.00.sh
-file_godumpdtg=go_dump_folder_now_dtg.v00.04.00.sh
-file_mkdumpdtg=make_dump_folder_now_dtg.v00.04.00.sh
-file_goChgLogdtg=go_change_log_folder_now_dtg.v00.04.00.sh
-
-ln -sf $sourcefolder/$file_gaia_version $linksfolder/gaia_version_type
-ln -sf $sourcefolder/$file_gaia_version $workingroot/gaia_version_type
-
-ln -sf $sourcefolder/$file_godump $linksfolder/godump
-ln -sf $sourcefolder/$file_godump $workingroot/godump
-ln -sf $sourcefolder/$file_godumpdtg $linksfolder/godtgdump
-ln -sf $sourcefolder/$file_godumpdtg $workingroot/godtgdump
-
-ln -sf $sourcefolder/$file_goChgLogdtg $linksfolder/goChangeLog
-ln -sf $sourcefolder/$file_goChgLogdtg $workingroot/goChangeLog
-
-ln -sf $sourcefolder/$file_mkdump $linksfolder/mkdump
-ln -sf $sourcefolder/$file_mkdump $workingroot/mkdump
-ln -sf $sourcefolder/$file_mkdumpdtg $linksfolder/mkdtgdump
-ln -sf $sourcefolder/$file_mkdumpdtg $workingroot/mkdtgdump
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_configcapture=config_capture_005_v00.16.00.sh
-file_interface_info=show_interface_information_v00.02.00.sh
-
-ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
-ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info
-ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
-ln -sf $sourcefolder/$file_interface_info $workingroot/interface_info
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
-
-
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_watch_accel_stats=watch_accel_stats.v00.01.00.sh
-file_set_inf_log_implied=set_informative_logging_implied_rules_on_R8x.v00.03.00.sh
-file_reset_hitcount_w_bu=reset_hit_count_with_backup_001_v00.03.00.sh
-
-
-ln -sf $sourcefolder/$file_watch_accel_stats $linksfolder/watch_accel_stats
-ln -sf $sourcefolder/$file_set_inf_log_implied $linksfolder/set_informative_logging_implied_rules_on_R8x
-
-ln -sf $sourcefolder/$file_reset_hitcount_w_bu $linksfolder/reset_hit_count_with_backup
-
-if [ "$sys_type_GW" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_watch_accel_stats $workingroot/watch_accel_stats
-    ln -sf $sourcefolder/$file_set_inf_log_implied $workingroot/set_informative_logging_implied_rules_on_R8x
-    
-    ln -sf $sourcefolder/$file_reset_hitcount_w_bu $workingroot/reset_hit_count_with_backup
     
 fi
 
+echo
+echo 'Generate Array with list of domains on MDS'
+echo 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
+#clish -c "show web ssl-port"
+#MGMTSSLPORT=4344
+clish -c "lock database override"
+clish -c "lock database override"
 
+GETWEBSSLPORT=`clish -c "show web ssl-port" | awk '{print $2}'`
+export MGMTSSLPORT=$GETWEBSSLPORT
 
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
+echo 'web SSL Port = '$MGMTSSLPORT
+echo
 
+DOMAINSARRAY=()
 
-file_healthcheck=healthcheck.sh
-file_healthdump=run_healthcheck_to_dump_dtg.v00.04.00.sh
-file_cpservicecheck=check_status_checkpoint_services.v00.00.00.sh
+GETDOMAINS="`mgmt_cli show domains -r true --port $MGMTSSLPORT --format json | jq '.objects[].name'`"
 
-ln -sf $sourcefolder/$file_healthcheck $linksfolder/healthcheck
-ln -sf $sourcefolder/$file_healthcheck $workingroot/healthcheck
-ln -sf $sourcefolder/$file_healthdump $linksfolder/healthdump
-ln -sf $sourcefolder/$file_healthdump $workingroot/healthdump
-ln -sf $sourcefolder/$file_cpservicecheck $linksfolder/checkpoint_service_status_check
-ln -sf $sourcefolder/$file_cpservicecheck $workingroot/checkpoint_service_status_check
+echo 'Populate array of domains : '
+echo
 
+line="\"System Data\""
+DOMAINSARRAY+=("$line")
+echo -n 'Domains :  '$line
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
+line="\"Global\""
+DOMAINSARRAY+=("$line")
+echo -n ', '$line
 
+arraylength=2
+while read -r line; do
 
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_mds_backup=mds_backup_ugex_001_v00.09.00.sh
-file_report_mdsstat=report_mdsstat.v00.08.00.sh
-file_watch_mdsstat=watch_mdsstat.v00.07.00.sh
-
-ln -sf $sourcefolder/$file_mds_backup $linksfolder/mds_backup_ugex
-ln -sf $sourcefolder/$file_report_mdsstat $linksfolder/report_mdsstat
-ln -sf $sourcefolder/$file_watch_mdsstat $linksfolder/watch_mdsstat
-
-if [ "$sys_type_MDS" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_mds_backup $workingroot/mds_backup_ugex
-    ln -sf $sourcefolder/$file_report_mdsstat $workingroot/report_mdsstat
-    ln -sf $sourcefolder/$file_watch_mdsstat $workingroot/watch_mdsstat
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_patch_fix_webui_standard=fix_gaia_webui_login_dot_js.sh
-file_patch_fix_webui_generic=fix_gaia_webui_login_dot_js_generic.sh
-
-export need_fix_webui=false
-
-case "$gaiaversion" in
-    R80.20 ) 
-        export need_fix_webui=false
-        ;;
-    *)
-        export need_fix_webui=true
-        ;;
-esac
-
-if [ "$need_fix_webui" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_patch_fix_webui_standard $linksfolder/fix_gaia_webui_login_dot_js
-    ln -sf $sourcefolder/$file_patch_fix_webui_standard $workingroot/fix_gaia_webui_login_dot_js
-    
-    ln -sf $sourcefolder/$file_patch_fix_webui_generic $linksfolder/fix_gaia_webui_login_dot_js_generic
-
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
-
-
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_rem_zl_sessions=remove_zerolocks_sessions.v00.05.00.sh
-file_rem_zl_sessions_webapi=remove_zerolocks_web_api_sessions.v00.05.00.sh
-file_mdm_rem_zl_sessions=mdm_remove_zerolocks_sessions.v00.05.00.sh
-file_mdm_rem_zl_sessions_webapi=mdm_remove_zerolocks_web_api_sessions.v00.05.00.sh
-
-file_show_zl_sessions=show_zerolocks_sessions.v00.05.00.sh
-file_show_zl_sessions_webapi=show_zerolocks_web_api_sessions.v00.05.00.sh
-file_mdm_show_zl_sessions=mdm_show_zerolocks_sessions.v00.05.00.sh
-file_mdm_show_zl_sessions_webapi=mdm_show_zerolocks_web_api_sessions.v00.05.00.sh
-
-export do_session_cleanup=false
-
-case "$gaiaversion" in
-    R80 | R80.10 | R80.20 ) 
-        export do_session_cleanup=true
-        ;;
-    *)
-        export do_session_cleanup=false
-        ;;
-esac
-
-if [ "$do_session_cleanup" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_show_zl_sessions $linksfolder/show_zerolocks_sessions
-    ln -sf $sourcefolder/$file_show_zl_sessions_webapi $linksfolder/show_zerolocks_web_api_sessions
-    ln -sf $sourcefolder/$file_rem_zl_sessions $linksfolder/remove_zerolocks_sessions
-    ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $linksfolder/remove_zerolocks_web_api_sessions
-
-    ln -sf $sourcefolder/$file_mdm_show_zl_sessions $linksfolder/mdm_show_zerolocks_sessions
-    ln -sf $sourcefolder/$file_mdm_show_zl_sessions_webapi $linksfolder/mdm_show_zerolocks_web_api_sessions
-    ln -sf $sourcefolder/$file_mdm_rem_zl_sessions $linksfolder/mdm_remove_zerolocks_sessions
-    ln -sf $sourcefolder/$file_mdm_rem_zl_sessions_webapi $linksfolder/mdm_remove_zerolocks_web_api_sessions
-    
-    if [ "$sys_type_GW" == "false" ]; then
-        
-        if [ "$sys_type_MDS" == "true" ]; then
-            
-            ln -sf $sourcefolder/$file_mdm_show_zl_sessions $workingroot/mdm_show_zerolocks_sessions
-            ln -sf $sourcefolder/$file_mdm_show_zl_sessions_webapi $workingroot/mdm_show_zerolocks_web_api_sessions
-            ln -sf $sourcefolder/$file_mdm_rem_zl_sessions $workingroot/mdm_remove_zerolocks_sessions
-            ln -sf $sourcefolder/$file_mdm_rem_zl_sessions_webapi $workingroot/mdm_remove_zerolocks_web_api_sessions
-            
-        else
-            
-            ln -sf $sourcefolder/$file_show_zl_sessions $workingroot/show_zerolocks_sessions
-            ln -sf $sourcefolder/$file_show_zl_sessions_webapi $workingroot/show_zerolocks_web_api_sessions
-            ln -sf $sourcefolder/$file_rem_zl_sessions $workingroot/remove_zerolocks_sessions
-            ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $workingroot/remove_zerolocks_web_api_sessions
-            
-        fi
+    if [ $arraylength -eq 0 ]; then
+    	echo -n 'Domains :  '
+    else
+    	echo -n ', '
     fi
-    
-fi
+
+    DOMAINSARRAY+=("$line")
+    echo -n $line
+
+    #if [ "$line" == 'lo' ]; then
+    #    echo -n 'Not adding '$line
+    #else 
+    #    DOMAINSARRAY+=("$line")
+    #    echo -n $line
+    #fi
+	
+	arraylength=${#DOMAINSARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETDOMAINS"
+echo
+echo
+
+echo 'Show list of domains in array'
+echo
+for j in "${DOMAINSARRAY[@]}"
+do
+    echo "${j}"
+done
+echo
+
+echo 'Raw dump of domains array : '
+echo
+echo ${DOMAINSARRAY[@]}
+#echo ${DOMAINSARRAY[*]}
+echo
 
 
 # =============================================================================
 # =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
 
-
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_smev_backup=SmartEvent_Backup_R8X_v00.04.00.sh
-file_smev_restore=SmartEvent_Restore_R8X_v00.00.06.sh
-
-ln -sf $sourcefolder/$file_smev_backup $linksfolder/SmartEvent_backup
-ln -sf $sourcefolder/$file_smev_restore $linksfolder/SmartEvent_restore
-
-if [ "$sys_type_SmartEvent" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_smev_backup $workingroot/SmartEvent_backup
-    #ln -sf $sourcefolder/$file_smev_restore $workingroot/SmartEvent_restore
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
-
-
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_migrate_export_epm=migrate_export_epm_ugex_001_v00.13.00.sh
-file_migrate_export_npm=migrate_export_npm_ugex_001_v00.13.00.sh
-file_mgmt_report=report_cpwd_admin_list.v00.08.00.sh
-file_mgmt_restart=restart_mgmt.v00.09.00.sh
-file_mgmt_watch=watch_cpwd_admin_list.v00.05.00.sh
-file_reset_hitcount_sms=reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh
-
-ln -sf $sourcefolder/$file_migrate_export_npm $linksfolder/migrate_export_npm_ugex
-ln -sf $sourcefolder/$file_mgmt_restart $linksfolder/restart_mgmt
-ln -sf $sourcefolder/$file_mgmt_report $linksfolder/report_cpwd_admin_list
-ln -sf $sourcefolder/$file_mgmt_watch $linksfolder/watch_cpwd_admin_list
-
-ln -sf $sourcefolder/$file_reset_hitcount_sms $linksfolder/reset_hit_count_on_R80_SMS_commands
-
-if [ "$sys_type_SMS" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_migrate_export_npm $workingroot/migrate_export_npm_ugex
-    ln -sf $sourcefolder/$file_mgmt_restart $workingroot/restart_mgmt
-    ln -sf $sourcefolder/$file_mgmt_report $workingroot/report_cpwd_admin_list
-    ln -sf $sourcefolder/$file_mgmt_watch $workingroot/watch_cpwd_admin_list
-    
-    ln -sf $sourcefolder/$file_reset_hitcount_sms $workingroot/reset_hit_count_on_R80_SMS_commands
-    
-fi
-
-if [ $Check4EPM -gt 0 ]; then
-
-    ln -sf $sourcefolder/$file_migrate_export_epm $linksfolder/migrate_export_epm_ugex
-    ln -sf $sourcefolder/$file_migrate_export_epm $workingroot/migrate_export_epm_ugex
-
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
-
-
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder
-    chmod 775 $linksfolder
-else
-    chmod 775 $linksfolder
-fi
-
-file_add_allias_all=add_alias_commands.all.v00.07.00.sh
-
-ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands
-ln -sf $sourcefolder/$file_add_allias_all $workingroot/add_alias_commands
-
-ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands.all
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
+echo Done!
+echo
