@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.17.01
-ScriptDate=2018-09-07
+ScriptVersion=00.18.00
+ScriptDate=2018-09-09
 #
 
-export BASHScriptVersion=v00x17x01
+export BASHScriptVersion=v00x18x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -474,8 +474,8 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_005_v00.16.00.sh
-file_interface_info=show_interface_information_v00.02.00.sh
+file_configcapture=config_capture_005_v00.17.00.sh
+file_interface_info=show_interface_information_v00.03.00.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info
