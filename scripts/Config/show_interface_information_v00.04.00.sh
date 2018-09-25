@@ -1,18 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT capture configuration values for bash and clish level 004
+# SCRIPT Show Interface Information
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.17.00
-ScriptDate=2018-09-09
+ScriptVersion=00.04.00
+ScriptDate=2018-09-17
 #
 
-export BASHScriptVersion=v00x17x00
+export BASHScriptVersion=v00x04x00
 
+export ScriptName=show_interface_information_$ScriptVersion
 
 echo
-echo 'Script Configuration Capture script version '$ScriptVersion' from '$ScriptDate
+echo 'Show Interface Information, script version '$ScriptVersion' from '$ScriptDate
 echo
 
 # -------------------------------------------------------------------------------------------------
@@ -29,7 +30,7 @@ export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-echo 'Date Time Groups  :  '$DATE $DATEDTG $DATEDTGS
+echo 'Date Time Group   :  '$DATE $DATEDTG $DATEDTGS
 echo 'Date (YYYY-MM-DD) :  '$DATEYMD
 echo
     
@@ -116,6 +117,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
 #----------------------------------------------------------------------------------------
 # Setup Basic Parameters
 #----------------------------------------------------------------------------------------
@@ -177,7 +179,7 @@ else
     chmod 775 $outputpathroot
 fi
 
-export outputpathbase=$outputpathroot/host_data
+export outputpathbase=$outputpathroot/dump
 
 if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
@@ -203,6 +205,25 @@ if [ ! -r $outputhomepath ] ; then
 else
     chmod 775 $outputhomepath
 fi
+
+#----------------------------------------------------------------------------------------
+# Set LogFile Information
+#----------------------------------------------------------------------------------------
+
+export logpathroot=$outputpathroot/dump
+
+if [ ! -r $logpathroot ]; then
+    mkdir $logpathroot
+fi
+
+export logpathbase=$logpathroot/$DATEDTGS
+
+if [ ! -r $logpathbase ]; then
+    mkdir $logpathbase
+fi
+
+export logfilepath=$logpathbase/$ScriptName'_'$DATEDTGS.log
+touch $logfilepath
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -472,6 +493,14 @@ echo | tee -a -i $gaiaversionoutputfile
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+cat $gaiaversionoutputfile >> $logfilepath
+echo >> $logfilepath
+rm $gaiaversionoutputfile
+
+
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -480,7 +509,6 @@ echo | tee -a -i $gaiaversionoutputfile
 #
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
 
 #----------------------------------------------------------------------------------------
 # Configure specific parameters
@@ -499,186 +527,6 @@ if [ ! -r $outputfilepath ] ; then
 else
     chmod 775 $outputfilepath
 fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - Gaia Version information 
-#----------------------------------------------------------------------------------------
-
-export command2run=Gaia_version
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-# This was already collected earlier and saved in a dedicated file
-
-cp $gaiaversionoutputfile $outputfilefqdn
-rm $gaiaversionoutputfile
-
-#----------------------------------------------------------------------------------------
-# bash - backup user's home folder
-#----------------------------------------------------------------------------------------
-
-export homebackuproot=$startpathroot
-
-export expandedpath=$(cd $homebackuproot ; pwd)
-export homebackuproot=$expandedpath
-export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
-export isitthispath=`test -z $checkthispath; echo $?`
-
-if [ $isitthispath -eq 1 ] ; then
-    #Oh, Oh, we're in the home directory executing, not good!!!
-    #Configure homebackuproot for $alternatepathroot folder since we can't run in /home/
-    export homebackuproot=$alternatepathroot
-else
-    #OK use the current folder and create host_data sub-folder
-    export homebackuproot=$startpathroot
-fi
-
-if [ ! -r $homebackuproot ] ; then
-    #not where we're expecting to be, since $homebackuproot is missing here
-    #maybe this hasn't been run here yet.
-    #OK, so make the expected folder and set permissions we need
-    mkdir $homebackuproot
-    chmod 775 $homebackuproot
-else
-    #set permissions we need
-    chmod 775 $homebackuproot
-fi
-
-export expandedpath=$(cd $homebackuproot ; pwd)
-export homebackuproot=${expandedpath}
-export homebackuppath="$homebackuproot/home.backup"
-
-if [ ! -r $homebackuppath ] ; then
-    mkdir $homebackuppath
-    chmod 775 $homebackuppath
-else
-    chmod 775 $homebackuppath
-fi
-
-export command2run=backup-home
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-touch "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo 'Execute '$command2run' to '$outputhomepath' with output to : '$outputfilefqdn >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo "Current path : " >> "$outputfilefqdn"
-pwd >> "$outputfilefqdn"
-
-echo "Copy /home folder to $outputhomepath" >> "$outputfilefqdn"
-cp -a -v "/home/" "$outputhomepath" >> "$outputfilefqdn"
-
-echo
-echo 'Execute '$command2run' to '$homebackuppath' with output to : '$outputfilefqdn
-echo >> "$outputfilefqdn"
-
-pushd /home
-
-echo >> "$outputfilefqdn"
-echo "Current path : " >> "$outputfilefqdn"
-pwd >> "$outputfilefqdn"
-
-echo "Copy /home folder contents to $homebackuppath" >> "$outputfilefqdn"
-cp -a -v "." "$homebackuppath" >> "$outputfilefqdn"
-
-popd
-
-echo >> "$outputfilefqdn"
-echo "Current path : " >> "$outputfilefqdn"
-pwd >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-
-echo "Current path : " >> "$outputfilefqdn"
-pwd >> "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather licensing information
-#----------------------------------------------------------------------------------------
-
-export command2run=cplic_print
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-cplic print > "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - basic information
-#----------------------------------------------------------------------------------------
-
-export command2run=basic_information
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-
-touch $outputfilefqdn
-echo >> "$outputfilefqdn"
-echo 'Memory Utilization : free -m -t' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-free -m -t >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'Disk Utilization : df -h' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-df -h >> "$outputfilefqdn"
-
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'Disk Mount : mount' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-mount >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather route details
-#----------------------------------------------------------------------------------------
-
-export command2run=route
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-route -vn > "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather arp details
-#----------------------------------------------------------------------------------------
-
-export command2run=arp
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqdn
-
-touch $outputfilefqdn
-arp -vn >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-arp -av >> "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
@@ -831,8 +679,8 @@ echo | tee -a -i $outputfilefqdn
 echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
 
 clish -c "show interfaces" | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
@@ -1036,7 +884,7 @@ echo
 # bash - gather interface details from /etc/sysconfig/networking
 #----------------------------------------------------------------------------------------
 
-# /etc/sysconfig/networking
+#/etc/sysconfig/networking
 
 export command2run=etc_sysconfig_networking
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
@@ -1062,7 +910,7 @@ echo | tee -a -i "$outputfilefqdn"
 # bash - gather interface details from /etc/sysconfig/network-scripts
 #----------------------------------------------------------------------------------------
 
-# /etc/sysconfig/network-scripts
+#/etc/sysconfig/network-scripts
 
 export command2run=etc_sysconfig_networking_scripts
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
@@ -1129,7 +977,7 @@ echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilef
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i "$outputfilefqdn"
 
-find / -name $file2copy | tee -a -i "$outputfilefqdn"
+find / -name $file2copy* | tee -a -i "$outputfilefqdn"
 
 echo | tee -a -i "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -1147,538 +995,6 @@ echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
-# bash - collect /etc/sysconfig/hwconf and backup if it exists
-#----------------------------------------------------------------------------------------
-
-# /etc/sysconfig/hwconf
-export file2copy=hwconf
-export file2copypath="/etc/sysconfig/$file2copy"
-export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-# Gaia sould have /etc/sysconfig/hwconf file
-#
-
-if [ ! -r $file2copypath ] ; then
-    echo
-    echo 'No '$file2copy' file at :  '$file2copypath
-else
-    echo
-    echo 'found '$file2copy' file at :  '$file2copypath
-    echo
-    echo 'copy '$file2copy' to : '"$outputfilepath"
-    cp "$file2copypath" "$outputfilefqdn"
-    cp "$file2copypath" "$outputfilepath"
-    #cp "$file2copypath" .
-fi
-echo
-    
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-# Special files to collect and backup (at some time)
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-#    user.def - sk98239 (Location of 'user.def' file on Management Server
-#
-#    table.def - sk98339 (Location of 'table.def' files on Management Server)
-#
-#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
-#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
-#
-#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
-#
-#    base.def - sk95147 (Modifying definitions of packet inspection on Security Gateway for different protocols - 'base.def' file)
-#
-#    vpn_table.def - sk92332 (Customizing the VPN configuration for Check Point Security Gateway - 'vpn_table.def' file)
-#
-#    DCE RPC files - sk42402 (Legitimate DCE-RPC (MS DCOM) bind packets dropped by IPS)
-#
-#    rtsp.def - sk35945 (RTSP traffic is dropped when SecureXL is enabled)
-#
-#    ftp.def - sk61781 (FTP packet is dropped - Attack Information: The packet was modified due to a potential Bounce Attack Evasion Attempt (Telnet Options))
-#
-
-
-#----------------------------------------------------------------------------------------
-# bash - identify user.def files - sk98239
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/conf/user.def
-export file2find=user.def
-export file2findpath="/"
-export command2run=find
-export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-find / -name $file2find* | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# bash - collect $FWDIR/conf/user.def and backup if it exists - sk98239
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/conf/user.def
-#export file2copy=user.def
-#export file2copypath="$FWDIR/conf/$file2copy"
-#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
-#export outputfilefqdn=$outputfilepath$outputfile
-#
-#if [[ $sys_type_MDS = 'true' ]] ; then
-#    
-#    # HANDLE MDS and Domains
-#    
-#else
-#    # System is not MDS, so no need to cycle through domains
-#    
-#    if [ ! -r $file2copypath ] ; then
-#        echo
-#        echo 'No '$file2copy' file at :  '$file2copypath
-#    else
-#        echo
-#        echo 'found '$file2copy' file at :  '$file2copypath
-#        echo
-#        echo 'copy '$file2copy' to : '"$outputfilepath"
-#        cp "$file2copypath" "$outputfilefqdn"
-#        cp "$file2copypath" "$outputfilepath"
-#        cp "$file2copypath" .
-#    fi
-#    echo
-#    
-#fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - identify table.def files - sk98339
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/lib/table.def
-export file2find=table.def
-export file2findpath="/"
-export command2run=find
-export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-find / -name $file2find* | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# bash - collect $FWDIR/lib/table.def and backup if it exists - sk98339
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/lib/table.def
-#export file2copy=table.def
-#export file2copypath="$FWDIR/lib/$file2copy"
-#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
-#export outputfilefqdn=$outputfilepath$outputfile
-#
-#if [[ $sys_type_MDS = 'true' ]] ; then
-#    
-#    # HANDLE MDS and Domains
-#    
-#else
-#    # System is not MDS, so no need to cycle through domains
-#    
-#    if [ ! -r $file2copypath ] ; then
-#        echo
-#        echo 'No '$file2copy' file at :  '$file2copypath
-#    else
-#        echo
-#        echo 'found '$file2copy' file at :  '$file2copypath
-#        echo
-#        echo 'copy '$file2copy' to : '"$outputfilepath"
-#        cp "$file2copypath" "$outputfilefqdn"
-#        cp "$file2copypath" "$outputfilepath"
-#        cp "$file2copypath" .
-#    fi
-#    echo
-#    
-#fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - identify crypt.def files - sk98241 and sk108600
-#----------------------------------------------------------------------------------------
-
-#
-#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
-#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
-#
-
-export file2find=crypt.def
-export file2findpath="/"
-export command2run=find
-export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-find / -name $file2find* | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# bash - identify implied_rules.def files - sk92281
-#----------------------------------------------------------------------------------------
-
-#
-#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
-#
-
-export file2find=implied_rules.def
-export file2findpath="/"
-export command2run=find
-export outputfile=$outputfileprefix'_'$command2run'_'$file2find$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-find / -name $file2find* | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# bash - collect $FWDIR/boot/modules/fwkern.conf and backup if it exists
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/boot/modules/fwkern.conf
-export file2copy=fwkern.conf
-export file2copypath="$FWDIR/boot/modules/$file2copy"
-export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-if [ $Check4GW -eq 1 ]; then
-    # Gateways generally could have $FWDIR/boot/modules/fwkern.conf file
-    #
-    
-    if [ ! -r $file2copypath ] ; then
-        echo
-        echo 'No '$file2copy' file at :  '$file2copypath
-    else
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilepath"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
-    fi
-    echo
-    
-else
-    # not expecting a $FWDIR/boot/modules/fwkern.conf file, but collect if it exists
-    #
-
-    if [ -r $file2copypath ] ; then
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilepath"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
-    fi
-    echo
-fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - collect $FWDIR/boot/modules/vpnkern.conf and backup if it exists - SK101219
-#----------------------------------------------------------------------------------------
-
-# $FWDIR/boot/modules/vpnkern.conf
-export file2copy=vpnkern.conf
-export file2copypath="$FWDIR/boot/modules/$file2copy"
-export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-if [ $Check4GW -eq 1 ]; then
-    # Gateways generally could have $FWDIR/boot/modules/vpnkern.conf file
-    #
-    
-    if [ ! -r $file2copypath ] ; then
-        echo
-        echo 'No '$file2copy' file at :  '$file2copypath
-    else
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
-    fi
-    echo
-    
-else
-    # not expecting a $FWDIR/boot/modules/vpnkern.conf file, but collect if it exists
-    #
-
-    if [ -r $file2copypath ] ; then
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        cp "$file2copypath" .
-    fi
-    echo
-fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - collect /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini and backup if it exists
-#----------------------------------------------------------------------------------------
-
-# /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini
-export file2copy=TPAPI.ini
-export file2copypath="/opt/CPUserCheckPortal/phpincs/conf/$file2copy"
-export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-if [ $Check4GW -eq 1 ]; then
-    # Gateways generally could have /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini
-    #
-    
-    if [ ! -r $file2copypath ] ; then
-        echo
-        echo 'No '$file2copy'i file at :  '$file2copypath
-    else
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        #cp "$file2copypath" .
-    fi
-    echo
-    
-else
-    # not expecting a /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini file, but collect if it exists
-    #
-
-    if [ -r $file2copypath ] ; then
-        echo
-        echo 'found '$file2copy' file at :  '$file2copypath
-        echo
-        echo 'copy '$file2copy' to : '"$outputfilefqdn"
-        cp "$file2copypath" "$outputfilefqdn"
-        cp "$file2copypath" "$outputfilepath"
-        #cp "$file2copypath" .
-    fi
-    echo
-fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - GW - status of SecureXL
-#----------------------------------------------------------------------------------------
-
-if [ $Check4GW -eq 1 ]; then
-    
-    export command2run=fwaccel-statistics
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqdn=$outputfilepath$outputfile
-    
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqdn
-    
-    touch $outputfilefqdn
-    echo >> "$outputfilefqdn"
-    echo 'fwacell stat' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    fwaccel stat >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'fwacell stats' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    fwaccel stats >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'fwacell stats -s' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    fwaccel stats -s >> "$outputfilefqdn"
-    
-fi
-
-
-#----------------------------------------------------------------------------------------
-# bash - Management Systems Information
-#----------------------------------------------------------------------------------------
-
-if [[ $sys_type_MDS = 'true' ]] ; then
-
-    export command2run=cpwd_admin
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqdn=$outputfilepath$outputfile
-    
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqdn
-    command > "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    
-    if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-        echo | tee -a -i "$outputfilefqdn"
-    else
-        echo | tee -a -i "$outputfilefqdn"
-    fi
-
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'cpwd_admin list' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cpwd_admin list >> "$outputfilefqdn"
-
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'mdsstat' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    export COLUMNS=128
-    mdsstat >> "$outputfilefqdn"
-
-elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
-
-    export command2run=cpwd_admin
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqdn=$outputfilepath$outputfile
-    
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqdn
-    command > "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    
-    if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-        echo | tee -a -i "$outputfilefqdn"
-    else
-        echo | tee -a -i "$outputfilefqdn"
-    fi
-
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'cpwd_admin list' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cpwd_admin list >> "$outputfilefqdn"
-
-fi
-
-echo | tee -a -i "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-#----------------------------------------------------------------------------------------
-# bash - GW - status of Identity Awareness
-#----------------------------------------------------------------------------------------
-
-if [ $Check4GW -eq 1 ]; then
-    
-    export command2run=identity_awareness_details
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqdn=$outputfilepath$outputfile
-    
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqdn
-    
-    touch $outputfilefqdn
-
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'pdp status show' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    pdp status show >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'pep show pdp all' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    pep show pdp all >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'pdp auth kerberos_encryption get' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    pdp auth kerberos_encryption get >> "$outputfilefqdn"
-    
-fi
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-#----------------------------------------------------------------------------------------
 # bash - ?what next?
 #----------------------------------------------------------------------------------------
 
@@ -1686,155 +1002,22 @@ fi
 #export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 #export outputfilefqdn=$outputfilepath$outputfile
 
-#echo
-#echo 'Execute '$command2run' with output to : '$outputfilefqdn
-#command > "$outputfilefqdn"
+#echo | tee -a -i $outputfilefqdn
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i $outputfilefqdn
+#command | tee -a -i $outputfilefqdn
 
-#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
-#echo 'fwacell stats -s' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
+#echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+#echo | tee -a -i $outputfilefqdn
+#echo 'fwacell stats -s' | tee -a -i $outputfilefqdn
+#echo | tee -a -i $outputfilefqdn
 #
-#fwaccel stats -s >> "$outputfilefqdn"
+#fwaccel stats -s | tee -a -i $outputfilefqdn
 #
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-# clish operations - might have issues if user is in Gaia webUI
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-export command2run=clish_commands
-export clishoutputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export clishoutputfilefqdn=$outputfilepath$clishoutputfile
-
-
-#----------------------------------------------------------------------------------------
-# clish - save configuration to file
-#----------------------------------------------------------------------------------------
-
-export command2run=clish_config
-export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a $clishoutputfilefqdn
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a $clishoutputfilefqdn
-echo | tee -a $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save config" >> $clishoutputfilefqdn
-
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save configuration $outputfile" >> $clishoutputfilefqdn
-
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save config" >> $clishoutputfilefqdn
-
-cp "$outputfile" "$outputfilefqdn" >> $clishoutputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# clish - show assets
-#----------------------------------------------------------------------------------------
-
-export command2run=clish_assets
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-echo | tee -a $clishoutputfilefqdn
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a $clishoutputfilefqdn
-echo | tee -a $clishoutputfilefqdn
-touch $outputfilefqdn
-
-echo 'clish show asset all :' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "show asset all" >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo 'clish show asset system :' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "show asset system" >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-
-#----------------------------------------------------------------------------------------
-# clish and bash - Gather version information from all possible methods
-#----------------------------------------------------------------------------------------
-
-export command2run=versions
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-touch $outputfilefqdn
-echo 'Versions:' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo 'uname for kernel version : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-uname -a >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'clish : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "show version all" >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'cpinfo -y all : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-cpinfo -y all >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'fwm ver : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-fwm ver >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-echo 'fw ver : ' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-fw ver >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-    # installed_jumbo_take only exists in R7X
-    echo >> "$outputfilefqdn"
-else
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    installed_jumbo_take >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-fi
+#
 
 
 #----------------------------------------------------------------------------------------
@@ -1859,12 +1042,6 @@ echo 'CLI Operations Completed'
 
 echo
 
-ls -alh $outputpathroot/config*
-echo
-
-ls -alh $outputpathroot/fw*
-echo
-
 #ls -alhR $outputpathroot
 #ls -alh $outputpathroot
 #echo
@@ -1876,6 +1053,8 @@ echo
 echo
 echo 'Output location for all results is here : '$outputpathroot
 echo 'Host Data output for this run is here   : '$outputpathbase
+echo 'Results documented in this file here    : '$outputfilefqdn
+#echo 'Results documented in this log file     : '$logfilepath
 echo
 
 #----------------------------------------------------------------------------------------
@@ -1883,4 +1062,5 @@ echo
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+
 

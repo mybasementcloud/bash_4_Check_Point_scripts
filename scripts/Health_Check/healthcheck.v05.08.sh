@@ -8,7 +8,7 @@
 # AUTHOR (all versions): Nathan Davieau (Check Point Diamond Services Tech Lead)
 # CO-AUTHOR (v0.2-v3.6): Rosemarie Rodriguez
 # CODE CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman
-# VERSION:               5.6
+# VERSION:               5.8
 # SK:                    sk121447
 #====================================================================================================
 
@@ -28,7 +28,7 @@ csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="5.6 08-22-2018"
+script_ver="5.8 08-29-2018"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -126,8 +126,8 @@ fi
 #====================================================================================================
 check_passed()
 {
-    printf " OK\t\t│\n" >> $output_log
-    printf "${text_green} OK${text_reset}\t\t│\n"
+    printf " OK\t\t|\n" >> $output_log
+    printf "${text_green} OK${text_reset}\t\t|\n"
 }
 
     
@@ -145,15 +145,15 @@ check_failed()
     if [[ $vs_error -eq 2 ]]; then
         vs_error=1
         printf "\n\n" >> $logfile
-        printf "╔═══════════════════════╗\n" >> $logfile
-        printf "║  Virtual System $vs\t║\n" >> $logfile
-        printf "╚═══════════════════════╝\n" >> $logfile
+        printf "#########################\n" >> $logfile
+        printf "#  Virtual System $vs\t#\n" >> $logfile
+        printf "#########################\n" >> $logfile
     fi
     
     #Set output of specific check to WARNING
     if [[ $test_output_error -eq 0 ]]; then
-        printf " WARNING\t│\n" >> $output_log
-        printf "${text_red} WARNING${text_reset}\t│\n"
+        printf " WARNING\t|\n" >> $output_log
+        printf "${text_red} WARNING${text_reset}\t|\n"
         test_output_error=1
     fi
     
@@ -161,9 +161,9 @@ check_failed()
     if [[ $summary_error -eq 0 ]]; then
         summary_error=1
         printf "\n" >> $logfile
-        printf "┌───────────────────────┐\n" >> $logfile
-        printf "│ $current_check_message│\n" >> $logfile
-        printf "└───────────────────────┘\n" >> $logfile
+        printf "+-----------------------+\n" >> $logfile
+        printf "| $current_check_message|\n" >> $logfile
+        printf "+-----------------------+\n" >> $logfile
     fi
     
     #Set flag that a check failed
@@ -185,15 +185,15 @@ check_info()
     if [[ $vs_error -eq 2 ]]; then
         vs_error=1
         printf "\n\n" >> $logfile
-        printf "╔═══════════════════════╗\n" >> $logfile
-        printf "║  Virtual System $vs\t║\n" >> $logfile
-        printf "╚═══════════════════════╝\n" >> $logfile
+        printf "#########################\n" >> $logfile
+        printf "#  Virtual System $vs\t#\n" >> $logfile
+        printf "#########################\n" >> $logfile
     fi
     
     #Set output of specific check to INFO
     if [[ $test_output_error -eq 0 ]]; then
-        printf " INFO\t\t│\n" >> $output_log
-        printf "${text_yellow} INFO${text_reset}\t\t│\n"
+        printf " INFO\t\t|\n" >> $output_log
+        printf "${text_yellow} INFO${text_reset}\t\t|\n"
         test_output_error=1
     fi
     
@@ -201,13 +201,45 @@ check_info()
     if [[ $summary_error -eq 0 ]]; then
         summary_error=1
         printf "\n" >> $logfile
-        printf "┌───────────────────────┐\n" >> $logfile
-        printf "│ $current_check_message│\n" >> $logfile
-        printf "└───────────────────────┘\n" >> $logfile
+        printf "+-----------------------+\n" >> $logfile
+        printf "| $current_check_message|\n" >> $logfile
+        printf "+-----------------------+\n" >> $logfile
     fi
     
     #Set flag that a check failed
     all_checks_passed=false
+}
+
+
+#====================================================================================================
+#  Function to clean up temp files from the script
+#====================================================================================================
+temp_file_cleanup()
+{
+	#Delete all temp files
+    rm -f /var/tmp/category_list > /dev/null 2>&1
+    rm -f /var/tmp/header_list > /dev/null 2>&1
+    rm -f /var/tmp/candidate_list > /dev/null 2>&1
+    rm -f /var/tmp/candidate_details > /dev/null 2>&1
+    rm -f /var/tmp/return_code > /dev/null 2>&1
+    rm -f /var/tmp/return_details > /dev/null 2>&1
+    rm -f /var/tmp/messages_check.tmp > /dev/null 2>&1
+    rm -f /var/tmp/ntp_stat.tmp > /dev/null 2>&1
+    rm -f /var/tmp/proc_start_list.tmp > /dev/null 2>&1
+    rm -f /var/tmp/debug_flag_modules.tmp > /dev/null 2>&1
+    rm -f /var/tmp/debug_flag_current.tmp > /dev/null 2>&1
+    rm -f /var/tmp/*.id > /dev/null 2>&1
+    rm -f /var/tmp/fragment_error > /dev/null 2>&1
+    rm -f /var/tmp/connections_error > /dev/null 2>&1
+    rm -f /var/tmp/nat_error > /dev/null 2>&1
+    rm -f /var/tmp/fw_accel_error > /dev/null 2>&1
+    rm -f /var/tmp/fw_ctl_pstat_error > /dev/null 2>&1
+    rm -f /var/tmp/core_xl_stat > /dev/null 2>&1
+    rm -f /var/tmp/jumbo.tmp > /dev/null 2>&1
+    rm -f /var/tmp/cpinfo_script.tmp > /dev/null 2>&1
+    rm -f /var/tmp/disk_space.tmp > /dev/null 2>&1
+    echo ""
+    exit 0
 }
 
 
@@ -224,7 +256,7 @@ check_system()
     #====================================================================================================
     #  Uptime check
     #====================================================================================================
-    printf "│ System\t\t│ Uptime\t\t\t│" | tee -a $output_log
+    printf "| System\t\t| Uptime\t\t\t|" | tee -a $output_log
     up_time=$(uptime | awk '{print $3, $4}')
     echo $up_time  >> $full_output_log
 
@@ -266,7 +298,7 @@ check_system()
     #====================================================================================================
     test_output_error=0
     cp_os_edition=$(clish -c 'show version os edition' | grep OS | awk '{print $3}')
-    printf "│\t\t\t│ OS Version\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| OS Version\t\t\t|" | tee -a $output_log
     
     #Review OS edition
     if [[ $cp_os_edition == "32-bit" ]]; then
@@ -308,7 +340,7 @@ check_ntp()
     ntp_error=0
     current_check_message="NTP\t\t\t"
     #Log NTP check start
-    printf "│ NTP\t\t\t│ NTP Daemon\t\t\t│" | tee -a $output_log
+    printf "| NTP\t\t\t| NTP Daemon\t\t\t|" | tee -a $output_log
     
     #Check to see if the ntpstat binary is present
     if [[ -e /usr/bin/ntpstat ]]; then
@@ -370,7 +402,7 @@ check_disk_space()
     disk_check_file=/var/tmp/disk_space.tmp
     
     #Start disk space checks
-    printf "│ Disk Space\t\t│ Free Disk Space\t\t│" | tee -a $output_log
+    printf "| Disk Space\t\t| Free Disk Space\t\t|" | tee -a $output_log
     printf "\n\nDisk Space Info:\n" >> $full_output_log
     
     #Add full output to temp log and disk_check variable
@@ -432,7 +464,7 @@ check_memory()
     #====================================================================================================
     #  Physical Memory Check
     #====================================================================================================
-    printf "│ Memory\t\t│ Physical Memory\t\t│" | tee -a $output_log
+    printf "| Memory\t\t| Physical Memory\t\t|" | tee -a $output_log
     printf "\n\nMemory Info:\n" >> $full_output_log
     cat /proc/meminfo  >> $full_output_log
 
@@ -473,7 +505,7 @@ check_memory()
     #  Swap Memory Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ Swap Memory\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| Swap Memory\t\t\t|" | tee -a $output_log
     total_swap=$(echo "$current_meminfo" | grep SwapTotal | awk '{print $2}')
     free_swap=$(echo "$current_meminfo" | grep SwapFree | awk '{print $2}')
     (( used_swap = total_swap - free_swap ))
@@ -504,7 +536,7 @@ check_memory()
             #====================================================================================================
             #  HMEM Check
             #====================================================================================================
-            printf "│\t\t\t│ Hash Kernel Memory (hmem)\t│" | tee -a $output_log
+            printf "|\t\t\t| Hash Kernel Memory (hmem)\t|" | tee -a $output_log
             hash_memory_failed=$(echo "$fwctlpstat" | grep -A5 "hmem" | grep Allocations | awk '{print $4}')
             if [[ $hash_memory_failed -eq 0 ]]; then
                 check_passed
@@ -524,7 +556,7 @@ check_memory()
             #  SMEM Check
             #====================================================================================================
             test_output_error=0
-            printf "│\t\t\t│ System Kernel Memory (smem)\t│" | tee -a $output_log
+            printf "|\t\t\t| System Kernel Memory (smem)\t|" | tee -a $output_log
             system_memory_failed=$(echo "$fwctlpstat" | grep -A5 "smem" | grep Allocations | awk '{print $4}')
             if [[ $system_memory_failed -eq 0 ]]; then
                 check_passed
@@ -544,7 +576,7 @@ check_memory()
             #  KMEM Check
             #====================================================================================================
             test_output_error=0
-            printf "│\t\t\t│ Kernel Memory (kmem)\t\t│" | tee -a $output_log
+            printf "|\t\t\t| Kernel Memory (kmem)\t\t|" | tee -a $output_log
             kernel_memory_failed=$(echo "$fwctlpstat" | grep -A5 "kmem" | grep Allocations | grep -v External | awk '{print $4}')
             if [[ $kernel_memory_failed -eq 0 ]]; then
                 check_passed
@@ -574,7 +606,7 @@ check_memory()
                 #====================================================================================================
                 #  Memory 30-Day Average Check
                 #====================================================================================================
-                printf "│\t\t\t│ Memory 30-Day Average\t\t│" | tee -a $output_log
+                printf "|\t\t\t| Memory 30-Day Average\t\t|" | tee -a $output_log
                 test_output_error=0
                 
                 
@@ -596,7 +628,7 @@ check_memory()
                 #====================================================================================================
                 #  Memory 30-Day Max Check
                 #====================================================================================================
-                printf "│\t\t\t│ Memory 30-Day Peak\t\t│" | tee -a $output_log
+                printf "|\t\t\t| Memory 30-Day Peak\t\t|" | tee -a $output_log
                 test_output_error=0
                 
                 #Turn max usage into a percent
@@ -656,7 +688,7 @@ check_cpu()
     #====================================================================================================
     #  CPU Idle Check
     #====================================================================================================
-    printf "│ CPU\t\t\t│ CPU idle%%\t\t\t│" | tee -a $output_log
+    printf "| CPU\t\t\t| CPU idle%%\t\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         all_cpu_idle=$(echo "$mpstat_p_all" | awk -v temp=$mpstat_idle '{print $temp}' | awk -F\% '{print $1}')
     else
@@ -687,7 +719,7 @@ check_cpu()
     #====================================================================================================
     #  CPU User Check
     #====================================================================================================
-    printf "│\t\t\t│ CPU user%%\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| CPU user%%\t\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         all_cpu_user=$(echo "$mpstat_p_all" | awk -v temp=$mpstat_user '{print $temp}' | awk -F\% '{print $1}')
     else
@@ -722,7 +754,7 @@ check_cpu()
     #====================================================================================================
     #  CPU System Check
     #====================================================================================================
-    printf "│\t\t\t│ CPU system%%\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| CPU system%%\t\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         all_cpu_system=$(echo "$mpstat_p_all" | awk -v temp=$mpstat_system '{print $temp}' | awk -F\% '{print $1}')
     else
@@ -757,7 +789,7 @@ check_cpu()
     #====================================================================================================
     #  CPU Wait Check
     #====================================================================================================
-    printf "│\t\t\t│ CPU wait%%\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| CPU wait%%\t\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         all_cpu_wait=$(echo "$mpstat_p_all" | awk -v temp=$mpstat_wait '{print $temp}' | awk -F\% '{print $1}')
     else
@@ -792,7 +824,7 @@ check_cpu()
     #====================================================================================================
     #  CPU Interrupt Check
     #====================================================================================================
-    printf "│\t\t\t│ CPU interrupt%%\t\t│" | tee -a $output_log
+    printf "|\t\t\t| CPU interrupt%%\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         all_cpu_interrupt=$(echo "$mpstat_p_all" | awk -v temp=$mpstat_soft '{print $temp}' | awk -F\% '{print $1}')
     else
@@ -833,7 +865,7 @@ check_cpu()
         #====================================================================================================
         #  CPU 30-Day Average Check
         #====================================================================================================
-        printf "│\t\t\t│ CPU 30-Day Average\t\t│" | tee -a $output_log
+        printf "|\t\t\t| CPU 30-Day Average\t\t|" | tee -a $output_log
         current_cpu=0
         cpu_over_80=0
         test_output_error=0
@@ -858,7 +890,7 @@ check_cpu()
         #====================================================================================================
         #  CPU 30-Day Max Check
         #====================================================================================================
-        printf "│\t\t\t│ CPU 30-Day Peak\t\t│" | tee -a $output_log
+        printf "|\t\t\t| CPU 30-Day Peak\t\t|" | tee -a $output_log
         current_cpu=0
         cpu_over_80=0
         test_output_error=0
@@ -925,7 +957,7 @@ check_interface_stats()
     #====================================================================================================
     #  RX Errors Check
     #====================================================================================================
-    printf "│ Interface Stats\t│ RX Errors\t\t\t│" | tee -a $output_log
+    printf "| Interface Stats\t| RX Errors\t\t\t|" | tee -a $output_log
     for current_interface in $interface_list; do
         current_errors=$(netstat --interfaces=$current_interface | grep -v Kernel | grep -v Iface | awk '{print $5}') > /dev/null 2>&1
         if [[ $current_errors -ne 0 ]]; then
@@ -949,7 +981,7 @@ check_interface_stats()
     #====================================================================================================
     #  RX Drop Check
     #====================================================================================================
-    printf "│\t\t\t│ RX Drops\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| RX Drops\t\t\t|" | tee -a $output_log
     test_output_error=0
     
     #Loop through each interface to collect RX-Drop and RX-OK info
@@ -992,7 +1024,7 @@ check_interface_stats()
     #====================================================================================================
     #  RX Missed Check
     #====================================================================================================
-	printf "│\t\t\t│ RX Missed Errors\t\t│" | tee -a $output_log
+	printf "|\t\t\t| RX Missed Errors\t\t|" | tee -a $output_log
 	test_output_error=0
     
     #Loop through each interface to collect rx_missed_errors and rx_packets
@@ -1038,7 +1070,7 @@ check_interface_stats()
     #====================================================================================================
     #  RX Overrun Check
     #====================================================================================================
-    printf "│\t\t\t│ RX Overruns\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| RX Overruns\t\t\t|" | tee -a $output_log
     test_output_error=0
     for current_interface in $interface_list; do
         current_rx_overruns=$(netstat --interfaces=$current_interface | grep -v Kernel | grep -v Iface | awk '{print $7}') > /dev/null 2>&1
@@ -1061,7 +1093,7 @@ check_interface_stats()
     #====================================================================================================
     #  TX Error Check
     #====================================================================================================
-    printf "│\t\t\t│ TX Errors\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| TX Errors\t\t\t|" | tee -a $output_log
     test_output_error=0
     for current_interface in $interface_list; do
         current_errors=$(netstat --interfaces=$current_interface | grep -v Kernel | grep -v Iface | awk '{print $9}') > /dev/null 2>&1
@@ -1085,7 +1117,7 @@ check_interface_stats()
     #====================================================================================================
     #  TX Drops Check
     #====================================================================================================
-    printf "│\t\t\t│ TX Drops\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| TX Drops\t\t\t|" | tee -a $output_log
     test_output_error=0
     for current_interface in $interface_list; do
         current_drops=$(netstat --interfaces=$current_interface | grep -v Kernel | grep -v Iface | awk '{print $10}') > /dev/null 2>&1
@@ -1110,7 +1142,7 @@ check_interface_stats()
     #====================================================================================================
     #  TX Carrier Errors Check
     #====================================================================================================
-	printf "│\t\t\t│ TX Carrier Errors\t\t│" | tee -a $output_log
+	printf "|\t\t\t| TX Carrier Errors\t\t|" | tee -a $output_log
 	test_output_error=0
 	for current_interface in $interface_list; do
 		current_tx_carrier_errors=$(ethtool -S $current_interface 2> /dev/null | grep tx_carrier_errors | awk '{print $2}') > /dev/null 2>&1
@@ -1137,7 +1169,7 @@ check_interface_stats()
     #====================================================================================================
     #  TX Overrun Check
     #====================================================================================================
-    printf "│\t\t\t│ TX Overruns\t\t\t│" | tee -a $output_log
+    printf "|\t\t\t| TX Overruns\t\t\t|" | tee -a $output_log
     test_output_error=0
     for current_interface in $interface_list; do
         current_tx_overruns=$(netstat --interfaces=$current_interface | grep -v Kernel | grep -v Iface | awk '{print $11}') > /dev/null 2>&1
@@ -1244,7 +1276,7 @@ check_misc_messages()
         cat /var/log/messages* /var/log/dmesg >> $messages_tmp_file 2> /dev/null
     fi
     
-    printf "│ Misc. Messages\t│ Known issues in logs\t\t│" | tee -a $output_log
+    printf "| Misc. Messages\t| Known issues in logs\t\t|" | tee -a $output_log
     
     #Check Neighbor table overflow
     if [[ $(grep -i "neighbour table overflow" $messages_tmp_file) ]]; then
@@ -1444,8 +1476,8 @@ check_misc_messages()
     #Check Soft Lockup
     if [[ $(grep -i 'kernel: BUG: soft lockup - CPU' $messages_tmp_file | grep -i 'stuck for 10s') ]]; then
         check_failed
-        printf "Misc. Messages,kernel: BUG: soft lockup - CPU#x stuck for 10s,WARNING,sk116870 and sk105729\n" >> $csv_log
-        printf "\"kernel: BUG: soft lockup - CPU#x stuck for 10s\" message detected:\n" >> $logfile
+        printf "Misc. Messages,kernel: BUG: soft lockup - CPU x stuck for 10s,WARNING,sk116870 and sk105729\n" >> $csv_log
+        printf "\"kernel: BUG: soft lockup - CPU x stuck for 10s\" message detected:\n" >> $logfile
         printf "A soft lockup isn't necessarily anything 'crashing', it is the symptom of a task or kernel thread using and not releasing a CPU for a longer period of time than allowed; in Check Point the default fault is 10 seconds.\n" >> $logfile
         printf "For more information, refer to sk116870 and sk105729.\n" >> $logfile
     fi
@@ -1560,7 +1592,7 @@ check_misc_messages()
 #====================================================================================================
 #  Application Processes Function
 #====================================================================================================
-check_application_processes()
+check_processes()
 {
     #Reset counters and start log
     summary_error=0
@@ -1576,7 +1608,7 @@ check_application_processes()
     #====================================================================================================
     #  Zombie Processes Check
     #====================================================================================================
-    printf "│ Processes\t\t│ Zombie Processes\t\t│" | tee -a $output_log
+    printf "| Processes\t\t| Zombie Processes\t\t|" | tee -a $output_log
     zombie_procs_list=$(echo "$app_all_procs" | grep defunct | grep -v grep | grep -v USER)
     zombie_procs_count=$(echo "$app_all_procs" | grep defunct | grep -v grep | grep -v USER | wc -l)
     if [[ $zombie_procs_count -gt 0 ]]; then
@@ -1599,7 +1631,7 @@ check_application_processes()
     #  Process Restarts Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ Process Restarts\t\t│" | tee -a $output_log
+    printf "|\t\t\t| Process Restarts\t\t|" | tee -a $output_log
     
     #Store "cpwd_admin list" output
     cpwd_admin list > /var/tmp/proc_start_list.tmp 2> /dev/null
@@ -1654,7 +1686,7 @@ check_core_files()
     #====================================================================================================
     #  Usermode Core Check
     #====================================================================================================
-    printf "│ Core Files\t\t│ Usermode Cores Present\t│" | tee -a $output_log
+    printf "| Core Files\t\t| Usermode Cores Present\t|" | tee -a $output_log
     if [[ $(echo "$usermode_core_list" | sed "/^$/d" | wc -l) -ge 1 ]]; then
         check_failed
         printf "Core Files,Usermode Cores Present,WARNING,\n" >> $csv_log
@@ -1672,7 +1704,7 @@ check_core_files()
     #  Kernel Core Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ Kernel Cores Present\t\t│" | tee -a $output_log
+    printf "|\t\t\t| Kernel Cores Present\t\t|" | tee -a $output_log
     if [[ $(echo "$kernel_core_list" | sed "/^$/d" | wc -l) -ge 1 ]]; then
         check_failed
         printf "Core Files,Kernel Cores Present,WARNING,\n" >> $csv_log
@@ -1729,17 +1761,42 @@ check_magic_mac()
 #====================================================================================================
 #  Debugs Function
 #====================================================================================================
-check_enabled_debugs()
+check_debugs()
 {
     #Reset counters and start log
     summary_error=0
     test_output_error=0
     current_check_message="Debugs\t\t"
     
+    
+    #====================================================================================================
+    #  Active tcpdumps Check
+    #====================================================================================================
+    printf "| Debugs\t\t| Active tcpdumps\t\t|" | tee -a $output_log
+    
+    tcpdumps_active=$(ps aux | grep tcpdump | grep -v grep)
+    
+    #Check if kdebug or zdebug are running.
+    if [[ $(echo "$tcpdumps_active" | grep tcpdump) ]]; then
+        check_failed
+        printf "Debugs,Active tcpdumps,WARNING,\n" >> $csv_log
+        printf "The following tcpdumps are running:\n" >> $logfile
+        printf "PID\tCOMMAND\n" >> $logfile
+        while read -r current_tcpdump; do
+            current_tcpdump_PID=$(echo $current_tcpdump | awk '{print $2}')
+            current_tcpdump_command=$(echo $current_tcpdump | awk '{print $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25}')
+            printf "$current_tcpdump_PID\t$current_tcpdump_command\n" >> $logfile
+        done <<< "$tcpdumps_active"
+        printf "Please stop these processes if these captures are no longer needed.\n" >> $logfile
+    else
+        check_passed
+        printf "Debugs,Active Debug Processes,OK,\n" >> $csv_log
+    fi
+    
     #====================================================================================================
     #  Active Debug Check
     #====================================================================================================
-    printf "│ Debugs\t\t│ Active Debug Processes\t│" | tee -a $output_log
+    printf "|\t\t\t| Active Debug Processes\t|" | tee -a $output_log
     
     debugs_active=$(ps aux | grep debug | grep -v grep)
     
@@ -1766,7 +1823,7 @@ check_enabled_debugs()
     if [[ $sys_type == "STANDALONE" || $sys_type == "GATEWAY" || $sys_type == "VSX" ]]; then
         test_output_error=0
         debug_flag_check=0
-        printf "│\t\t\t│ Debug Flags Present\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Debug Flags Present\t\t|" | tee -a $output_log
         
         #Collect list of modules and dump module settings:
         if [[ $current_version -ge 7730 ]]; then
@@ -1821,7 +1878,7 @@ check_enabled_debugs()
         if [[ $sys_type == "MDS" || $sys_type == "SMS" || $sys_type == "STANDALONE" ]]; then
             test_output_error=0
             debug_flag_check=0
-            printf "│\t\t\t│ CPM Debugs \t\t\t│" | tee -a $output_log
+            printf "|\t\t\t| CPM Debugs \t\t\t|" | tee -a $output_log
             
             #Check to see if CPM debugs are enabled in tdlog.cpm
             if [[ $(grep TOPIC-DEBUG $MDS_FWDIR/conf/tdlog.cpm) ]]; then
@@ -1842,7 +1899,7 @@ check_enabled_debugs()
     #  TDERROR Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ TDERROR Configured\t\t│" | tee -a $output_log
+    printf "|\t\t\t| TDERROR Configured\t\t|" | tee -a $output_log
     if [[ $(env | grep TDERROR) ]]; then
         check_failed
         printf "Debugs,TDERROR Configured,WARNING,\n" >> $csv_log
@@ -1862,7 +1919,12 @@ check_enabled_debugs()
     fi
 
     #Unset Debug Check variables
+    unset tcpdumps_active
+    unset current_tcpdump
+    unset current_tcpdump_PID
+    unset current_tcpdump_command
     unset debugs_active
+    unset current_debug
     unset current_debug_PID
     unset current_debug_command
     unset debug_flag_check
@@ -1876,7 +1938,7 @@ check_enabled_debugs()
 #====================================================================================================
 #  Fragments Function
 #====================================================================================================
-check_fragmentation()
+check_fragments()
 {
     #Reset counters and start log
     summary_error=0
@@ -1888,7 +1950,7 @@ check_fragmentation()
     all_fragments=$(fw ctl pstat 2> $fragment_error_file | grep -A2 Fragments | grep -v Fragments)
     current_expired=$(echo $all_fragments | awk '{print $5}')
     current_failures=$(echo $all_fragments | awk '{print $13}')
-    printf "│ Fragments\t\t│ Fragments\t\t\t│" | tee -a $output_log
+    printf "| Fragments\t\t| Fragments\t\t\t|" | tee -a $output_log
     
     
     #Display ERROR if fw ctl pstat is unable to execute
@@ -1928,7 +1990,7 @@ check_fragmentation()
 #====================================================================================================
 #  Connections Function
 #====================================================================================================
-check_connections_stats()
+check_connections()
 {
     #Reset counters and start log
     summary_error=0
@@ -1946,7 +2008,7 @@ check_connections_stats()
     #====================================================================================================
     #  Peak Connections Check
     #====================================================================================================
-    printf "│ Connections Table\t│ Peak Connections\t\t│" | tee -a $output_log
+    printf "| Connections Table\t| Peak Connections\t\t|" | tee -a $output_log
     
     #Display error if there was a problem accessing the connections table
     if [[ -s $connections_error_file ]]; then
@@ -2001,7 +2063,7 @@ check_connections_stats()
     #  Current Connections Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ Current Connections\t\t│" | tee -a $output_log    
+    printf "|\t\t\t| Current Connections\t\t|" | tee -a $output_log    
     
     #Display error if there was a problem accessing the connections table
     if [[ -s $connections_error_file ]]; then
@@ -2065,7 +2127,7 @@ check_connections_stats()
     #====================================================================================================
     test_output_error=0
     nat_error_file=/var/tmp/nat_error
-    printf "│\t\t\t│ NAT Connections\t\t│" | tee -a $output_log
+    printf "|\t\t\t| NAT Connections\t\t|" | tee -a $output_log
     nat_connections=$(fw tab -t fwx_cache -s 2> $nat_error_file | grep -v HOST)
     
     #Display error if there was a problem accessing the NAT table
@@ -2129,7 +2191,7 @@ check_connections_stats()
 #====================================================================================================
 #  ClusterXL Function
 #====================================================================================================
-check_cluster_statistics()
+check_clusterxl()
 {
     #Reset counters and start log
     summary_error=0
@@ -2139,7 +2201,7 @@ check_cluster_statistics()
     #====================================================================================================
     #  Cluster Status Check
     #====================================================================================================
-    printf "│ ClusterXL\t\t│ Cluster Status\t\t│" | tee -a $output_log
+    printf "| ClusterXL\t\t| Cluster Status\t\t|" | tee -a $output_log
     cphaprob_stat=$(cphaprob stat)
     
     #If the cluster is HA, find the number of active members
@@ -2233,7 +2295,7 @@ check_cluster_statistics()
         #====================================================================================================
         #  Cluster PNOTE Check
         #====================================================================================================
-        printf "│\t\t\t│ Problem Notifications\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Problem Notifications\t\t|" | tee -a $output_log
         if [[ $current_version -ge 7730 ]]; then
             cluster_pnotes=$(cphaprob -l list | grep -e "Device Name" -e "Current state")
         else
@@ -2273,7 +2335,7 @@ check_cluster_statistics()
         #  Cluster Sync Check
         #====================================================================================================
         test_output_error=0
-        printf "│\t\t\t│ Sync Status\t\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Sync Status\t\t\t|" | tee -a $output_log
         cluster_sync=$(fw ctl pstat | sed '1,/Sync:/d')
         printf "\n\nCluster Sync:\n$cluster_sync\n" >> $full_output_log
         
@@ -2294,7 +2356,7 @@ check_cluster_statistics()
         #====================================================================================================
         test_output_error=0
         if [[ $sys_type == "VSX" ]]; then
-            printf "│\t\t\t│ Number of Sync Interfaces\t│" | tee -a $output_log
+            printf "|\t\t\t| Number of Sync Interfaces\t|" | tee -a $output_log
             sync_interface_list=$(echo "$cluster_a_if" | grep -A90 "vsid $vs" | sed '2d' | sed -n "/vsid $vs/,/------/p" | grep secured | grep -v non | grep -v Required | awk '{print $1}')
             sync_interface_number=$(echo "$sync_interface_list" | wc -l)
             
@@ -2310,7 +2372,7 @@ check_cluster_statistics()
                 printf "ClusterXL,Number of Sync Interfaces,OK,\n" >> $csv_log
             fi
         else
-            printf "│\t\t\t│ Number of Sync Interfaces\t│" | tee -a $output_log
+            printf "|\t\t\t| Number of Sync Interfaces\t|" | tee -a $output_log
             sync_interface_list=$(echo "$cluster_a_if" | grep secured | grep -v non | grep -v Required | awk '{print $1}')
             sync_interface_number=$(echo "$sync_interface_list" | wc -l)
             
@@ -2345,7 +2407,7 @@ check_cluster_statistics()
 #====================================================================================================
 #  SecureXL stats Function
 #====================================================================================================
-check_securexl_stats()
+check_securexl()
 {
     #Reset counters and start log
     summary_error=0
@@ -2368,7 +2430,7 @@ check_securexl_stats()
         accelerator_status=$(echo "$fwaccel_stat" | sed 's/|//g' | grep ^0 | grep -Eo 'enabled|disabled')
     fi
     
-    printf "│ SecureXL\t\t│ SecureXL Status\t\t│" | tee -a $output_log
+    printf "| SecureXL\t\t| SecureXL Status\t\t|" | tee -a $output_log
     
     #Display error if fwaccel stat is not able to be run
     if [[ -s $fw_accel_error ]]; then
@@ -2397,7 +2459,7 @@ check_securexl_stats()
         #  Accept Templates Check
         #====================================================================================================
         test_output_error=0
-        printf "│\t\t\t│ Accept Templates\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Accept Templates\t\t|" | tee -a $output_log
         accept_templated_status=$(echo "$fwaccel_stat" | grep "Accept Templates" | grep -Eo 'disabled|enabled')
         if [[ $accept_templated_status == "enabled" ]]; then
             check_passed
@@ -2425,7 +2487,7 @@ check_securexl_stats()
         #  Drop Templates Check
         #====================================================================================================
         test_output_error=0
-        printf "│\t\t\t│ Drop Templates\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Drop Templates\t\t|" | tee -a $output_log
         drop_templated_status=$(echo "$fwaccel_stat" | grep "Drop Templates")
         if [[ $drop_templated_status == *"enabled"* || $drop_templated_status == *"disabled by Firewall"*  ]]; then
             check_passed
@@ -2445,20 +2507,45 @@ check_securexl_stats()
         #  F2F Check
         #====================================================================================================
         test_output_error=0
-        printf "│\t\t\t│ F2F Packets\t\t\t│" | tee -a $output_log
+        printf "|\t\t\t| F2F Packets\t\t\t|" | tee -a $output_log
         f2f_percent=$(echo "$fwaccel_stats_s" | grep F2F | awk -F\( '{print $2}' | awk -F\% '{print $1}')
         if [[ $f2f_percent -le 40  ]]; then
             check_passed
             printf "SecureXL,F2F Packets,OK,\n" >> $csv_log
         elif [[ $f2f_percent -ge 41 && $f2f_percent -le 60  ]]; then
             check_info
-            printf "SecureXL,F2F Packets,INFO,\n" >> $csv_log
-            printf "SecureXL Notice:\nF2F packets account for $f2f_percent%% of all traffic.\n" >> $logfile
+            printf "SecureXL,F2F Packets,INFO,sk98348\n" >> $csv_log
+            printf "SecureXL Notice:\nF2F (firewall/slow path) packets account for $f2f_percent%% of all traffic.\n" >> $logfile
+            printf "For more information regarding tuning connections, use sk98348: Best Practices - Security Gateway Performance\n" >> $logfile
         else
             check_failed
-            printf "SecureXL,F2F Packets,WARNING,\n" >> $csv_log
-            printf "SecureXL Notice:\nF2F packets account for $f2f_percent%% of all traffic.\n" >> $logfile
+            printf "SecureXL,F2F Packets,WARNING,sk98348\n" >> $csv_log
+            printf "SecureXL WARNING:\nF2F (firewall/slow path) packets account for $f2f_percent%% of all traffic.\n" >> $logfile
+            printf "For more information regarding tuning connections, use sk98348: Best Practices - Security Gateway Performance\n" >> $logfile
         fi
+        
+        #====================================================================================================
+        #  PXL Check
+        #====================================================================================================
+        test_output_error=0
+        printf "|\t\t\t| PXL Packets\t\t\t|" | tee -a $output_log
+        pxl_percent=$(echo "$fwaccel_stats_s" | grep PXL | awk -F\( '{print $2}' | awk -F\% '{print $1}')
+        if [[ $pxl_percent -le 40  ]]; then
+            check_passed
+            printf "SecureXL,PXL Packets,OK,\n" >> $csv_log
+        elif [[ $pxl_percent -ge 41 && $pxl_percent -le 60  ]]; then
+            check_info
+            printf "SecureXL,PXL Packets,INFO,sk98348\n" >> $csv_log
+            printf "SecureXL Notice:\nPXL (medium path) packets account for $pxl_percent%% of all traffic.\n" >> $logfile
+            printf "For more information regarding tuning connections, use sk98348: Best Practices - Security Gateway Performance\n" >> $logfile
+        else
+            check_failed
+            printf "SecureXL,PXL Packets,WARNING,sk98348\n" >> $csv_log
+            printf "SecureXL WARNING:\nPXL (medium path) packets account for $pxl_percent%% of all traffic.\n" >> $logfile
+            printf "For more information regarding tuning connections, use sk98348: Best Practices - Security Gateway Performance\n" >> $logfile
+        fi
+        
+        
     else
         check_failed
         printf "SecureXL,SecureXL Status,WARNING,sk98722\n" >> $csv_log
@@ -2476,7 +2563,7 @@ check_securexl_stats()
     #  Aggressive Aging Check
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ Aggressive Aging\t\t│" | tee -a $output_log
+    printf "|\t\t\t| Aggressive Aging\t\t|" | tee -a $output_log
     if [[ $offline_operations == true ]]; then
         agg_aging=$(grep -A50 '(fw ctl pstat)' $cpinfo_file | grep "Aggressive")
     else
@@ -2523,12 +2610,14 @@ check_securexl_stats()
     unset accelerator_table_status
     unset agg_aging
     unset f2f_percent
+    unset pxl_percent
 }
+
 
 #====================================================================================================
 #  CoreXL Function
 #====================================================================================================
-check_coreXL_stats()
+check_corexl()
 {
     #====================================================================================================
     #  CoreXL stats Check
@@ -2545,14 +2634,13 @@ check_coreXL_stats()
         core_stat=$(grep -A50 "multik stat" $cpinfo_file | grep -B50 "affinity -l -a" | head -n -2 | tail -n +3)
         
         #Affinity Info
-        fw_ctl_affinity=$(grep -A50 "fw affinity" $cpinfo_file | grep -B50 "affinity" | grep -v "fw affinity" | grep -v '\-\-\-')
+        fw_ctl_affinity=$(grep -A50 "fw affinity" $cpinfo_file | grep -B50 "affinity" | grep -v "fw affinity" | grep -v '\-\-\-' | sed "s/([^)]*)/()/g" | sed "s/ ()//g")
     else
         #CoreXL Info
-        script -c "fw ctl multik stat" /var/tmp/core_xl_stat > /dev/null
-        core_stat=$(cat /var/tmp/core_xl_stat | grep -v Script)
+        core_stat=$(fw ctl multik stat 2> /dev/null)
 	
         #Affinity Info
-        fw_ctl_affinity=$(fw ctl affinity -l -a -v)
+        fw_ctl_affinity=$(fw ctl affinity -l -a -v 2> /dev/null | sed "s/([^)]*)/()/g" | sed "s/ ()//g")
         
         #Misc Interrupts info
         cpu_interrupts=$(cat /proc/interrupts | grep -E "CPU|eth")
@@ -2568,8 +2656,13 @@ check_coreXL_stats()
 	printf "\n\nCoreXL Affinity Status:\n" >> $full_output_log
 	echo "$fw_ctl_affinity" >> $full_output_log
 	
-    printf "│ CoreXL\t\t│ CoreXL Status\t\t\t│" | tee -a $output_log
+    printf "| CoreXL\t\t| CoreXL Status\t\t\t|" | tee -a $output_log
 	
+    #Manually pass the CoreXL check for VSX
+    if [[ $sys_type == "VSX" ]]; then
+        core_stat=""
+    fi
+    
 	#Display status results of CoreXL checks
 	if [[ $(echo $core_stat | grep disabled) ]]; then
 		check_failed
@@ -2586,14 +2679,7 @@ check_coreXL_stats()
             #  SND/FW Worker Overlap Check
             #====================================================================================================
             test_output_error=0
-            printf "│\t\t\t│ SND/FW Core Overlap \t\t│" | tee -a $output_log
-            
-            #CPU Variables
-            if [[ $offline_operations == true ]]; then
-                cpu_count=$(grep -A500 '(cpuinfo)' $cpinfo_file | grep processor | wc -l)
-            else
-                cpu_count=$(echo "$mpstat_p_all" | grep ^[0-9] | grep -v CPU | grep -v all | wc -l)
-            fi
+            printf "|\t\t\t| SND/FW Core Overlap \t\t|" | tee -a $output_log
             
             #SND Variables
             snd_list=$(echo "$fw_ctl_affinity" | grep Interface | awk -F'CPU ' '{print $2}' | sort -u)
@@ -2615,7 +2701,7 @@ check_coreXL_stats()
             fi
             
             #If there are only two CPUs overlap is OK
-            if [[ $cpu_count -eq 2 ]]; then
+            if [[ $all_cpu_count -eq 2 ]]; then
                 check_passed
                 printf "CoreXL,SND/FW Core Overlap,OK,\n" >> $csv_log
             
@@ -2633,6 +2719,8 @@ check_coreXL_stats()
                     check_failed
                     printf "CoreXL,SND/FW Core Overlap,WARNING,sk98737 and sk98348\n" >> $csv_log
                     printf "CoreXL Notice: Cores detected operating as both fw workers and SNDs.  Please review sk98737 and sk98348 for more information.\n" >> $logfile
+                    printf "CoreXL Settings:\n" >> $logfile
+                    echo "$fw_ctl_affinity" | egrep 'Interface|VS_|Kernel' >> $logfile
                 else
                     check_passed
                     printf "CoreXL,SND/FW Core Overlap,OK,\n" >> $csv_log
@@ -2641,14 +2729,13 @@ check_coreXL_stats()
 
             
             #====================================================================================================
-            #  SND/FW Worker Utilization Check
+            #  SND/FW Worker Distribution Check
             #====================================================================================================
             if [[ $offline_operations == true && ! -e $cpview_file ]]; then
                 false
             else
                 test_output_error=0
-                printf "│\t\t\t│ SND/FW Core Utilization \t│" | tee -a $output_log
-                
+                printf "|\t\t\t| SND/FW Core Distribution \t|" | tee -a $output_log
                 
                 #Collect CPU info from cpview history database
                 if [[ -e $cpview_file ]]; then
@@ -2716,11 +2803,78 @@ check_coreXL_stats()
                 #Display final check info
                 if [[ $core_difference -ge 20 ]]; then
                     check_failed
-                    printf "CoreXL,SND/FW Core Utilization,WARNING,sk98348\n" >> $csv_log
+                    printf "CoreXL,SND/FW Core Distribution,WARNING,sk98348\n" >> $csv_log
                     printf "CoreXL Notice: The average core utilization for the $higher_usage is $core_difference percent higher than the $lower_usage.  Please review the CoreXL best practices section of sk98348 for more information on how to tune the number of SND and FW instances.\n" >> $logfile
                 else
                     check_passed
-                    printf "CoreXL,SND/FW Core Utilization,OK,\n" >> $csv_log
+                    printf "CoreXL,SND/FW Core Distribution,OK,\n" >> $csv_log
+                fi
+                
+                
+                if [[ -n $cpu_usage ]]; then
+                    #====================================================================================================
+                    #  SND Core Distribution Check
+                    #====================================================================================================
+                    
+                    test_output_error=0
+                    printf "|\t\t\t| SND Core Distribution \t|" | tee -a $output_log
+                    
+                    #Determine most/least utilized cores
+                    high_snd_usage=0
+                    low_snd_usage=9999
+                    core_id=0
+                    for i in ${cpu_usage[@]}; do
+                        if [[ $( echo "$snd_list" | grep -ow $core_id) ]]; then 
+                            if [[ $i -gt $high_snd_usage ]]; then
+                                high_snd_usage=$i
+                                high_snd_core=$core_id
+                            fi
+                            if [[ $i -lt $low_snd_usage ]]; then
+                                low_snd_usage=$i
+                                low_snd_core=$core_id
+                            fi
+                        fi
+                        ((core_id++))
+                    done
+                    
+                    #Compare the lowest and highest SND
+                    snd_usage_difference=$((high_snd_usage - low_snd_usage))
+                    if [[ $snd_usage_difference -ge 20 ]]; then
+                        check_failed
+                        printf "CoreXL,SND Core Distribution,WARNING,sk98348\n" >> $csv_log
+                        printf "CoreXL Notice: The average core utilization for CPU $high_snd_core is $snd_usage_difference percent higher than CPU $low_snd_core.  Please review the CoreXL best practices section of sk98348 for more information on how to tune the SNDs.\n" >> $logfile
+                        printf "\nSND configuration per interface:\n" >> $logfile
+                        echo "$fw_ctl_affinity" | grep Interface >> $logfile
+                    else
+                        check_passed
+                        printf "CoreXL,SND Core Distribution,OK,\n" >> $csv_log
+                    fi
+                    
+                    #====================================================================================================
+                    #  SND Interface Distribution Check
+                    #====================================================================================================
+                    if [[ $snd_usage_difference -ge 20 ]]; then
+                        test_output_error=0
+                        printf "|\t\t\t| SND Interface Distribution \t|" | tee -a $output_log
+                        
+                        #List of interfaces associated with highest SND core
+                        high_core_interface_list=$(echo "$fw_ctl_affinity" | grep Interface | grep -w $high_snd_core | awk '{print $2}' | sed 's/.$//g')
+                        low_core_interface_list=$(echo "$fw_ctl_affinity" | grep Interface | grep -w $low_snd_core | awk '{print $2}' | sed 's/.$//g')
+                        
+                        #Verify if the high SND Core interface number
+                        if [[ $(echo "$high_core_interface_list" | wc -l) -gt 1 ]]; then
+                            check_failed
+                            printf "CoreXL,SND Interface Distribution,WARNING,sk98348\n" >> $csv_log
+                            printf "CoreXL Notice:\nCPU $high_snd_core is $high_snd_usage%% used (average) and shared across the following interfaces:\n" >> $logfile
+                            echo "$high_core_interface_list" >> $logfile
+                            printf "CPU $low_snd_core is $low_snd_usage%% used (average) and assigned to the following interface(s):\n" >> $logfile
+                            echo "$low_core_interface_list" >> $logfile
+                            printf "Please consider redistributing interfaces to better balance SND workload or using a dedicated SND for busy interfaces.\n" >> $logfile
+                        else
+                            check_passed
+                            printf "CoreXL,SND Interface Distribution,OK,\n" >> $csv_log
+                        fi
+                    fi
                 fi
             fi
         fi
@@ -2734,7 +2888,7 @@ check_coreXL_stats()
     #Collect Dynamic Dispatcher settings
     if [[ $current_version -ge 7730 && $sys_type != "VSX" ]] && [[ $offline_operations == false ]]; then
         test_output_error=0
-        printf "│\t\t\t│ Dynamic Dispatcher\t\t│" | tee -a $output_log
+        printf "|\t\t\t| Dynamic Dispatcher\t\t|" | tee -a $output_log
         
         #Collect the dynamic dispatcher status based on version
         if [[ $current_version -eq 7730 ]]; then
@@ -2778,6 +2932,12 @@ check_coreXL_stats()
     unset core_difference
     unset higher_usage
     unset lower_usage
+    unset high_snd_usage
+    unset low_snd_usage
+    unset core_id
+    unset high_snd_core
+    unset low_snd_core
+    unset snd_usage_difference
     unset dispatcher_mode
 }
 
@@ -2785,7 +2945,7 @@ check_coreXL_stats()
 #====================================================================================================
 #  Local Logging Function
 #====================================================================================================
-check_local_logging()
+check_logging()
 {
     #Reset counters and start log
     summary_error=0
@@ -2794,7 +2954,7 @@ check_local_logging()
     
     #Find starting size of fw.log
     log_start_size=$(ls -l $FWDIR/log/fw.log | awk '{print $5}')
-    printf "│ Logging\t\t│ Local Logging\t\t\t│" | tee -a $output_log
+    printf "| Logging\t\t| Local Logging\t\t\t|" | tee -a $output_log
     sleep 5
     
     #Find end size of fw.log
@@ -2817,9 +2977,9 @@ check_local_logging()
 
 	
 #====================================================================================================
-#  Hardware Platform Function
+#  Hardware Info Function
 #====================================================================================================
-check_hardware_platform()
+check_hardware()
 {
     #Insert full log header
     printf "\n# Hardware Platform Checks:\n" >> $full_output_log
@@ -2827,14 +2987,7 @@ check_hardware_platform()
     #Collect Hardware Platform Information
     dmiparse System Product >> $full_output_log
     clish -c 'show asset system' >> $full_output_log
-}
-    
-    
-#====================================================================================================
-#  Hardware Sensor Function
-#====================================================================================================
-check_hardware_sensors()
-{
+
     #Insert full log header
     printf "\n# Hardware Sensor Info:\n" >> $full_output_log
     
@@ -2847,10 +3000,11 @@ check_hardware_sensors()
 	grep -e processor -e MHz /proc/cpuinfo >> $full_output_log
 }
 
+
 #====================================================================================================
 #  OS Version Info Function
 #====================================================================================================
-check_OS_ver_patches()
+check_software()
 {
     #Check OS version 
     printf "\n\nVersion Information:\n" >> $full_output_log
@@ -2882,6 +3036,7 @@ check_OS_ver_patches()
     
 }
 
+
 #====================================================================================================
 #  Check Point Software Function
 #====================================================================================================
@@ -2890,14 +3045,14 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="08-22-2018"
+    script_build_date="08-29-2018"
     current_check_message="Check Point\t\t"
     
     
     #====================================================================================================
     #  CPinfo Build Check (sk92739)
     #====================================================================================================
-    printf "│ Check Point\t\t│ CPInfo Build Number\t\t│" | tee -a $output_log
+    printf "| Check Point\t\t| CPInfo Build Number\t\t|" | tee -a $output_log
     cpinfo_build_version=$(cpvinfo /opt/CPinfo-10/bin/cpinfo | grep Build | awk '{print $4}')
     latest_cpinfo_build="914000182"
     printf "\n\ncpinfo build:\n$cpinfo_build_version\n"  >> $full_output_log
@@ -2918,7 +3073,7 @@ check_cp_software()
     #  CPUSE Build Check (sk92449)
     #====================================================================================================
     test_output_error=0
-    printf "│\t\t\t│ CPUSE Build Number\t\t│" | tee -a $output_log
+    printf "|\t\t\t| CPUSE Build Number\t\t|" | tee -a $output_log
     cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
     latest_cpuse_build="1511"
     if [[ $cpuse_build_version -ge $latest_cpuse_build ]]; then
@@ -2939,7 +3094,7 @@ check_cp_software()
     if [[ -e /bin/cpview_start.sh ]] && [[ $sys_type == "VSX" || $sys_type == "STANDALONE" || $sys_type == "GATEWAY" ]]; then
         test_output_error=0
         history_stat=$(/bin/cpview_start.sh history stat)
-        printf "│\t\t\t│ CPView History Status\t\t│" | tee -a $output_log
+        printf "|\t\t\t| CPView History Status\t\t|" | tee -a $output_log
         if [[ $history_stat == *"history daemon is activated"* ]]; then
             check_passed
             printf "Check Point,CPView History Status,OK,\n" >> $csv_log
@@ -3003,119 +3158,6 @@ check_blades_enabled()
 
 
 #====================================================================================================
-#  Function to clean up temp files from the script
-#====================================================================================================
-temp_file_cleanup()
-{
-	#Delete all temp files
-    rm -f /var/tmp/category_list > /dev/null 2>&1
-    rm -f /var/tmp/header_list > /dev/null 2>&1
-    rm -f /var/tmp/candidate_list > /dev/null 2>&1
-    rm -f /var/tmp/candidate_details > /dev/null 2>&1
-    rm -f /var/tmp/return_code > /dev/null 2>&1
-    rm -f /var/tmp/return_details > /dev/null 2>&1
-    rm -f /var/tmp/messages_check.tmp > /dev/null 2>&1
-    rm -f /var/tmp/ntp_stat.tmp > /dev/null 2>&1
-    rm -f /var/tmp/proc_start_list.tmp > /dev/null 2>&1
-    rm -f /var/tmp/debug_flag_modules.tmp > /dev/null 2>&1
-    rm -f /var/tmp/debug_flag_current.tmp > /dev/null 2>&1
-    rm -f /var/tmp/*.id > /dev/null 2>&1
-    rm -f /var/tmp/fragment_error > /dev/null 2>&1
-    rm -f /var/tmp/connections_error > /dev/null 2>&1
-    rm -f /var/tmp/nat_error > /dev/null 2>&1
-    rm -f /var/tmp/fw_accel_error > /dev/null 2>&1
-    rm -f /var/tmp/fw_ctl_pstat_error > /dev/null 2>&1
-    rm -f /var/tmp/core_xl_stat > /dev/null 2>&1
-    rm -f /var/tmp/jumbo.tmp > /dev/null 2>&1
-    rm -f /var/tmp/cpinfo_script.tmp > /dev/null 2>&1
-    rm -f /var/tmp/disk_space.tmp > /dev/null 2>&1
-    echo ""
-    exit 0
-}
-
-
-#====================================================================================================
-#  Function to display summary of checks
-#====================================================================================================
-display_summary()
-{
-    #Display summary
-    if [[ $all_checks_passed == true ]]; then
-        printf "All checks have successfully passed.\n\n" >> $logfile
-        cat $logfile
-    
-    #Add color to section headers and category titles before displaying
-    else
-        #Create temp file
-        category_list=/var/tmp/category_list
-        header_list=/var/tmp/header_list
-        
-        #Duplicate logfile
-        cp $logfile $logfile.tmp
-        
-        #Assign INFO or WARNING category names to an array
-        category_array_id=0
-        cat $logfile.tmp | grep │ | awk -F'│' '{print $2}' 2>/dev/null | awk '{print $1, $2}' > $category_list
-        while read category_name; do
-            category_array[$category_array_id]=$category_name
-            ((category_array_id++))
-        done < $category_list
-        category_array_Length=${#category_array[@]}
-        
-        #Parse array IDs and adding color
-        category_id=1
-        category_array_id=0
-        while [[ $category_id -le $category_array_Length ]]; do
-        sed -i "s/│ ${category_array[$category_array_id]}/│ ${text_blue}${category_array[$category_array_id]}${text_reset}/g" $logfile.tmp
-            ((category_id++))
-            ((category_array_id++))
-        done
-        
-        #Assign Headers to an array
-        header_array_id=0
-        cat $logfile.tmp | grep ║ | awk -F'║' '{print $2}' 2>/dev/null | awk '{print $1, $2, $3, $4}' > $header_list
-        while read header_name; do
-            header_array[$header_array_id]=$header_name
-            ((header_array_id++))
-        done < $header_list
-        header_array_Length=${#header_array[@]}
-        
-        #Parse array IDs and adding color
-        header_id=1
-        header_array_id=0
-        while [[ $header_id -le $header_array_Length ]]; do
-        sed -i "s/║  ${header_array[$header_array_id]}/║  ${text_pink}${header_array[$header_array_id]}${text_reset}/g" $logfile.tmp
-            ((header_id++))
-            ((header_array_id++))
-        done
-        
-        #Display logfile with colors
-        cat $logfile.tmp
-        
-        #Remove temp files
-        rm -rf $logfile.tmp > /dev/null 2>&1
-        rm -rf $category_list > /dev/null 2>&1
-        rm -rf $header_list > /dev/null 2>&1
-    fi
-        
-    #Consolidate and clean up logs
-    wait
-    cat $output_log >> $logfile
-    cat $full_output_log >> $logfile
-    rm $output_log
-    rm $full_output_log
-
-
-    #Log completion
-    printf "\n\n# Reports:\n"
-    printf "≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n"
-    printf "A report with the above output and the results from each command run has been saved to the following log files:\n"
-    printf "$logfile\n"
-    printf "$csv_log\n\n"
-}
-
-
-#====================================================================================================
 #  Local Checks Function
 #====================================================================================================
 run_local_checks()
@@ -3129,13 +3171,13 @@ run_local_checks()
     
     #Initialize temp log files
     printf "\n\n" >> $full_output_log
-    printf "╔══════════════════════════════════════╗\n" >> $full_output_log
-    printf "║  Full system diagnostic information  ║\n" >> $full_output_log
-    printf "╚══════════════════════════════════════╝\n" >> $full_output_log
+    printf "########################################\n" >> $full_output_log
+    printf "#  Full system diagnostic information  #\n" >> $full_output_log
+    printf "########################################\n" >> $full_output_log
     printf "\n\n" >> $logfile
-    printf "╔═══════════════════════════════╗\n" >> $logfile
-    printf "║  Health Check Summary Report  ║\n" >> $logfile
-    printf "╚═══════════════════════════════╝\n" >> $logfile
+    printf "#################################\n" >> $logfile
+    printf "#  Health Check Summary Report  #\n" >> $logfile
+    printf "#################################\n" >> $logfile
 
     #Initialize CSV log
     printf "Category,Check,Status,SK\n" >> $csv_log
@@ -3175,79 +3217,84 @@ run_local_checks()
     #Log Header
     printf "\n\nCurrent Script Release: $script_ver\n" | tee -a $output_log
     printf "Hostname: $(hostname)\n" | tee -a $output_log
-    printf "┌───────────────────────────────────────────────────────────────────────┐\n" | tee -a $output_log
-    printf "│ Physical System Checks                                                │\n" | tee -a $output_log
-    printf "├───────────────────────┬───────────────────────────────┬───────────────┤\n" | tee -a $output_log
-    printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-    printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
+    printf "+-----------------------------------------------------------------------+\n" | tee -a $output_log
+    printf "| Physical System Checks                                                |\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+    printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+    printf "+=======================+===============================+===============+\n" | tee -a $output_log
 
     
     #Checks to run for all devices
     check_system
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_ntp
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_disk_space
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_memory
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_cpu
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     if [[ $sys_type != "SP" ]]; then
         check_interface_stats
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     fi
     check_misc_messages
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-    check_application_processes
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+    check_processes
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_core_files
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_cp_software
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-    check_enabled_debugs
-    printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+    check_debugs
+    printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
 
 
     #Checks for firewall applications
     if [[ $sys_type == "STANDALONE" || $sys_type == "GATEWAY" || $sys_type == "SP" ]]; then
-        printf "┌───────────────────────────────────────────────────────────────────────┐\n" | tee -a $output_log
-        printf "│ Firewall Application Checks                                           │\n" | tee -a $output_log
-        printf "├───────────────────────┬───────────────────────────────┬───────────────┤\n" | tee -a $output_log
-        printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-        printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
+        printf "+-----------------------------------------------------------------------+\n" | tee -a $output_log
+        printf "| Firewall Application Checks                                           |\n" | tee -a $output_log
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+        printf "+=======================+===============================+===============+\n" | tee -a $output_log
         check_magic_mac
-        check_fragmentation
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-        check_connections_stats
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+        check_fragments
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        check_connections
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
         
         #Only collect clusterXL stats if clustering is enabled
         if [[ $(cpconfig <<< 10 | grep cluster) == *"Enable"* || $sys_type == "SP" ]]; then
             printf "\n\nCluster Status:\nCluster membership is disabled or device is SP.\n\n" >> $full_output_log
         else
-            check_cluster_statistics
-            printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+            check_clusterxl
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
         fi
         
-        check_securexl_stats
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-        check_coreXL_stats
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-        check_local_logging
-        printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+        check_securexl
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        check_corexl
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        check_logging
+        printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
         
     #Checks for VSX
     elif [[ $sys_type == "VSX" ]]; then
         #Global Checks
-        printf "┌───────────────────────────────────────────────────────────────────────┐\n" | tee -a $output_log
-        printf "│ Firewall Application Checks                                           │\n" | tee -a $output_log
-        printf "├───────────────────────┬───────────────────────────────┬───────────────┤\n" | tee -a $output_log
-        printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-        printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
-        check_magic_mac
-        check_coreXL_stats
-        printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+        printf "+-----------------------------------------------------------------------+\n" | tee -a $output_log
+        printf "| Firewall Application Checks                                           |\n" | tee -a $output_log
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+        printf "+=======================+===============================+===============+\n" | tee -a $output_log
+        if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+            check_magic_mac
+            check_clusterxl
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        fi
+        check_corexl
+        printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
+        
         
         #Create list of all VSs except 0
         vs_list=$(vsx stat -l 2> /dev/null | grep VSID | awk '{print $2}'| grep -v -w 0)
@@ -3264,34 +3311,33 @@ run_local_checks()
             printf "\n\nVirtual System $vs:\n" >> $csv_log
             printf "Category,Check,Status,SK\n" >> $csv_log
             vsenv $vs > /dev/null
-            printf "┌───────────────────────┬───────────────────────────────┬───────────────┐\n" | tee -a $output_log
-            printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-            printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
-            check_fragmentation
-            printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-            check_connections_stats
-            printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+            printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+            printf "+=======================+===============================+===============+\n" | tee -a $output_log
+            check_fragments
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+            check_connections
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
             
             #Only collect clusterXL stats if clustering is enabled
             if [[ $(cpconfig <<< 10 | grep cluster) == *"Enable"* ]]; then
                 printf "\n\nCluster Status:\nCluster membership is disabled\n\n" >> $full_output_log
             else
-                check_cluster_statistics
-                printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+                check_clusterxl
+                printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
             fi
             
-            check_securexl_stats
-            printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-            check_local_logging
-            printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+            check_securexl
+            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+            check_logging
+            printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
         done
         
     fi
 
     #Remaining Checks
-    check_OS_ver_patches
-    check_hardware_platform
-    check_hardware_sensors
+    check_software
+    check_hardware
     check_blades_enabled
 
     #Show check summary
@@ -3328,13 +3374,13 @@ run_offline_checks()
     
     #Initialize temp log files
     printf "\n\n" >> $full_output_log
-    printf "╔══════════════════════════════════════╗\n" >> $full_output_log
-    printf "║  Full system diagnostic information  ║\n" >> $full_output_log
-    printf "╚══════════════════════════════════════╝\n" >> $full_output_log
+    printf "########################################\n" >> $full_output_log
+    printf "#  Full system diagnostic information  #\n" >> $full_output_log
+    printf "########################################\n" >> $full_output_log
     printf "\n\n" >> $logfile
-    printf "╔═══════════════════════════════╗\n" >> $logfile
-    printf "║  Health Check Summary Report  ║\n" >> $logfile
-    printf "╚═══════════════════════════════╝\n" >> $logfile
+    printf "#################################\n" >> $logfile
+    printf "#  Health Check Summary Report  #\n" >> $logfile
+    printf "#################################\n" >> $logfile
     
     
     #CPU info for later
@@ -3359,39 +3405,39 @@ run_offline_checks()
     #Functions to run against offline files (cpinfo and cpview)
     printf "\n\nCurrent Script Release: $script_ver\n" | tee -a $output_log
     printf "Hostname: $cpinfo_hostname\n" | tee -a $output_log
-    printf "┌───────────────────────────────────────────────────────────────────────┐\n" | tee -a $output_log
+    printf "+-----------------------------------------------------------------------+\n" | tee -a $output_log
     if [[ -n $cpview_file ]]; then
-        printf "│ Offline Physical System Checks using CPinfo and CPViewDB files        │\n" | tee -a $output_log
+        printf "| Offline Physical System Checks using CPinfo and CPViewDB files        |\n" | tee -a $output_log
     else
-        printf "│ Offline Physical System Checks using CPinfo file                      │\n" | tee -a $output_log
+        printf "| Offline Physical System Checks using CPinfo file                      |\n" | tee -a $output_log
     fi
-    printf "├───────────────────────┬───────────────────────────────┬───────────────┤\n" | tee -a $output_log
-    printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-    printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+    printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+    printf "+=======================+===============================+===============+\n" | tee -a $output_log
     check_disk_space
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_memory
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_cpu
-    printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
     check_misc_messages
-    printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+    printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
     
     #Checks for firewall applications
     if [[ $sys_type == "STANDALONE" || $sys_type == "GATEWAY" || $sys_type == "SP" ]]; then
-        printf "┌───────────────────────────────────────────────────────────────────────┐\n" | tee -a $output_log
+        printf "+-----------------------------------------------------------------------+\n" | tee -a $output_log
         if [[ -n $cpview_file ]]; then
-            printf "│ Offline Firewall Application Checks using CPinfo and CPViewDB files   │\n" | tee -a $output_log
+            printf "| Offline Firewall Application Checks using CPinfo and CPViewDB files   |\n" | tee -a $output_log
         else
-            printf "│ Offline Firewall Application Checks using CPinfo file                 │\n" | tee -a $output_log
+            printf "| Offline Firewall Application Checks using CPinfo file                 |\n" | tee -a $output_log
         fi
-        printf "├───────────────────────┬───────────────────────────────┬───────────────┤\n" | tee -a $output_log
-        printf "│ Category              │ Title                         │ Result        │\n" | tee -a $output_log
-        printf "├═══════════════════════┼═══════════════════════════════┼═══════════════┤\n" | tee -a $output_log
-        check_securexl_stats
-        printf "├───────────────────────┼───────────────────────────────┼───────────────┤\n" | tee -a $output_log
-        check_coreXL_stats
-        printf "└───────────────────────┴───────────────────────────────┴───────────────┘\n\n" | tee -a $output_log
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
+        printf "+=======================+===============================+===============+\n" | tee -a $output_log
+        check_securexl
+        printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+        check_corexl
+        printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
     fi
     
     #Show check summary
@@ -3400,79 +3446,9 @@ run_offline_checks()
 
 
 #====================================================================================================
-#  Help Function
-#====================================================================================================
-show_help_info()
-{
-    echo ""
-    echo "This script performs a general health check of the current system."
-    echo "Specific checks will be run depending on the device type and version."
-    echo ""
-    echo "Usage:"
-    echo "./$(basename $0) [option]"
-    echo ""
-    echo "Option    Name        Description"
-    echo "──────    ────────    ────────────────────────────────────────────────────────────────"
-    if [[ $sys_type == "SP" ]]; then
-        echo "-b all    Blade:      Run checks on all SGMs."
-    fi
-    if [[ $sys_type == "MDS" ]]; then
-        echo "-d        Domain:     Run remote health checks on devices from specified CMA."
-    fi
-
-    echo "-f        File:       Run health checks against offline CPInfo/CPView files."
-    echo "-h        Help:       Display this help screen."
-    if [[ $sys_type == "MDS" || $sys_type == "SMS" ]]; then
-        echo "-r        Remote:     Run remote health checks on remote devices in the environment."
-    fi
-    echo "-v        Version:    Display script version information."
-	echo ""
-    echo ""
-    echo "Examples:"
-    echo "─────────"
-    if [[ $sys_type == "MDS" ]]; then
-        echo "#Run remote checks for a single device in a single CMA:"
-        echo "#Note: A list of devices from the CMA will be displayed automatically."
-        echo "./$(basename $0) -d Production_Management_Domain"
-        echo ""
-        echo "#Run remote checks for a device (You will be prompted for a domain):"
-        echo "./$(basename $0) -r"
-        echo ""
-    elif [[ $sys_type == "SMS"  ]]; then
-        echo "#Run remote checks for a device managed by this Management Server:"
-        echo "./$(basename $0) -r"
-        echo ""
-    fi
-    echo "#Run offline health check against a cpinfo:"
-    echo "./$(basename $0) -f example.info"
-    echo ""
-    echo "#Run offline health check against a cpinfo and cpview database:"
-    echo "./$(basename $0) -f example.info -f CPViewDB.dat"
-    echo ""
-    echo "#Display version information:"
-    echo "./$(basename $0) -v"
-    echo ""
-}
-
-
-#====================================================================================================
-#  Version Function
-#====================================================================================================
-show_version_info()
-{
-    build_ver=$(echo $script_ver | awk '{print $1}')
-    build_date=$(echo $script_ver | awk '{print $2}')
-    printf "\nCheck Point Health Check Script\n"
-    printf "Build Version: $build_ver\n"
-    printf "Build Date:    $build_date\n\n"
-    exit 0
-}
-
-
-#====================================================================================================
 #  Function to list all gateway items in a domain
 #====================================================================================================
-remote_script_operations()
+run_remote_checks()
 {
     #Temp files
     candidate_list=/var/tmp/candidate_list
@@ -3703,12 +3679,164 @@ confirm_domain_name()
 
 
 #====================================================================================================
+#  Function to display summary of checks
+#====================================================================================================
+display_summary()
+{
+    #Display summary
+    if [[ $all_checks_passed == true ]]; then
+        printf "All checks have successfully passed.\n\n" >> $logfile
+        cat $logfile
+    
+    #Add color to section headers and category titles before displaying
+    else
+        #Create temp file
+        category_list=/var/tmp/category_list
+        header_list=/var/tmp/header_list
+        
+        #Duplicate logfile
+        cp $logfile $logfile.tmp
+        
+        #Assign INFO or WARNING category names to an array
+        category_array_id=0
+        cat $logfile.tmp | grep '|' | awk -F'|' '{print $2}' 2>/dev/null | awk '{print $1, $2}' > $category_list
+        while read category_name; do
+            category_array[$category_array_id]=$category_name
+            ((category_array_id++))
+        done < $category_list
+        category_array_Length=${#category_array[@]}
+        
+        #Parse array IDs and adding color
+        category_id=1
+        category_array_id=0
+        while [[ $category_id -le $category_array_Length ]]; do
+            sed -i "s/| ${category_array[$category_array_id]}/| ${text_blue}${category_array[$category_array_id]}${text_reset}/g" $logfile.tmp 2> /dev/null
+            ((category_id++))
+            ((category_array_id++))
+        done
+        
+        #Assign Headers to an array
+        header_array_id=0
+        cat $logfile.tmp | grep '#' | awk -F'#' '{print $2}' 2>/dev/null | awk '{print $1, $2, $3, $4}' > $header_list
+        while read header_name; do
+            header_array[$header_array_id]=$header_name
+            ((header_array_id++))
+        done < $header_list
+        header_array_Length=${#header_array[@]}
+        
+        #Parse array IDs and adding color
+        header_id=1
+        header_array_id=0
+        while [[ $header_id -le $header_array_Length ]]; do
+            sed -i "s/${header_array[$header_array_id]}/${text_pink}${header_array[$header_array_id]}${text_reset}/g" $logfile.tmp 2> /dev/null
+            ((header_id++))
+            ((header_array_id++))
+        done
+        
+        #Display logfile with colors
+        cat $logfile.tmp
+        
+        #Remove temp files
+        rm -rf $logfile.tmp > /dev/null 2>&1
+        rm -rf $category_list > /dev/null 2>&1
+        rm -rf $header_list > /dev/null 2>&1
+    fi
+        
+    #Consolidate and clean up logs
+    wait
+    cat $output_log >> $logfile
+    cat $full_output_log >> $logfile
+    rm $output_log
+    rm $full_output_log
+
+
+    #Log completion
+    printf "\n\n# Output Files:\n"
+    printf "#########################\n"
+    printf "A report with the above output and the results from each command run has been saved to the following log files:\n"
+    printf "$logfile\n"
+    printf "$csv_log\n\n"
+}
+
+
+#====================================================================================================
+#  Help Function
+#====================================================================================================
+show_help_info()
+{
+    echo ""
+    echo "This script performs a general health check of the current system."
+    echo "Specific checks will be run depending on the device type and version."
+    echo ""
+    echo "Usage:"
+    echo "./$(basename $0) [option]"
+    echo ""
+    echo "Option    Name        Description"
+    echo "------    --------    ----------------------------------------------------------------"
+    if [[ $sys_type == "SP" ]]; then
+        echo "-b all    Blade:      Run checks on all SGMs."
+    fi
+    if [[ $sys_type == "MDS" ]]; then
+        echo "-d        Domain:     Run remote health checks on devices from specified CMA."
+    fi
+
+    echo "-f        File:       Run health checks against offline CPInfo/CPView files."
+    echo "-h        Help:       Display this help screen."
+    if [[ $sys_type == "MDS" || $sys_type == "SMS" ]]; then
+        echo "-r        Remote:     Run remote health checks on remote devices in the environment."
+    fi
+    echo "-v        Version:    Display script version information."
+	echo ""
+    echo ""
+    echo "Examples:"
+    echo "---------"
+    if [[ $sys_type == "MDS" ]]; then
+        echo "#Run remote checks for a single device in a single CMA:"
+        echo "#Note: A list of devices from the CMA will be displayed automatically."
+        echo "./$(basename $0) -d Production_Management_Domain"
+        echo ""
+        echo "#Run remote checks for a device (You will be prompted for a domain):"
+        echo "./$(basename $0) -r"
+        echo ""
+    elif [[ $sys_type == "SMS"  ]]; then
+        echo "#Run remote checks for a device managed by this Management Server:"
+        echo "./$(basename $0) -r"
+        echo ""
+    fi
+    echo "#Run offline health check against a cpinfo:"
+    echo "./$(basename $0) -f example.info"
+    echo ""
+    echo "#Run offline health check against a cpinfo and cpview database:"
+    echo "./$(basename $0) -f example.info -f CPViewDB.dat"
+    echo ""
+    echo "#Display version information:"
+    echo "./$(basename $0) -v"
+    echo ""
+}
+
+
+#====================================================================================================
+#  Version Function
+#====================================================================================================
+show_version_info()
+{
+    build_ver=$(echo $script_ver | awk '{print $1}')
+    build_date=$(echo $script_ver | awk '{print $2}')
+    printf "\nCheck Point Health Check Script\n"
+    printf "Build Version: $build_ver\n"
+    printf "Build Date:    $build_date\n\n"
+    exit 0
+}
+
+
+#====================================================================================================
 # Main Script
 #====================================================================================================
 
 #Set a trap to clean up all temp files if the user kills the script
 trap temp_file_cleanup SIGINT
 trap temp_file_cleanup SIGTERM
+
 
 #====================================================================================================
 # Parse Flags
@@ -3878,6 +4006,7 @@ while getopts :d:b:f:ahvr opt; do
     esac
 done
 
+
 #====================================================================================================
 # Error checking for non-flag characters
 #====================================================================================================
@@ -3961,7 +4090,7 @@ if [[ $sys_type == "MDS" && $remote_operations == true ]]; then
         for domain in $domain_list; do
 
             #Collect gateway targets for the current domain and remotely execute script
-            remote_script_operations
+            run_remote_checks
         done
 
     #====================================================================================================
@@ -3972,7 +4101,7 @@ if [[ $sys_type == "MDS" && $remote_operations == true ]]; then
         confirm_domain_name
     
         #Collect gateway targets for the specified domain and remotely execute script
-        remote_script_operations
+        run_remote_checks
     fi
     
     #Logout MDS
@@ -3988,7 +4117,7 @@ elif [[ $sys_type == "SMS" && $remote_operations == true ]]; then
     domain=sms
     
     #Collect gateway targets for the SMS and remotely execute script
-    remote_script_operations
+    run_remote_checks
 
     
 #====================================================================================================

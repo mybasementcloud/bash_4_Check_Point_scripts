@@ -5,11 +5,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.13.00
-ScriptDate=2018-07-18
+ScriptVersion=00.14.00
+ScriptDate=2018-09-21
 #
 
-export BASHScriptVersion=v00x13x00
+export BASHScriptVersion=v00x14x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ if [ ! -r $logpathbase ]; then
     mkdir $logpathbase
 fi
 
-export logfilepath=$logpathbase/log_epm_migrate_export_ugex_$DATEDTGS.log
+export logfilepath=$logpathbase/log_migrate_export_ugex_$DATEDTGS.log
 touch $logfilepath
 
 
@@ -455,13 +455,13 @@ export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.tgz
 
 if [ ! -r $outputpathroot ]; then
-    mkdir $outputpathroot | tee -a -i $logfilepath
+    mkdir $outputpathroot
 fi
 if [ ! -r $outputpathbase ]; then
-    mkdir $outputpathbase | tee -a -i $logfilepath
+    mkdir $outputpathbase
 fi
 if [ ! -r $outputfilepath ]; then
-    mkdir $outputfilepath | tee -a -i $logfilepath
+    mkdir $outputfilepath
 fi
 
 export migratefilefolderroot=migration_tools/$toolsversion
@@ -494,25 +494,14 @@ echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-export command2run='export -n'
+export command2run='export -n -l'
 export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
-
-export command2run2='export -n -l --include-uepm-msi-files'
-export outputfile2=$outputfileprefix'_msi_logs_'$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
 
 echo | tee -a -i $logfilepath
 echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
 echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
-if [ $Check4EPM -gt 0 ]; then
-    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
-    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-fi
-
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
@@ -549,26 +538,13 @@ echo | tee -a -i $logfilepath
 if [ $testmode -eq 0 ]; then
     # Not test mode
     $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    if [ $Check4EPM -gt 0 ]; then
-        echo | tee -a -i $logfilepath
-        echo 'Executing 2...' | tee -a -i $logfilepath
-        echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-        $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-
-        echo | tee -a -i $logfilepath
-        echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    fi
 else
     # test mode
     echo Test Mode! | tee -a -i $logfilepath
 fi
 
+echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath

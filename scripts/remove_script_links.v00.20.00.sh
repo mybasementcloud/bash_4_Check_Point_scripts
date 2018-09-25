@@ -1,15 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
-# using mds_backup
+# SCRIPT Remove script link files
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.09.00
-ScriptDate=2018-07-18
+ScriptVersion=00.20.00
+ScriptDate=2018-09-21
 #
 
-export BASHScriptVersion=v00x09x00
+export BASHScriptVersion=v00x20x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -112,36 +111,6 @@ fi
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-
-if [ ! -r $outputpathroot ]; then
-    mkdir $outputpathroot
-fi
-
-export logpathroot=$outputpathroot
-
-if [ ! -r $logpathroot ]; then
-    mkdir $logpathroot
-fi
-
-export logpathbase=$logpathroot/$DATEDTGS
-
-if [ ! -r $logpathbase ]; then
-    mkdir $logpathbase
-fi
-
-export logfilepath=$logpathbase/log_mds_backup_upugex_$DATEDTGS.log
-touch $logfilepath
-
-#
-# shell meat
-#
-OPT="$1"
-if [ x"$OPT" = x"--test" ]; then
-    export testmode=1
-    echo "Test Mode Active! testmode = $testmode" | tee -a -i $logfilepath
-else
-    export testmode=0
-fi
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -411,162 +380,300 @@ echo | tee -a -i $gaiaversionoutputfile
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-cat $gaiaversionoutputfile >> $logfilepath
-echo >> $logfilepath
 rm $gaiaversionoutputfile
 
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Scripts link generation and setup
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Continueing with MDS Backup..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "This script is not meant for SMS, exiting!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+export workingroot=$customerworkpathroot
+export workingbase=$workingroot/scripts
+export linksbase=$workingbase/.links
+
+
+if [ ! -r $workingbase ] ; then
+    echo
+    echo Error!
+    echo Missing folder $workingbase
+    echo
+    echo Exiting!
+    echo
     exit 255
 else
-    echo "System is a gateway!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "This script is not meant for gateways, exiting!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    exit 255
+    chmod 775 $workingbase
 fi
-
-# -------------------------------------------------------------------------------------------------
-# END: Gaia version and installatin type
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-export outputpathbase=$customerworkpathroot/backups
-
-if [ ! -r $outputpathbase ]; then
-    mkdir $outputpathbase | tee -a -i $logfilepath
-fi
-
-export outputpathbase=$outputpathbase/$DATE
-
-if [ ! -r $outputpathbase ]; then
-    mkdir $outputpathbase | tee -a -i $logfilepath
-fi
-
-export outputfilepath=$outputpathbase/
-export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATE
-export outputfiletype=.tgz
-
-if [ ! -r $outputfilepath ]; then
-    mkdir $outputfilepath | tee -a -i $logfilepath
-fi
-
-echo | tee -a -i $logfilepath
-echo 'Execute command : mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Preparing ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cd "$outputfilepath" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-mdsstat | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstop ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstop | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstop completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ $testmode -eq 0 ]; then
-    # Not test mode
-    mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $logfilepath
-else
-    # test mode
-    echo Test Mode! | tee -a -i $logfilepath
-fi
-
-echo | tee -a -i $logfilepath
-echo 'Done performing mds_backup' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstart ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstart | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstart completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'CLI Operations Completed' | tee -a -i $logfilepath
 
 #
-# shell clean-up and log dump
+#if [ ! -r $linksbase ] ; then
+#    mkdir $linksbase
+#    chmod 775 $linksbase
+#else
+#    chmod 775 $linksbase
+#fi
 #
+chmod 775 $linksbase
 
-echo | tee -a -i $logfilepath
-ls -alh $outputpathroot | tee -a -i $logfilepath
 
-cd "$outputpathroot" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i  | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
-echo 'Log File      : '$logfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo
+echo 'Start with links clean-up!'
+echo
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Common
+# =============================================================================
+
+
+export workingdir=Common
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/gaia_version_type
+
+rm $workingroot/godump
+rm $workingroot/godtgdump
+
+rm $workingroot/goChangeLog
+
+rm $workingroot/mkdump
+rm $workingroot/mkdtgdump
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Config
+# =============================================================================
+
+
+export workingdir=Config
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/config_capture
+rm $workingroot/interface_info
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW
+# =============================================================================
+
+
+export workingdir=GW
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ "$sys_type_GW" == "true" ]; then
+    
+    rm $workingroot/watch_accel_stats
+    rm $workingroot/set_informative_logging_implied_rules_on_R8x
+    
+    rm $workingroot/reset_hit_count_with_backup
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Health_Check
+# =============================================================================
+
+
+export workingdir=Health_Check
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/healthcheck
+rm $workingroot/healthdump
+rm $workingroot/checkpoint_service_status_check
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MDM
+# =============================================================================
+
+
+export workingdir=MDM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ "$sys_type_MDS" == "true" ]; then
+    
+    rm $workingroot/backup_mds_ugex
+    rm $workingroot/backup_w_logs_mds_ugex
+    rm $workingroot/report_mdsstat
+    rm $workingroot/watch_mdsstat
+    rm $workingroot/show_domains_in_array
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Patch_HotFix
+# =============================================================================
+
+
+export workingdir=Patch_HotFix
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+export need_fix_webui=false
+
+case "$gaiaversion" in
+    R80.20 ) 
+        export need_fix_webui=false
+        ;;
+    *)
+        export need_fix_webui=true
+        ;;
+esac
+
+if [ "$need_fix_webui" == "true" ]; then
+    
+    rm $workingroot/fix_gaia_webui_login_dot_js
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Session_Cleanup
+# =============================================================================
+
+
+export workingdir=Session_Cleanup
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+export do_session_cleanup=false
+
+case "$gaiaversion" in
+    R80 | R80.10 | R80.20 ) 
+        export do_session_cleanup=true
+        ;;
+    *)
+        export do_session_cleanup=false
+        ;;
+esac
+
+if [ "$do_session_cleanup" == "true" ]; then
+    
+    if [ "$sys_type_GW" == "false" ]; then
+        
+        if [ "$sys_type_MDS" == "true" ]; then
+            
+            rm $workingroot/mdm_show_zerolocks_sessions
+            rm $workingroot/mdm_show_zerolocks_web_api_sessions
+            rm $workingroot/mdm_remove_zerolocks_sessions
+            rm $workingroot/mdm_remove_zerolocks_web_api_sessions
+            
+        else
+            
+            rm $workingroot/show_zerolocks_sessions
+            rm $workingroot/show_zerolocks_web_api_sessions
+            rm $workingroot/remove_zerolocks_sessions
+            rm $workingroot/remove_zerolocks_web_api_sessions
+            
+        fi
+    fi
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    
+    rm $workingroot/SmartEvent_backup
+    #rm $workingroot/SmartEvent_restore
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS
+# =============================================================================
+
+
+export workingdir=SMS
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    rm $workingroot/migrate_export_npm_ugex
+    rm $workingroot/migrate_export_w_logs_npm_ugex
+    rm $workingroot/restart_mgmt
+    rm $workingroot/report_cpwd_admin_list
+    rm $workingroot/watch_cpwd_admin_list
+    
+    rm $workingroot/reset_hit_count_on_R80_SMS_commands
+    
+fi
+
+if [ $Check4EPM -gt 0 ]; then
+
+    rm $workingroot/migrate_export_epm_ugex
+    rm $workingroot/migrate_export_w_logs_epm_ugex
+
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig
+# =============================================================================
+
+
+export workingdir=UserConfig
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/add_alias_commands
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
+rm -f -r -d $linksbase
+
+# =============================================================================
+# =============================================================================
+
+echo
+
+ls -alh $workingroot
+
+echo
+
+ls -alh $workingbase
+
+echo
+
+echo 'Done with links clean-up!'
+echo
+
+# =============================================================================
+# =============================================================================
 

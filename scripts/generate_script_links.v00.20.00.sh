@@ -4,11 +4,11 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.18.00
-ScriptDate=2018-09-09
+ScriptVersion=00.20.00
+ScriptDate=2018-09-21
 #
 
-export BASHScriptVersion=v00x18x00
+export BASHScriptVersion=v00x20x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -474,8 +474,8 @@ else
     chmod 775 $linksfolder
 fi
 
-file_configcapture=config_capture_005_v00.17.00.sh
-file_interface_info=show_interface_information_v00.03.00.sh
+file_configcapture=config_capture_005_v00.18.00.sh
+file_interface_info=show_interface_information_v00.04.00.sh
 
 ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
 ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info
@@ -564,19 +564,22 @@ else
     chmod 775 $linksfolder
 fi
 
-file_mds_backup=mds_backup_ugex_001_v00.09.00.sh
+file_backup_mds=backup_mds_ugex_001_v00.10.00.sh
+file_backup_w_logs_mds=backup_w_logs_mds_ugex_001_v00.10.00.sh
 file_report_mdsstat=report_mdsstat.v00.08.00.sh
 file_watch_mdsstat=watch_mdsstat.v00.07.00.sh
 file_show_domains_in_array=show_all_domains_in_array.v00.04.00.sh
 
-ln -sf $sourcefolder/$file_mds_backup $linksfolder/mds_backup_ugex
+ln -sf $sourcefolder/$file_backup_mds $linksfolder/backup_mds_ugex
+ln -sf $sourcefolder/$file_backup_w_logs_mds $linksfolder/backup_w_logs_mds_ugex
 ln -sf $sourcefolder/$file_report_mdsstat $linksfolder/report_mdsstat
 ln -sf $sourcefolder/$file_watch_mdsstat $linksfolder/watch_mdsstat
 ln -sf $sourcefolder/$file_show_domains_in_array $linksfolder/show_domains_in_array
 
 if [ "$sys_type_MDS" == "true" ]; then
     
-    ln -sf $sourcefolder/$file_mds_backup $workingroot/mds_backup_ugex
+    ln -sf $sourcefolder/$file_backup_mds $workingroot/backup_mds_ugex
+    ln -sf $sourcefolder/$file_backup_w_logs_mds $workingroot/backup_w_logs_mds_ugex
     ln -sf $sourcefolder/$file_report_mdsstat $workingroot/report_mdsstat
     ln -sf $sourcefolder/$file_watch_mdsstat $workingroot/watch_mdsstat
     ln -sf $sourcefolder/$file_show_domains_in_array $workingroot/show_domains_in_array
@@ -741,14 +744,17 @@ else
     chmod 775 $linksfolder
 fi
 
-file_migrate_export_epm=migrate_export_epm_ugex_001_v00.13.00.sh
-file_migrate_export_npm=migrate_export_npm_ugex_001_v00.13.00.sh
+file_migrate_export_npm=migrate_export_npm_ugex_001_v00.14.00.sh
+file_migrate_export_w_logs_npm=migrate_export_w_logs_npm_ugex_001_v00.14.00.sh
+file_migrate_export_epm=migrate_export_epm_ugex_001_v00.14.00.sh
+file_migrate_export_w_logs_epm=migrate_export_w_logs_epm_ugex_001_v00.14.00.sh
 file_mgmt_report=report_cpwd_admin_list.v00.08.00.sh
 file_mgmt_restart=restart_mgmt.v00.09.00.sh
 file_mgmt_watch=watch_cpwd_admin_list.v00.05.00.sh
 file_reset_hitcount_sms=reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh
 
 ln -sf $sourcefolder/$file_migrate_export_npm $linksfolder/migrate_export_npm_ugex
+ln -sf $sourcefolder/$file_migrate_export_w_logs_npm $linksfolder/migrate_export_w_logs_npm_ugex
 ln -sf $sourcefolder/$file_mgmt_restart $linksfolder/restart_mgmt
 ln -sf $sourcefolder/$file_mgmt_report $linksfolder/report_cpwd_admin_list
 ln -sf $sourcefolder/$file_mgmt_watch $linksfolder/watch_cpwd_admin_list
@@ -758,6 +764,7 @@ ln -sf $sourcefolder/$file_reset_hitcount_sms $linksfolder/reset_hit_count_on_R8
 if [ "$sys_type_SMS" == "true" ]; then
     
     ln -sf $sourcefolder/$file_migrate_export_npm $workingroot/migrate_export_npm_ugex
+    ln -sf $sourcefolder/$file_migrate_export_w_logs_npm $workingroot/migrate_export_w_logs_npm_ugex
     ln -sf $sourcefolder/$file_mgmt_restart $workingroot/restart_mgmt
     ln -sf $sourcefolder/$file_mgmt_report $workingroot/report_cpwd_admin_list
     ln -sf $sourcefolder/$file_mgmt_watch $workingroot/watch_cpwd_admin_list
@@ -769,7 +776,10 @@ fi
 if [ $Check4EPM -gt 0 ]; then
 
     ln -sf $sourcefolder/$file_migrate_export_epm $linksfolder/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_migrate_export_w_logs_epm $linksfolder/migrate_export_w_logs_epm_ugex
+
     ln -sf $sourcefolder/$file_migrate_export_epm $workingroot/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_migrate_export_w_logs_epm $workingroot/migrate_export_w_logs_epm_ugex
 
 fi
 
