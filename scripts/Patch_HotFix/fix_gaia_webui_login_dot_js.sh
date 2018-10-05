@@ -111,9 +111,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-#export outputpathbase=$changelogpathroot/$DATE
 export outputpathbase=$changelogpathroot/$DATEDTGS
-#export outputpathbase=$changelogpathroot/$DATEYMD
 
 if [ ! -r $changelogpathroot ]; then
     mkdir $changelogpathroot

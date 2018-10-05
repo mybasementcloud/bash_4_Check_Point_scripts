@@ -4,11 +4,12 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptVersion=00.02.00
-ScriptDate=2018-06-30
+ScriptTemplateLevel=005
+ScriptVersion=02.00.00
+ScriptDate=2018-10-04
 #
 
-export BASHScriptVersion=v00x02x00
+export BASHScriptVersion=v02x00x00
 
 # =============================================================================
 # =============================================================================
@@ -16,7 +17,10 @@ export BASHScriptVersion=v00x02x00
 # =============================================================================
 
 dos2unix *.sh
+dos2unix *.version
+dos2unix _sub-scripts/*.sh
 dos2unix _template/*.sh
+dos2unix _template/Code_Snipets/*.sh
 dos2unix Common/*.sh
 dos2unix Config/*.sh
 dos2unix GW/*.sh
