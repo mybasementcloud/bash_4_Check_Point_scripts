@@ -6,14 +6,14 @@
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.05.00
-ScriptDate=2018-10-04
+ScriptVersion=02.01.00
+ScriptDate=2018-10-25
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=backup_mds_ugex_001_v$ScriptVersion
-export BASHScriptShortName=log_mds_backup_ugex
+export BASHScriptName=backup_w_logs_mds_ugex_001_v$ScriptVersion
+export BASHScriptShortName=log_mds_backup_logs_ugex
 export BASHScriptDescription="Template for bash scripts"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
@@ -817,14 +817,14 @@ fi
 export outputfilepath=$outputpathbase/
 export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATE
-export outputfiletype=.tgz
+export outputfiletype=.txt
 
 if [ ! -r $outputfilepath ]; then
     mkdir $outputfilepath | tee -a -i $logfilepath
 fi
 
-export command2run='mds_backup -b -l -i -s -d'
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export command2run='mds_backup -b -i -s -d'
+export outputfile=$outputfileprefix'_mds_backup-bisd'$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 echo | tee -a -i $logfilepath
@@ -869,17 +869,30 @@ echo | tee -a -i $logfilepath
 
 #if [ $testmode -eq 0 ]; then
 #    # Not test mode
-#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-#    mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+#    echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
 #else
 #    # test mode
 #    echo 'Test Mode!' | tee -a -i $logfilepath
-#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
 #fi
 #
 
-echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+
+
+echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" >> tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
 
 echo | tee -a -i $logfilepath

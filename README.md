@@ -8,6 +8,7 @@ NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
 Specific examples and operation for:
+- _sub-scripts - sub-ordinate scripts called by the version v01.00.00 and v02.00.00 level template based scripts for common operations
 - _template - templates for bash scripts, may include some canned plumbing
 - Common - general use scripts
 - Config - Configuration capture for Gaia (might work on SPLAT and Linux, not tested on those)
@@ -29,7 +30,9 @@ NOTES:
 
 - Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1 (and later)
 - Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03
+- Updated to handle R80.20 GA and some R80.20 GoGo Gateway EA elements
+- Added sample updatescripts script to pull latest package of scripts (scripts.tgz) from a tftp server and expand them, after removing the existing script links and deleting the old folder
 
 
 Reference Check Point Secure Knowledge (SK) articles:
-sk121447 (https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447)
+sk121447 Health Check (https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447)

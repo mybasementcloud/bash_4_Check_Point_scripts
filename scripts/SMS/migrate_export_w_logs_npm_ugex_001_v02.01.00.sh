@@ -1,20 +1,21 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
-# using mds_backup
+# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
+# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
+# this scripts export with logs
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.05.00
-ScriptDate=2018-10-04
+ScriptVersion=02.01.00
+ScriptDate=2018-10-25
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=backup_w_logs_mds_ugex_001_v$ScriptVersion
-export BASHScriptShortName=log_mds_backup_logs_ugex
-export BASHScriptDescription="Template for bash scripts"
+export BASHScriptName="migrate_export_npm_ugex_001_v$ScriptVersion"
+export BASHScriptShortName="migrate_export_npm"
+export BASHScriptDescription="migrate export NPM to local folder using version tools"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -44,20 +45,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
+export OutputToDump=true
 export OutputToChangeLog=false
-export OutputToOther=true
+export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=./backups
+export OtherOutputFolder=Specify_The_Folder_Here
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -791,17 +792,16 @@ esac
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "Continueing with MDS Backup..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!"
     echo
-    echo "This script is not meant for SMS, exiting!"
-    exit 255
+    echo "Continueing with Migrate Export..."
     echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
+    exit 255
 else
     echo "System is a gateway!"
     echo
@@ -814,93 +814,112 @@ fi
 # Setup script values
 # -------------------------------------------------------------------------------------------------
 
-export outputfilepath=$outputpathbase/
-export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATE
+
+export outputfilepath=$outputpathroot/
+export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.tgz
 
-if [ ! -r $outputfilepath ]; then
-    mkdir $outputfilepath | tee -a -i $logfilepath
+export toolsversion=$gaiaversion
+
+export migratefilefolderroot=migration_tools/$toolsversion
+export migratefilename=migrate
+
+export migratefilepath=$outputpathroot/$migratefilefolderroot/
+export migratefile=$migratefilepath$migratefilename
+
+if [ ! -r $migratefilepath ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
+    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
 fi
 
-export command2run='mds_backup -b -i -s -d'
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
+if [ ! -r $migratefile ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
+    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
 
-echo | tee -a -i $logfilepath
-echo 'Execute command : '"$command2run"' '"$outputfilepath" | tee -a -i $logfilepath
-echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
+    exit 255
+fi
 
 echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+
+export command2run='export -n -l'
+export outputfile=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i $logfilepath
+echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
 echo 'Preparing ...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-cd "$outputfilepath" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-mdsstat | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
-echo 'mdsstop ...' | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-mdsstop | tee -a -i $logfilepath
+cpstop | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
-echo 'mdsstop completed' | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
+echo 'Executing...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 #if [ $testmode -eq 0 ]; then
 #    # Not test mode
-#    echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-#    mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 #else
 #    # test mode
-#    echo 'Test Mode!' | tee -a -i $logfilepath
-#   echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    echo Test Mode! | tee -a -i $logfilepath
 #fi
-#
 
-echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
 
 echo | tee -a -i $logfilepath
-echo 'Done performing mds_backup' | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-ls -alh $outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstart ...' | tee -a -i $logfilepath
+ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-mdsstart | tee -a -i $logfilepath
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
 
-echo | tee -a -i $logfilepath
-echo 'mdsstart completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+cpwd_admin list | tee -a -i $logfilepath
 
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
@@ -909,33 +928,98 @@ echo | tee -a -i $logfilepath
 echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-mdsstat | tee -a -i $logfilepath
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
 
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
+sleep $WAITTIME
+
+echo | tee -a -i $logfilepath
+echo 'cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+sleep $WAITTIME
+
+cpstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+if [ $CPVer80 -gt 0 ]; then
+    # R80 version so kick the API on
+    echo | tee -a -i $logfilepath
+    echo 'api start ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    api start | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'api start completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    # not R80 version so no API
+    echo | tee -a -i $logfilepath
+fi
 
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'CLI Operations Completed' | tee -a -i $logfilepath
-
-#
-# shell clean-up and log dump
-#
-
-echo | tee -a -i $logfilepath
-ls -alh $outputpathroot | tee -a -i $logfilepath
-
-cd "$outputpathroot" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 echo 'Done!' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i  | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+
+ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 

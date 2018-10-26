@@ -2,19 +2,20 @@
 #
 # SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
 # using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
+# EPM export includes standard NPM export with logs, but also another export with logs and MSI files
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.00.00
-ScriptDate=2018-10-04
+ScriptVersion=02.01.00
+ScriptDate=2018-10-25
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="migrate_export_npm_ugex_001_v$ScriptVersion"
-export BASHScriptShortName="migrate_export_npm"
-export BASHScriptDescription="migrate export NPM to local folder using version tools"
+export BASHScriptName="migrate_export_epm_ugex_001_v$ScriptVersion"
+export BASHScriptShortName="migrate_export_epm"
+export BASHScriptDescription="migrate export EPM to local folder using version tools"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -786,6 +787,7 @@ esac
 #==================================================================================================
 #==================================================================================================
 
+
 # -------------------------------------------------------------------------------------------------
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
@@ -850,14 +852,25 @@ echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-export command2run='export -n'
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export command2run='export -n -l'
+export outputfile=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
+
+export command2run2='export -n -l --include-uepm-msi-files'
+export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn2=$outputfilepath$outputfile2
 
 echo | tee -a -i $logfilepath
 echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
 echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
 read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
@@ -901,9 +914,30 @@ echo | tee -a -i $logfilepath
 
 $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
-
 echo | tee -a -i $logfilepath
 echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo | tee -a -i $logfilepath
+    echo 'Executing 2...' | tee -a -i $logfilepath
+    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    #if [ $testmode -eq 0 ]; then
+    #    # Not test mode
+    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    #else
+    #    # test mode
+    #    echo Test Mode! | tee -a -i $logfilepath
+    #fi
+    
+    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    echo | tee -a -i $logfilepath
+    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
 echo | tee -a -i $logfilepath
 ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath

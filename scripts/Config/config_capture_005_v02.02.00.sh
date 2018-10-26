@@ -5,10 +5,11 @@
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptDate=2018-10-04
+ScriptVersion=02.02.00
+ScriptDate=2018-10-25
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="config_capture.v$ScriptVersion"
 export BASHScriptShortName="config_capture"
@@ -1846,6 +1847,34 @@ if [ $Check4GW -eq 1 ]; then
     
     fwaccel stats -s >> "$outputfilefqdn"
     
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwacell stats -p' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    fwaccel stats -p >> "$outputfilefqdn"
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwaccel templates' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    fwaccel templates >> "$outputfilefqdn"
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwaccel templates -S' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    fwaccel templates -S >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+
 fi
 
 
@@ -1869,14 +1898,17 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-        echo | tee -a -i "$outputfilefqdn"
-    else
-        echo | tee -a -i "$outputfilefqdn"
-    fi
-
+    case "$gaiaversion" in
+        R80 | R80.10 | R80.20.M1 | R80.20 ) 
+            # cpm_status.sh only exists in R8X
+            $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+            echo | tee -a -i "$outputfilefqdn"
+            ;;
+        *)
+            echo | tee -a -i "$outputfilefqdn"
+            ;;
+    esac
+    
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
@@ -1910,14 +1942,17 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
     echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-        echo | tee -a -i "$outputfilefqdn"
-    else
-        echo | tee -a -i "$outputfilefqdn"
-    fi
-
+    case "$gaiaversion" in
+        R80 | R80.10 | R80.20.M1 | R80.20 ) 
+            # cpm_status.sh only exists in R8X
+            $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
+            echo | tee -a -i "$outputfilefqdn"
+            ;;
+        *)
+            echo | tee -a -i "$outputfilefqdn"
+            ;;
+    esac
+    
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
@@ -2101,6 +2136,8 @@ clish -i -c "lock database override" >> $clishoutputfilefqdn
 clish -i -c "lock database override" >> $clishoutputfilefqdn
 clish -i -c "show version all" >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
+clish -i -c "show version os build" >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
 echo >> "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
@@ -2126,18 +2163,33 @@ echo >> "$outputfilefqdn"
 fw ver >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 
-if [ x"$gaiaversion" = x"R80.20" ] || [ x"$gaiaversion" = x"R80.10" ] || [ x"$gaiaversion" = x"R80" ] ; then
-    # installed_jumbo_take only exists in R7X
-    echo >> "$outputfilefqdn"
-else
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    installed_jumbo_take >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-fi
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar : ' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+
+case "$gaiaversion" in
+    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+        # installed_jumbo_take only exists in R7X
+        echo >> "$outputfilefqdn"
+        ;;
+    *)
+        echo >> "$outputfilefqdn"
+        echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
+        echo >> "$outputfilefqdn"
+        installed_jumbo_take >> "$outputfilefqdn"
+        echo >> "$outputfilefqdn"
+        ;;
+esac
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 
 
 #==================================================================================================

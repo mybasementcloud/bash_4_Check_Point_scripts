@@ -8,27 +8,34 @@
 # AUTHOR (all versions): Nathan Davieau (Check Point Diamond Services Tech Lead)
 # CO-AUTHOR (v0.2-v3.6): Rosemarie Rodriguez
 # CODE CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman
-# VERSION:               5.10
+# VERSION:               5.11
 # SK:                    sk121447
 #====================================================================================================
+
+
+#====================================================================================================
+#  Check Point Sources
+#====================================================================================================
+source /etc/profile.d/CP.sh 2> /dev/null
+source /etc/profile.d/vsenv.sh 2> /dev/null
+source $MDSDIR/scripts/MDSprofile.sh 2> /dev/null
+source $MDS_SYSTEM/shared/sh_utilities.sh 2> /dev/null
+source $MDS_SYSTEM/shared/mds_environment_utils.sh 2> /dev/null
+
 
 #====================================================================================================
 #  Global Variables
 #====================================================================================================
-if [[ -e /etc/profile.d/CP.sh ]]; then
-    source /etc/profile.d/CP.sh
-fi
-if [[ -e /etc/profile.d/vsenv.sh ]]; then
-    source /etc/profile.d/vsenv.sh
-fi
 logfile=/var/log/$(hostname)_health-check_$(date +%Y%m%d%H%M).txt
 output_log=/var/log/hc_output_log.tmp
 full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).log
 csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
+installed_script_path="/usr/local/bin/healthcheck.sh"
+executed_script_path=$(readlink -e $0)
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="5.10 10-01-2018"
+script_ver="5.11 10-17-2018"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -44,7 +51,6 @@ text_yellow=$(tput setaf 3)
 text_pink=$(tput setaf 5)
 text_blue=$(tput setaf 6)
 text_reset=$(tput sgr0)
-
 
 
 #====================================================================================================
@@ -2220,7 +2226,7 @@ check_clusterxl()
     cluster_status=$(echo "$cphaprob_stat" | head -n10 | grep local)
     if [[ $active_active_check -gt 1 ]]; then
         cluster_status="Active-Active"
-    elif [[ "$cphaprob_stat" == *"HA module not started."* ]]; then
+    elif [[ "$full_cphaprob_stat" == *"HA module not started."* ]]; then
         cluster_status="HA Module Not Started"
     else
         if [[ $(echo $cluster_status | grep -i "down") ]]; then
@@ -2261,7 +2267,7 @@ check_clusterxl()
         printf "Cluster peer is: $other_member_status.\n" >> $logfile
     
     #Single member problem
-    elif [[ $single_member_check -eq 1 ]]; then
+    elif [[ $single_member_check -eq 1 && $full_cphaprob_stat != *"HA module not started"* ]]; then
         check_failed
         printf "ClusterXL,Cluster Status,WARNING,\n" >> $csv_log
         printf "\nUnable to find remote partner.\n" >> $logfile
@@ -2282,7 +2288,7 @@ check_clusterxl()
         check_failed
         printf "ClusterXL,Cluster Status,WARNING,\n" >> $csv_log
         printf "Cluster status is: $cluster_status.\n" >> $logfile
-        if [[ "$cphaprob_stat" == *"HA module not started."* ]]; then
+        if [[ "$full_cphaprob_stat" == *"HA module not started."* ]]; then
             printf "Cluster membership is enabled in cpconfig but the HA module is not started\nPlease review the configuration to determine if this device is supposed to be a member of a cluster.\n" >> $logfile
         fi
     fi
@@ -2338,18 +2344,46 @@ check_clusterxl()
         #====================================================================================================
         test_output_error=0
         printf "|\t\t\t| Sync Status\t\t\t|" | tee -a $output_log
-        cluster_sync=$(fw ctl pstat | sed '1,/Sync:/d')
-        printf "\n\nCluster Sync:\n$cluster_sync\n" >> $full_output_log
-        
-        if [[ $cluster_sync == *"off"* ]]; then
-            check_failed
-            printf "ClusterXL,Sync Status,WARNING,sk34476 and sk37029 and sk37030\n" >> $csv_log
-            printf "Sync is Off!\n" >> $logfile
-            printf "For more information on Sync, use sk34476: Explanation of Sync section in the output of fw ctl pstat command.\n" >> $logfile
-            printf "To troubleshoot Sync issues use, sk37029- Full Synchronization issues on cluster member and sk37030 - Debugging Full Synchronization in ClusterXL.\n" >> $logfile
-        else
-            check_passed
-            printf "ClusterXL,Sync Status,OK,\n" >> $csv_log
+        if [[ $current_version -le 8010 ]]; then
+            cluster_sync=$(fw ctl pstat | grep -A50 Sync:)
+            printf "\n\nCluster Sync:\n$cluster_sync\n" >> $full_output_log
+            
+            if [[ $cluster_sync == *"off"* ]]; then
+                check_failed
+                printf "ClusterXL,Sync Status,WARNING,sk34476 and sk37029 and sk37030\n" >> $csv_log
+                printf "Sync is Off!\n" >> $logfile
+                printf "For more information on Sync, use sk34476: Explanation of Sync section in the output of fw ctl pstat command.\n" >> $logfile
+                printf "To troubleshoot Sync issues use, sk37029- Full Synchronization issues on cluster member and sk37030 - Debugging Full Synchronization in ClusterXL.\n" >> $logfile
+            else
+                check_passed
+                printf "ClusterXL,Sync Status,OK,\n" >> $csv_log
+            fi
+        elif [[ $current_version -ge 8020 ]]; then
+            cluster_sync=$(cphaprob syncstat | grep "Sync status")
+            printf "\n\nCluster $cluster_sync\n" >> $full_output_log
+            
+            if [[ $cluster_sync == *"OK"* ]]; then
+                check_passed
+                printf "ClusterXL,Sync Status,OK,\n" >> $csv_log
+            elif [[ $(echo "$cluster_sync" | grep -e "Off" -e "Problem") ]]; then
+                check_failed
+                printf "ClusterXL,Sync Status,WARNING,sk34475 and sk37029 and sk37030\n" >> $csv_log
+                printf "$cluster_sync\n" >> $logfile
+                printf "For more information on Sync, use sk34475: ClusterXL Sync Statistics - output of 'cphaprob syncstat' command.\n" >> $logfile
+                printf "To troubleshoot Sync issues use, sk37029- Full Synchronization issues on cluster member and sk37030 - Debugging Full Synchronization in ClusterXL.\n" >> $logfile
+            elif [[ $cluster_sync == *"Fullsync in progress"* ]]; then
+                check_info
+                printf "ClusterXL,Sync Status,INFO,sk34475 and sk37029 and sk37030\n" >> $csv_log
+                printf "$cluster_sync\n" >> $logfile
+                printf "For more information on Sync, use sk34475: ClusterXL Sync Statistics - output of 'cphaprob syncstat' command.\n" >> $logfile
+                printf "To troubleshoot Sync issues use, sk37029- Full Synchronization issues on cluster member and sk37030 - Debugging Full Synchronization in ClusterXL.\n" >> $logfile
+            else
+                check_failed
+                printf "ClusterXL,Sync Status,WARNING,sk34475 and sk37029 and sk37030\n" >> $csv_log
+                printf "Unable to determine Sync Status.\n" >> $logfile
+                printf "For more information on Sync, use sk34475: ClusterXL Sync Statistics - output of 'cphaprob syncstat' command.\n" >> $logfile
+                printf "To troubleshoot Sync issues use, sk37029- Full Synchronization issues on cluster member and sk37030 - Debugging Full Synchronization in ClusterXL.\n" >> $logfile
+            fi
         fi
         
         
@@ -2385,6 +2419,10 @@ check_clusterxl()
                 printf "ClusterXL,Number of Sync Interfaces,WARNING,sk92804\n" >> $csv_log
                 printf "Multiple Sync Interfaces Detected:\n" >> $logfile
                 printf "For more information on redundant sync configurations, use sk92804: Sync Redundancy in ClusterXL.\n" >> $logfile
+            elif [[ $sync_interface_list == *"Warning"* ]]; then
+                check_failed
+                printf "ClusterXL,Number of Sync Interfaces,WARNING,sk92804\n" >> $csv_log
+                printf "No Sync Interfaces Detected.\n" >> $logfile
             else
                 check_passed
                 printf "ClusterXL,Number of Sync Interfaces,OK,\n" >> $csv_log
@@ -3131,7 +3169,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="10-01-2018"
+    script_build_date="10-17-2018"
     current_check_message="Check Point\t\t"
     
     
@@ -3671,14 +3709,23 @@ run_remote_checks()
         fi
         
         #Send the file
-        cprid_util -server $device_ip putfile -local_file "/home/admin/healthcheck.sh" -remote_file "/home/admin/healthcheck.sh" -perms 0755
+        cprid_util -server $device_ip putfile -local_file $installed_script_path -remote_file $installed_script_path -perms 0755
         if [[ $(echo $?) -ne 0 ]]; then
-            printf "An error has occurred while transferring the healthcheck.sh script to $gateway_name.  Please ensure the device is running and that SIC is established.\n"
-            continue
+            #Assume first failure is due to missing folder
+            cprid_util -server $device_ip -verbose rexec -rcmd bash -c "mkdir /usr/local/bin/"
+            
+            #Try to put the file again
+            cprid_util -server $device_ip putfile -local_file $installed_script_path -remote_file $installed_script_path -perms 0755
+            
+            if [[ $(echo $?) -ne 0 ]]; then
+                printf "An error has occurred while transferring the healthcheck.sh script to $gateway_name.\n"
+                printf "Please ensure the device is running, SIC is established, and that it has a security policy installed.\n"
+                continue
+            fi
         fi
         
         #Remote execute script
-        mgmt_cli run-script script-name "Healthcheck" script "/home/admin/healthcheck.sh" targets.1 $gateway_name -s $domain_id > $return_details
+        mgmt_cli run-script script-name "Healthcheck" script $installed_script_path targets.1 $gateway_name -s $domain_id > $return_details
         
         #Parse the API results
         if [[ $(grep generic_error $return_details) ]]; then
@@ -3848,6 +3895,50 @@ display_summary()
 
 
 #====================================================================================================
+#  Script Version Check and Install
+#====================================================================================================
+script_install()
+{
+    if [[ $executed_script_path != $installed_script_path && -e $installed_script_path ]]; then
+        #Notify user
+        printf "Comparing current script to version located in /usr/local/bin/.  Please wait.\n"
+        
+        #Version of script executed by user
+        executed_version=$(echo $script_ver | awk '{print $1}')
+        executed_major=$(echo $executed_version | awk -F'.' '{print $1}' | bc)
+        executed_minor=$(echo $executed_version | awk -F'.' '{print $2}' | bc)
+        
+        #Version of script located in /usr/local/bin/
+        installed_version=$(grep ^'# VERSION' $installed_script_path | awk '{print $3}')
+        installed_major=$(echo $installed_version | awk -F'.' '{print $1}' | bc)
+        installed_minor=$(echo $installed_version | awk -F'.' '{print $2}' | bc)
+        
+        #Exit if /usr/local/bin script is newer
+        if [[ $installed_major -gt $executed_major ]] || [[ $installed_major -eq $executed_major && $installed_minor -gt $executed_minor ]]; then
+            printf "\t${text_red}WARNING:${text_reset} The script installed in /usr/local/bin/ is newer than this version.\n"
+            printf "\tPlease use the latest version from sk121447.\n"
+        
+        #Do nothing if the versions match
+        elif [[ $installed_major -eq $executed_major && $installed_minor -eq $executed_minor ]]; then
+            printf "\t${text_green}OK:${text_reset} The script installed in /usr/local/bin/ matches this version.\n"
+            
+        #Install script if it is not up to date
+        else
+            printf "\t${text_yellow}Info:${text_reset} This script is newer than the one installed in /usr/local/bin/.\n"
+            printf "\tCopying current version to /usr/local/bin/healthcheck.sh.\n"
+            cp $executed_script_path $installed_script_path
+        fi
+    fi
+
+    if [[ ! -e $installed_script_path ]]; then
+        printf "\t${text_yellow}Info:${text_reset} The healthcheck.sh script is not installed in /usr/local/bin/.\n"
+        printf "\tCopying current version to /usr/local/bin/healthcheck.sh.\n"
+        cp $executed_script_path $installed_script_path
+    fi
+}
+
+
+#====================================================================================================
 #  Help Function
 #====================================================================================================
 show_help_info()
@@ -3857,7 +3948,7 @@ show_help_info()
     echo "Specific checks will be run depending on the device type and version."
     echo ""
     echo "Usage:"
-    echo "./$(basename $0) [option]"
+    echo "healthcheck.sh [option]"
     echo ""
     echo "Option    Name        Description"
     echo "------    --------    ----------------------------------------------------------------"
@@ -3881,24 +3972,24 @@ show_help_info()
     if [[ $sys_type == "MDS" ]]; then
         echo "#Run remote checks for a single device in a single CMA:"
         echo "#Note: A list of devices from the CMA will be displayed automatically."
-        echo "./$(basename $0) -d Production_Management_Domain"
+        echo "healthcheck.sh -d Production_Management_Domain"
         echo ""
         echo "#Run remote checks for a device (You will be prompted for a domain):"
-        echo "./$(basename $0) -r"
+        echo "healthcheck.sh -r"
         echo ""
     elif [[ $sys_type == "SMS"  ]]; then
         echo "#Run remote checks for a device managed by this Management Server:"
-        echo "./$(basename $0) -r"
+        echo "healthcheck.sh -r"
         echo ""
     fi
     echo "#Run offline health check against a cpinfo:"
-    echo "./$(basename $0) -f example.info"
+    echo "healthcheck.sh -f example.info"
     echo ""
     echo "#Run offline health check against a cpinfo and cpview database:"
-    echo "./$(basename $0) -f example.info -f CPViewDB.dat"
+    echo "healthcheck.sh -f example.info -f CPViewDB.dat"
     echo ""
     echo "#Display version information:"
-    echo "./$(basename $0) -v"
+    echo "healthcheck.sh -v"
     echo ""
 }
 
@@ -3918,12 +4009,24 @@ show_version_info()
 
 
 #====================================================================================================
-# Main Script
+# Add Traps
 #====================================================================================================
 
 #Set a trap to clean up all temp files if the user kills the script
 trap temp_file_cleanup SIGINT
 trap temp_file_cleanup SIGTERM
+
+
+#====================================================================================================
+# Error checking for non-flag characters
+#====================================================================================================
+if [[ ! $(echo $1 | grep ^'-') ]]; then
+    if [[ $(echo $1 | grep [a-zA-Z0-9]) ]]; then
+        show_help_info
+        printf "$1 provided without a valid flag.  Please review the above help info and try again.\n"
+        exit 1
+    fi
+fi
 
 
 #====================================================================================================
@@ -3965,8 +4068,12 @@ while getopts :d:b:f:ahvr opt; do
             if [[ $sys_type == "SP" ]]; then
                 target_sgm=${OPTARG}
                 if [[ $target_sgm == "all" ]]; then
-                    asg_cp2blades /home/admin/healthcheck.sh
-                    g_all /home/admin/healthcheck.sh
+                    #Install script before running any SP commands
+                    script_install
+                    
+                    #Run SP commands
+                    asg_cp2blades $installed_script_path
+                    g_all $installed_script_path
                     exit 0
                 else
                     printf "That is not a valid option.  Please try again.\n"
@@ -4096,15 +4203,9 @@ done
 
 
 #====================================================================================================
-# Error checking for non-flag characters
+#  Script Version Check and Install
 #====================================================================================================
-if [[ ! $(echo $1 | grep ^'-') ]]; then
-    if [[ $(echo $1 | grep [a-zA-Z0-9]) ]]; then
-        show_help_info
-        printf "$1 provided without a valid flag.  Please review the above help info and try again.\n"
-        exit 1
-    fi
-fi
+script_install
 
 
 #====================================================================================================
@@ -4133,13 +4234,6 @@ if [[ $remote_operations == true ]]; then
     
     #Make sure the device is running R80+
     if [[ $current_version -ge 8000 ]]; then
-        
-        #Make sure the script is located in /home/admin
-        if [[ ! -e /home/admin/healthcheck.sh ]]; then
-            printf "Remote operations require the script be located in /home/admin/\n"
-            printf "Please move the script to this location and try again.\n"
-            exit 1
-        fi
         
         #Make sure the API is up and running
         if [[ ! $(api status 2> /dev/null | grep "server is up") ]];then
