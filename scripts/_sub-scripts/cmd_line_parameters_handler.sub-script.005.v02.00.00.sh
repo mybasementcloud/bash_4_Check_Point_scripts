@@ -6,7 +6,7 @@
 #
 SubScriptTemplateLevel=005
 SubScriptVersion=02.00.00
-SubScriptDate=2018-10-04
+SubScriptDate=2018-10-27
 #
 
 BASHSubScriptVersion=v02x00x00
@@ -218,11 +218,11 @@ dumpcliparmparseresults () {
         export outstring=$outstring"CLIparm_domain          ='$CLIparm_domain' \n"
         export outstring=$outstring"CLIparm_sessionidfile   ='$CLIparm_sessionidfile' \n"
         
-        export outstring=$outstring"CLIparm_logpath         ='$CLIparm_logpath' \n"
-        export outstring=$outstring"CLIparm_outputpath      ='$CLIparm_outputpath' \n"
-        
     fi
 
+    export outstring=$outstring"CLIparm_logpath         ='$CLIparm_logpath' \n"
+    export outstring=$outstring"CLIparm_outputpath      ='$CLIparm_outputpath' \n"
+    
     export outstring=$outstring"SHOWHELP                ='$SHOWHELP' \n"
     export outstring=$outstring" \n"
     export outstring=$outstring"SCRIPTVERBOSE           ='$SCRIPTVERBOSE' \n"
