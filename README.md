@@ -5,6 +5,8 @@ mybasementcloud operational implemented working Gaia and bash script examples
 
 NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 
+NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
+
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
 Specific examples and operation for:
@@ -16,20 +18,20 @@ Specific examples and operation for:
 - Health_Check - System Health Check Script as provided in sk121447, including example of how to collect the generated files into a dump file location
 - MDM - Multi-Domain Management Server systems
 - Patch_HotFix - scripts that fix things
-- Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, now includes MDM example.
+- Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, with version 2018-11-21-1055CST using API script template so full access to CLI configuration of mgmt_cli authentication and access parameters run with --help to get CLI help; MDM specific scripts were removed, so use the -d <domain> parameter to identify the domain.
 - SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
 - SMS - Security Management Server systems
 - UserConfig - User configuration actions for bash CLI operations, like adding standard alias entries, etc.  Must be run by the specific user to execute configuration, which is available at next logon.
 
 NOTES:
 - Session_Cleanup 
-  For MDM operations include "-d <MDM_Domain>" and any other specific command extensions to mgmt_cli which is run with "-r true".  So if you need to specify the management server web ssl-port add "--port <port>".
+  Use the CLI parameters to configure operation.
   Examples:  
-    mdm_show_zerolocks_sessions.v00.05.00.sh --port 4434 -d "Global"
-    mdm_show_zerolocks_sessions.v00.05.00.sh --port 4434 -d "System Data"
+    show_zerolocks_sessions.v??.??.??.sh -r --port 4434 -d "Global"
+    show_zerolocks_sessions.v??.??.??.sh -u admin --port 4434 -d "System Data"
 
-- Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1 (and later)
-- Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03
+- Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1, R80.20 GA T101, (and later)
+- Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03.  Now updated to utilize available python scripts on Gaia instead of using clish commands that might get impaired by users in Gaia webUI
 - Updated to handle R80.20 GA and some R80.20 GoGo Gateway EA elements
 - Added sample updatescripts script to pull latest package of scripts (scripts.tgz) from a tftp server and expand them, after removing the existing script links and deleting the old folder
 
