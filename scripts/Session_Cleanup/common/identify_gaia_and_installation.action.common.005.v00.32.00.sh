@@ -1,23 +1,78 @@
-export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
-export KeepGaiaVersionResultsFile=false
+#!/bin/bash
+#
+# SCRIPT Template for CLI Operations for command line parameters handling
+#
+TemplateVersion=00.32.00
+CommonScriptsVersion=00.32.00
+ScriptVersion=00.32.00
+ScriptRevision=000
+ScriptDate=2018-11-20
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-
-
-# -------------------------------------------------------------------------------------------------
-# GetGaiaVersionAndInstallationType - repeated proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-GetGaiaVersionAndInstallationType () {
+export APIActionsScriptVersion=v00x32x00
+export APIActionScriptTemplateVersion=v00x32x00
+ActionScriptName=identify_gaia_and_installation.action.common.005.v$ScriptVersion
+
+# =================================================================================================
+# Validate Actions Script version is correct for caller
+# =================================================================================================
+
+
+if [ x"$APICommonScriptsVersion" = x"$APIActionsScriptVersion" ] ; then
+    # Script and Actions Script versions match, go ahead
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Verify Actions Scripts Version - OK' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+else
+    # Script and Actions Script versions don't match, ALL STOP!
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $APICLIlogfilepath
+    echo 'Calling Script version : '$APICommonScriptsVersion | tee -a -i $APICLIlogfilepath
+    echo 'Actions Script version : '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+
+    exit 250
+fi
+
+
+# =================================================================================================
+# =================================================================================================
+# START action script:  handle command line parameters
+# =================================================================================================
+
+
+echo | tee -a -i $APICLIlogfilepath
+echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$APIActionsScriptVersion'  Revision:  '$ScriptRevision | tee -a -i $APICLIlogfilepath
+
+# -------------------------------------------------------------------------------------------------
+# Handle important basics
+# -------------------------------------------------------------------------------------------------
+
+
+# =================================================================================================
+# =================================================================================================
+# START:  Determine version of server and type
+# =================================================================================================
+
+# =================================================================================================
+# START:  Local Proceedures
+# =================================================================================================
+
+
+# -------------------------------------------------------------------------------------------------
+# Start :  Determine version of server and type
+# -------------------------------------------------------------------------------------------------
+
+
+IdentifyGaiaVersionAndInstallationType () {
+
     #
-    # repeated procedure description
+    # Identify Gaia Version And Installation Type
     #
     
     #----------------------------------------------------------------------------------------
@@ -36,29 +91,30 @@ GetGaiaVersionAndInstallationType () {
     # START: Identify Gaia Version and Installation Type Details
     # -------------------------------------------------------------------------------------------------
     
-
+    
     # Removing dependency on clish to avoid collissions when database is locked
     #
     #clish -i -c "lock database override" >> $gaiaversionoutputfile
     #clish -i -c "lock database override" >> $gaiaversionoutputfile
     #
     #export gaiaversion=$(clish -i -c "show version product" | cut -d " " -f 6)
-
+    
     # Requires that $JQ is properly defined in the script
-    # so $UseJSONJQ = true must be set on template version 2.0.0 and higher
+    # so $UseJSONJQ = true must be set on template version 0.32.0 and higher
     #
+    export pythonpath=$MDS_FWDIR/Python/bin/
     if $UseJSONJQ ; then
-        export get_platform_release=`python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
     else
-        export get_platform_release=`python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
     fi
-
+    
     export platform_release=${get_platform_release//\"/}
     export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
     export platform_release_version=${get_platform_release_version//\"/}
-
+    
     export gaiaversion=$platform_release_version
-
+    
     echo 'Gaia Version : $gaiaversion = '$gaiaversion >> $gaiaversionoutputfile
     echo >> $gaiaversionoutputfile
     
@@ -309,48 +365,50 @@ GetGaiaVersionAndInstallationType () {
     # -------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------
     
-    echo | tee -a -i $gaiaversionoutputfile
-
-    if [ $ShowGaiaVersionResults ] ; then
-        # show the results of this operation on the screen, not just the log file
-        cat $gaiaversionoutputfile | tee -a -i $gaiaversionoutputfile
-        echo | tee -a -i $gaiaversionoutputfile
-    else
-        # only log the results of this operation
-        cat $gaiaversionoutputfile >> $logfilepath
-        echo >> $logfilepath
-    fi
-
-    # now remove the working file
-    if [ ! $KeepGaiaVersionResultsFile ] ; then
-        # not keeping version results file
-        rm $gaiaversionoutputfile
-    else
-        # not deleting the file
-        echo
-    fi
-
     return 0
 }
 
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-22
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 
 
-
-#----------------------------------------------------------------------------------------
-# Gaia version and installation type identification
-#----------------------------------------------------------------------------------------
-
-if [ $UseGaiaVersionAndInstallation ]; then
-    GetGaiaVersionAndInstallationType "$@"
-fi
+# =================================================================================================
+# END:  Local Proceedures
+# =================================================================================================
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+echo >> $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' >> $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' >> $APICLIlogfilepath
+echo ' Identify Gaia Version and Installation Type Details ' >> $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' >> $APICLIlogfilepath
+echo >> $APICLIlogfilepath
+
+IdentifyGaiaVersionAndInstallationType "$@"
+
+cat $gaiaversionoutputfile | tee -a -i $APICLIlogfilepath
+
+echo >> $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' >> $APICLIlogfilepath
+echo '-------------------------------------------------------------------------------------------------' >> $APICLIlogfilepath
+echo >> $APICLIlogfilepath
+
+rm $gaiaversionoutputfile
+
+# -------------------------------------------------------------------------------------------------
+# End :  Determine version of server and type  
+# -------------------------------------------------------------------------------------------------
+
+# =================================================================================================
+# END:  Determine version of server and type
+# =================================================================================================
+# =================================================================================================
+
+
+# =================================================================================================
+# END:  
+# =================================================================================================
+# =================================================================================================
 
 

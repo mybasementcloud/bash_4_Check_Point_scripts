@@ -2,41 +2,39 @@
 #
 # SCRIPT Template for CLI Operations for command line parameters handling
 #
-# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
-#
-SubScriptTemplateLevel=005
-SubScriptVersion=02.00.00
-SubScriptRevision=001
-SubScriptDate=2018-11-20
+TemplateVersion=00.32.00
+CommonScriptsVersion=00.32.00
+ScriptVersion=00.32.00
+ScriptRevision=000
+ScriptDate=2018-11-20
+
 #
 
-BASHSubScriptVersion=v02x00x00
-SubScriptName=cmd_line_parameters_handler.sub-script.$ScriptTemplateLevel.v$ScriptVersion
-SubScriptShortName="cliparms.$ScriptTemplateLevel"
-SubScriptDescription="Command line parameters handler"
-
+export APIActionsScriptVersion=v00x32x00
+export APIActionScriptTemplateVersion=v00x32x00
+ActionScriptName=cmd_line_parameters_handler.action.common.005.v$ScriptVersion
 
 # =================================================================================================
-# Validate Sub-Script template version is correct for caller
+# Validate Actions Script version is correct for caller
 # =================================================================================================
 
 
-if [ x"$BASHScriptTemplateLevel" = x"$SubScriptTemplateLevel" ] ; then
+if [ x"$APICommonScriptsVersion" = x"$APIActionsScriptVersion" ] ; then
     # Script and Actions Script versions match, go ahead
-    echo >> $logfilepath
-    echo 'Verify Actions Scripts Version - OK' >> $logfilepath
-    echo >> $logfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Verify Actions Scripts Version - OK' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
 else
     # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $logfilepath
-    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Calling Script template version : '$BASHScriptTemplateLevel | tee -a -i $logfilepath
-    echo 'Actions Script template version : '$SubScriptVersion | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $APICLIlogfilepath
+    echo 'Calling Script version : '$APICommonScriptsVersion | tee -a -i $APICLIlogfilepath
+    echo 'Actions Script version : '$APIActionsScriptVersion | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Log output in file $APICLIlogfilepath" | tee -a -i $APICLIlogfilepath
+    echo | tee -a -i $APICLIlogfilepath
 
     exit 250
 fi
@@ -48,78 +46,77 @@ fi
 # =================================================================================================
 
 
-echo >> $logfilepath
-echo 'SubscriptName:  '$SubScriptName'  Template Version: '$SubScriptTemplateLevel'  Script Version: '$SubScriptVersion' Revision:  '$SubScriptRevision >> $logfilepath
-echo >> $logfilepath
+echo | tee -a -i $APICLIlogfilepath
+echo 'ActionScriptName:  '$ActionScriptName'  Script Version: '$APIActionsScriptVersion'  Revision:  '$ScriptRevision | tee -a -i $APICLIlogfilepath
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
 # -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
-# CheckScriptVerboseOutput - Check if verbose output is configured externally
+# CheckAPIScriptVerboseOutput - Check if verbose output is configured externally
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-05-02 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 #
-# CheckScriptVerboseOutput - Check if verbose output is configured externally via shell level 
+# CheckAPIScriptVerboseOutput - Check if verbose output is configured externally via shell level 
 # parameter setting, if it is, the check it for correct and valid values; otherwise, if set, then
 # reset to false because wrong.
 #
 
-CheckScriptVerboseOutput () {
+CheckAPIScriptVerboseOutput () {
 
-    if [ -z $SCRIPTVERBOSE ] ; then
+    if [ -z $APISCRIPTVERBOSE ] ; then
         # Verbose mode not set from shell level
-        echo "!! Verbose mode not set from shell level" >> $logfilepath
-        export SCRIPTVERBOSE=false
-        echo >> $logfilepath
-    elif [ x"`echo "$SCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+        echo "!! Verbose mode not set from shell level" | tee -a -i $APICLIlogfilepath
+        export APISCRIPTVERBOSE=false
+        echo | tee -a -i $APICLIlogfilepath
+    elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
         # Verbose mode set OFF from shell level
-        echo "!! Verbose mode set OFF from shell level" >> $logfilepath
-        export SCRIPTVERBOSE=false
-        echo >> $logfilepath
-    elif [ x"`echo "$SCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+        echo "!! Verbose mode set OFF from shell level" | tee -a -i $APICLIlogfilepath
+        export APISCRIPTVERBOSE=false
+        echo | tee -a -i $APICLIlogfilepath
+    elif [ x"`echo "$APISCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
         # Verbose mode set ON from shell level
-        echo "!! Verbose mode set ON from shell level" >> $logfilepath
-        export SCRIPTVERBOSE=true
-        echo >> $logfilepath
-        echo 'Script :  '$0 >> $logfilepath
-        echo 'Verbose mode enabled' >> $logfilepath
-        echo >> $logfilepath
+        echo "!! Verbose mode set ON from shell level" | tee -a -i $APICLIlogfilepath
+        export APISCRIPTVERBOSE=true
+        echo | tee -a -i $APICLIlogfilepath
+        echo 'Script :  '$0 | tee -a -i $APICLIlogfilepath
+        echo 'Verbose mode enabled' | tee -a -i $APICLIlogfilepath
+        echo | tee -a -i $APICLIlogfilepath
     else
         # Verbose mode set to wrong value from shell level
-        echo "!! Verbose mode set to wrong value from shell level >"$SCRIPTVERBOSE"<" >> $logfilepath
-        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" >> $logfilepath
-        export SCRIPTVERBOSE=false
-        echo >> $logfilepath
+        echo "!! Verbose mode set to wrong value from shell level >"$APISCRIPTVERBOSE"<" | tee -a -i $APICLIlogfilepath
+        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" | tee -a -i $APICLIlogfilepath
+        export APISCRIPTVERBOSE=false
+        echo | tee -a -i $APICLIlogfilepath
     fi
     
-    export SCRIPTVERBOSECHECK=true
+    export APISCRIPTVERBOSECHECK=true
 
-    echo >> $logfilepath
+    echo | tee -a -i $APICLIlogfilepath
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-05-02
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 # Command Line Parameter Handling Action Script should only do this if we didn't do it in the calling script
 
-if [ x"$SCRIPTVERBOSECHECK" = x"true" ] ; then
-    # Already checked status of $SCRIPTVERBOSE
-    echo "Status of verbose output at start of command line handler: $SCRIPTVERBOSE"
+if [ x"$APISCRIPTVERBOSECHECK" = x"true" ] ; then
+    # Already checked status of $APISCRIPTVERBOSE
+    echo "Status of verbose output at start of command line handler: $APISCRIPTVERBOSE"
 else
-    # Need to check status of $SCRIPTVERBOSE
+    # Need to check status of $APISCRIPTVERBOSE
 
-    CheckScriptVerboseOutput
+    CheckAPIScriptVerboseOutput
 
-    echo "Status of verbose output at start of command line handler: $SCRIPTVERBOSE" >> $logfilepath
+    echo "Status of verbose output at start of command line handler: $APISCRIPTVERBOSE" | tee -a -i $APICLIlogfilepath
 fi
 
 
@@ -128,12 +125,12 @@ fi
 # START:  Command Line Parameter Handling and Help
 # =================================================================================================
 
-# MODIFIED 2018-09-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
 #
-# Standard Scripts and R8X API Scripts Command Line Parameters
+# Standard R8X API Scripts Command Line Parameters
 #
 # -? | --help
 # -v | --verbose
@@ -148,11 +145,24 @@ fi
 #
 # -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
 #
+# -x <export_path> | --export <export_path> | -x=<export_path> | --export=<export_path> 
+# -i <import_path> | --import-path <import_path> | -i=<import_path> | --import-path=<import_path>'
+# -k <delete_path> | --delete-path <delete_path> | -k=<delete_path> | --delete-path=<delete_path>'
+#
+# -c <csv_path> | --csv <csv_path> | -c=<csv_path> | --csv=<csv_path>'
+#
+# --NSO | --no-system-objects
+# --SO | --system-objects
+#
 # --NOWAIT
+#
+# --CLEANUPWIP
+# --NODOMAINFOLDERS
+# --CSVEXPORTADDIGNOREERR
 #
 
 export SHOWHELP=false
-# MODIFIED 2018-09-29 -
+# MODIFIED 2018-09-21 -
 #export CLIparm_websslport=443
 export CLIparm_websslport=
 export CLIparm_rootuser=false
@@ -164,8 +174,20 @@ export CLIparm_sessionidfile=
 export CLIparm_logpath=
 
 export CLIparm_outputpath=
+export CLIparm_exportpath=
+export CLIparm_importpath=
+export CLIparm_deletepath=
+
+export CLIparm_csvpath=
+
+# MODIFIED 2018-06-24 -
+#export CLIparm_NoSystemObjects=true
+export CLIparm_NoSystemObjects=false
 
 export CLIparm_NOWAIT=
+export CLIparm_CLEANUPWIP=
+export CLIparm_NODOMAINFOLDERS=
+export CLIparm_CSVEXPORTADDIGNOREERR=
 
 # --NOWAIT
 #
@@ -183,22 +205,70 @@ else
     export CLIparm_NOWAIT=false
 fi
 
+# --CLEANUPWIP
+#
+if [ -z "$CLEANUPWIP" ]; then
+    # CLEANUPWIP mode not set from shell level
+    export CLIparm_CLEANUPWIP=false
+elif [ x"`echo "$CLEANUPWIP" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CLEANUPWIP mode set OFF from shell level
+    export CLIparm_CLEANUPWIP=false
+elif [ x"`echo "$CLEANUPWIP" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CLEANUPWIP mode set ON from shell level
+    export CLIparm_CLEANUPWIP=true
+else
+    # CLEANUPWIP mode set to wrong value from shell level
+    export CLIparm_CLEANUPWIP=false
+fi
+
+# --NODOMAINFOLDERS
+#
+if [ -z "$NODOMAINFOLDERS" ]; then
+    # NODOMAINFOLDERS mode not set from shell level
+    export CLIparm_NODOMAINFOLDERS=false
+elif [ x"`echo "$NODOMAINFOLDERS" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # NODOMAINFOLDERS mode set OFF from shell level
+    export CLIparm_NODOMAINFOLDERS=false
+elif [ x"`echo "$NODOMAINFOLDERS" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NODOMAINFOLDERS mode set ON from shell level
+    export CLIparm_NODOMAINFOLDERS=true
+else
+    # NODOMAINFOLDERS mode set to wrong value from shell level
+    export CLIparm_NODOMAINFOLDERS=false
+fi
+
+# --CSVEXPORTADDIGNOREERR
+#
+if [ -z "$CSVEXPORTADDIGNOREERR" ]; then
+    # CSVEXPORTADDIGNOREERR mode not set from shell level
+    export CLIparm_CSVEXPORTADDIGNOREERR=false
+elif [ x"`echo "$CSVEXPORTADDIGNOREERR" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # CSVEXPORTADDIGNOREERR mode set OFF from shell level
+    export CLIparm_CSVEXPORTADDIGNOREERR=false
+elif [ x"`echo "$CSVEXPORTADDIGNOREERR" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # CSVEXPORTADDIGNOREERR mode set ON from shell level
+    export CLIparm_CSVEXPORTADDIGNOREERR=true
+else
+    # CLEANUPWIP mode set to wrong value from shell level
+    export CLIparm_CSVEXPORTADDIGNOREERR=false
+fi
+
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # -------------------------------------------------------------------------------------------------
 # dumpcliparmparseresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-05-03-3 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparseresults () {
 
 	#
-	# Testing - Dump acquired values
+	# Testing - Dump aquired values
 	#
     #
     # Screen width template for sizing, default width of 80 characters assumed
@@ -209,7 +279,7 @@ dumpcliparmparseresults () {
     export outstring=$outstring"Parameters : \n"
 
     if $UseR8XAPI ; then
-        
+    
         export outstring=$outstring"CLIparm_rootuser        ='$CLIparm_rootuser' \n"
         export outstring=$outstring"CLIparm_user            ='$CLIparm_user' \n"
         export outstring=$outstring"CLIparm_password        ='$CLIparm_password' \n"
@@ -218,40 +288,67 @@ dumpcliparmparseresults () {
         export outstring=$outstring"CLIparm_mgmt            ='$CLIparm_mgmt' \n"
         export outstring=$outstring"CLIparm_domain          ='$CLIparm_domain' \n"
         export outstring=$outstring"CLIparm_sessionidfile   ='$CLIparm_sessionidfile' \n"
-        
+
     fi
 
     export outstring=$outstring"CLIparm_logpath         ='$CLIparm_logpath' \n"
     export outstring=$outstring"CLIparm_outputpath      ='$CLIparm_outputpath' \n"
     
+    if [ x"$script_use_export" = x"true" ] ; then
+        export outstring=$outstring"CLIparm_exportpath      ='$CLIparm_exportpath' \n"
+    fi
+    if [ x"$script_use_import" = x"true" ] ; then
+        export outstring=$outstring"CLIparm_importpath      ='$CLIparm_importpath' \n"
+    fi
+    if [ x"$script_use_delete" = x"true" ] ; then
+        export outstring=$outstring"CLIparm_deletepath      ='$CLIparm_deletepath' \n"
+    fi
+    if [ x"$script_use_csvfile" = x"true" ] ; then
+        export outstring=$outstring"CLIparm_csvpath         ='$CLIparm_csvpath' \n"
+    fi
+    
+    if $UseR8XAPI ; then
+        export outstring=$outstring"CLIparm_NoSystemObjects ='$CLIparm_NoSystemObjects' \n"
+    fi
+	
     export outstring=$outstring"SHOWHELP                ='$SHOWHELP' \n"
     export outstring=$outstring" \n"
-    export outstring=$outstring"SCRIPTVERBOSE           ='$SCRIPTVERBOSE' \n"
+    export outstring=$outstring"APISCRIPTVERBOSE        ='$APISCRIPTVERBOSE' \n"
     export outstring=$outstring"NOWAIT                  ='$NOWAIT' \n"
+    export outstring=$outstring"CLEANUPWIP              ='$CLEANUPWIP' \n"
+    export outstring=$outstring"NODOMAINFOLDERS         ='$NODOMAINFOLDERS' \n"
+    export outstring=$outstring"CSVEXPORTADDIGNOREERR   ='$CSVEXPORTADDIGNOREERR' \n"
     export outstring=$outstring" \n"
     export outstring=$outstring"CLIparm_NOWAIT          ='$CLIparm_NOWAIT' \n"
+
+    if $UseR8XAPI ; then
+        export outstring=$outstring"CLIparm_CLEANUPWIP      ='$CLIparm_CLEANUPWIP' \n"
+        export outstring=$outstring"CLIparm_NODOMAINFOLDERS ='$CLIparm_NODOMAINFOLDERS' \n"
+        export outstring=$outstring"C_CSVEXPORTADDIGNOREERR ='$CLIparm_CSVEXPORTADDIGNOREERR' \n"
+    fi
+
     export outstring=$outstring" \n"
     export outstring=$outstring"remains                 ='$REMAINS' \n"
     
-	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+	if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
 	    
-	    echo | tee -a -i $logfilepath
-	    echo -e $outstring | tee -a -i $logfilepath
-	    echo | tee -a -i $logfilepath
-	    for i ; do echo - $i | tee -a -i $logfilepath ; done
-	    echo CLI parms - number "$#" parms "$@" | tee -a -i $logfilepath
-	    echo | tee -a -i $logfilepath
+	    echo | tee -a -i $APICLIlogfilepath
+	    echo -e $outstring | tee -a -i $APICLIlogfilepath
+	    echo | tee -a -i $APICLIlogfilepath
+	    for i ; do echo - $i | tee -a -i $APICLIlogfilepath ; done
+	    echo CLI parms - number "$#" parms "$@" | tee -a -i $APICLIlogfilepath
+	    echo | tee -a -i $APICLIlogfilepath
         
     else
-	    # Verbose mode OFF
+	    # Verbose mode ON
 	    
-	    echo >> $logfilepath
-	    echo -e $outstring >> $logfilepath
-	    echo >> $logfilepath
-	    for i ; do echo - $i >> $logfilepath ; done
-	    echo CLI parms - number "$#" parms "$@" >> $logfilepath
-	    echo >> $logfilepath
+	    echo >> $APICLIlogfilepath
+	    echo -e $outstring >> $APICLIlogfilepath
+	    echo >> $APICLIlogfilepath
+	    for i ; do echo - $i >> $APICLIlogfilepath ; done
+	    echo CLI parms - number "$#" parms "$@" >> $APICLIlogfilepath
+	    echo >> $APICLIlogfilepath
         
 	fi
 
@@ -259,48 +356,30 @@ dumpcliparmparseresults () {
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-05-03-3
 
 
 # -------------------------------------------------------------------------------------------------
 # dumprawcliparms
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumprawcliparms () {
     #
-	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
-	    # Verbose mode ON
-	    
-        echo | tee -a -i $logfilepath
-        echo "Command line parameters before : " | tee -a -i $logfilepath
-        echo "Number parms $#" | tee -a -i $logfilepath
-        echo "parms raw : \> $@ \<" | tee -a -i $logfilepath
-        for k ; do
-            echo "$k $'\t' ${k}" | tee -a -i $logfilepath
-        done
-        echo | tee -a -i $logfilepath
-        
-    else
-	    # Verbose mode OFF
-	    
-        echo >> $logfilepath
-        echo "Command line parameters before : " >> $logfilepath
-        echo "Number parms $#" >> $logfilepath
-        echo "parms raw : \> $@ \<" >> $logfilepath
-        for k ; do
-            echo "$k $'\t' ${k}" >> $logfilepath
-        done
-        echo >> $logfilepath
-        
-	fi
-
+    echo | tee -a -i $APICLIlogfilepath
+    echo "Command line parameters before : " | tee -a -i $APICLIlogfilepath
+    echo "Number parms $#" | tee -a -i $APICLIlogfilepath
+    echo "parms raw : \> $@ \<" | tee -a -i $APICLIlogfilepath
+    for k ; do
+        echo "$k $'\t' ${k}" | tee -a -i $APICLIlogfilepath
+    done
+    echo | tee -a -i $APICLIlogfilepath
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 
 # =================================================================================================
@@ -324,28 +403,38 @@ doshowhelp () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
-    echo -n $0' [-?][-v]|'
+    echo -n $0' [-?][-v]'
     if $UseR8XAPI ; then
-        echo -n '[-r]|[-u <admin_name>]|[-p <password>]]|[-P <web ssl port>]'
-        echo -n '|[-m <server_IP>]'
-        echo -n '|[-d <domain>]'
+        echo -n '|[-r]|[-u <admin_name>]|[-p <password>]]|[-P <web ssl port>]'
+        echo -n '|[-m <server_IP>]|[-d <domain>]'
         echo -n '|[-s <session_file_filepath>]'
+        echo -n '|[--SO|--NSO]'
     fi
     echo -n '|[-l <log_path>]'
     echo -n '|[-o <output_path>]'
+    if [ x"$script_use_export" = x"true" ] ; then
+        echo -n '|[-x <export_path>]'
+    fi
+    if [ x"$script_use_import" = x"true" ] ; then
+        echo -n '|[-i <import_path>]'
+    fi
+    if [ x"$script_use_delete" = x"true" ] ; then
+        echo -n '|[-k <delete_path>]'
+    fi
+    if [ x"$script_use_csvfile" = x"true" ] ; then
+        echo -n '|[-c <csv_path>]'
+    fi
     echo
 
     echo
-    echo ' Script Version:  '$BASHScriptVersion'  Date:  '$ScriptDate
+    echo ' Script Version:  '$ScriptVersion'  Date:  '$ScriptDate
     echo
     echo ' Standard Command Line Parameters: '
     echo
     echo '  Show Help                  -? | --help'
     echo '  Verbose mode               -v | --verbose'
     echo
-
     if $UseR8XAPI ; then
-    
         echo '  Authenticate as root       -r | --root'
         echo '  Set Console User Name      -u <admin_name> | --user <admin_name> |'
         echo '                             -u=<admin_name> | --user=<admin_name>'
@@ -363,28 +452,61 @@ doshowhelp () {
         echo '                             -s=<session_file_filepath> |'
         echo '                             --session-file=<session_file_filepath>'
         echo
-
     fi
-
     echo '  Set log file path          -l <log_path> | --log-path <log_path> |'
     echo '                             -l=<log_path> | --log-path=<log_path>'
     echo '  Set output file path       -o <output_path> | --output <output_path> |'
     echo '                             -o=<output_path> | --output=<output_path>'
     echo
-    echo '  No waiting in verbose mode --NOWAIT'
-    echo
-
+    if [ x"$script_use_export" = x"true" ] ; then
+        echo '  Set export file path       -x <export_path> | --export <export_path> |'
+        echo '                             -x=<export_path> | --export=<export_path>'
+    fi
+    if [ x"$script_use_import" = x"true" ] ; then
+        echo '  Set import file path       -i <import_path> | --import-path <import_path> |'
+        echo '                             -i=<import_path> | --import-path=<import_path>'
+    fi
+    if [ x"$script_use_delete" = x"true" ] ; then
+        echo '  Set delete file path       -k <delete_path> | --delete-path <delete_path> |'
+        echo '                             -k=<delete_path> | --delete-path=<delete_path>'
+    fi
+    if [ x"$script_use_csvfile" = x"true" ] ; then
+        echo '  Set csv file path          -c <csv_path> | --csv <csv_path |'
+        echo '                             -c=<csv_path> | --csv=<csv_path>'
+    fi
     if $UseR8XAPI ; then
+        echo
+        echo '  NO System Objects Export   --NSO | --no-system-objects  {default mode}'
+        echo '  Export System Objects      --SO | --system-objects'
+    fi
+    echo
+    echo '  No waiting in verbose mode --NOWAIT'
+    if $UseR8XAPI ; then
+        echo '  Remove WIP folders after   --CLEANUPWIP'
+        echo '  No domain name in folders  --NODOMAINFOLDERS'
+        echo '  CSV export add err handler --CSVEXPORTADDIGNOREERR'
+        echo
         echo '  session_file_filepath = fully qualified file path for session file'
     fi
-
     echo '  log_path = fully qualified folder path for log files'
     echo '  output_path = fully qualified folder path for output files'
-    
-    if $UseR8XAPI ; then
 
-        #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-        #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    if [ x"$script_use_export" = x"true" ] ; then
+        echo '  export_path = fully qualified folder path for export file'
+    fi
+    if [ x"$script_use_import" = x"true" ] ; then
+        echo '  import_path = fully qualified folder path for import files'
+    fi
+    if [ x"$script_use_delete" = x"true" ] ; then
+        echo '  delete_path = fully qualified folder path for delete files'
+    fi
+    if [ x"$script_use_csvfile" = x"true" ] ; then
+        echo '  csv_path = fully qualified file path for csv file'
+    fi
+
+    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
+    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+    if $UseR8XAPI ; then
         echo
         echo ' NOTE:  Only use Management Server IP (-m) parameter if operating from a '
         echo '        different host than the management host itself.'
@@ -396,23 +518,67 @@ doshowhelp () {
         echo '        Use the "System Data" domain for system domain objects.'
         echo '          Quotes REQUIRED!'
         echo
-    
-        echo ' Example: General :'
-        echo
+        echo ' NOTE:  System Objects are NOT exported in CSV or Full JSON dump mode!'
+        echo '        Control of System Objects with --SO and --NSO only works with CSV or'
+        echo '        Full JSON dump.  Standard JSON dump does not support selection of the'
+        echo '        System Objects during operation, so all System Objects are collected'
+    fi
+    echo
+
+    echo ' Example: General :'
+    echo
+    if $UseR8XAPI ; then
         echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump"'
         echo
-        echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -d Global -s "/var/tmp/id.txt"'
-        echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -d "System Data" -s "/var/tmp/id.txt"'
+        echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -d Global --SO -s "/var/tmp/id.txt"'
+        echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -d "System Data" --NSO -s "/var/tmp/id.txt"'
         echo
     
+    
+        if [ x"$script_use_export" = x"true" ] ; then
+            echo ' Example: Export:'
+            echo
+            echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export"'
+            echo
+        fi
+    
+        if [ x"$script_use_import" = x"true" ] ; then
+            echo ' Example: Import:'
+            echo
+            echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -i "/var/tmp/import"'
+            echo
+        fi
+        
+        if [ x"$script_use_delete" = x"true" ] ; then
+            echo ' Example: Delete:'
+            echo
+            echo ' ]# '$ScriptName' -u fooAdmin -p voodoo -P 4434 -m 192.168.1.1 -d fooville -s "/var/tmp/id.txt" -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
+            echo
+        fi
     else
-
-        #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-        #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+        echo ' ]# '$ScriptName' -l "/var/tmp/script_dump"'
         echo
-
-        echo ' ]# '$ScriptName' -v -o "/var/tmp/script_ouput" -l "/var/tmp/script_logs"'
-
+    
+        if [ x"$script_use_export" = x"true" ] ; then
+            echo ' Example: Export:'
+            echo
+            echo ' ]# '$ScriptName' -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export"'
+            echo
+        fi
+    
+        if [ x"$script_use_import" = x"true" ] ; then
+            echo ' Example: Import:'
+            echo
+            echo ' ]# '$ScriptName' -l "/var/tmp/script_dump" -i "/var/tmp/import"'
+            echo
+        fi
+        
+        if [ x"$script_use_delete" = x"true" ] ; then
+            echo ' Example: Delete:'
+            echo
+            echo ' ]# '$ScriptName' -l "/var/tmp/script_dump" -x "/var/tmp/script_dump/export" -k "/var/tmp/delete"'
+            echo
+        fi
     fi
     
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
@@ -437,10 +603,10 @@ doshowhelp () {
 # Process command line parameters and set appropriate values
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-21 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
-if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+if [ x"$APISCRIPTVERBOSE" = x"true" ] ; then
     # Verbose mode ON
     dumprawcliparms "$@"
 fi
@@ -473,7 +639,7 @@ while [ -n "$1" ]; do
                 SHOWHELP=true
                 ;;
             '-v' | --verbose )
-                export SCRIPTVERBOSE=true
+                export APISCRIPTVERBOSE=true
                 ;;
             --NOWAIT )
                 CLIparm_NOWAIT=true
@@ -486,6 +652,21 @@ while [ -n "$1" ]; do
 #           -f | --force )
 #               FORCE=true
 #               ;;
+            --SO | --system-objects )
+                CLIparm_NoSystemObjects=false
+                ;;
+            --NSO | --no-system-objects )
+                CLIparm_NoSystemObjects=true
+                ;;
+            --CLEANUPWIP )
+                CLIparm_CLEANUPWIP=true
+                ;;
+            --NODOMAINFOLDERS )
+                CLIparm_NODOMAINFOLDERS=true
+                ;;
+            --CSVEXPORTADDIGNOREERR )
+                CLIparm_CSVEXPORTADDIGNOREERR=true
+                ;;
             # Handle --flag=value opts like this
             -u=* | --user=* )
                 CLIparm_user="${OPT#*=}"
@@ -516,8 +697,24 @@ while [ -n "$1" ]; do
                 CLIparm_logpath="${OPT#*=}"
                 #shift
                 ;;
+            -x=* | --export=* )
+                CLIparm_exportpath="${OPT#*=}"
+                #shift
+                ;;
             -o=* | --output=* )
                 CLIparm_outputpath="${OPT#*=}"
+                #shift
+                ;;
+            -i=* | --import-path=* )
+                CLIparm_importpath="${OPT#*=}"
+                #shift
+                ;;
+            -k=* | --delete-path=* )
+                CLIparm_deletepath="${OPT#*=}"
+                #shift
+                ;;
+            -c=* | --csv=* )
+                CLIparm_csvpath="${OPT#*=}"
                 #shift
                 ;;
             # and --flag value opts like this
@@ -554,6 +751,22 @@ while [ -n "$1" ]; do
                 CLIparm_outputpath="$2"
                 shift
                 ;;
+            -x* | --export )
+                CLIparm_exportpath="$2"
+                shift
+                ;;
+            -i* | --import-path )
+                CLIparm_importpath="$2"
+                shift
+                ;;
+            -k* | --delete-path )
+                CLIparm_deletepath="$2"
+                shift
+                ;;
+            -c* | --csv )
+                CLIparm_csvpath="$2"
+                shift
+                ;;
             # Anything unknown is recorded for later
             * )
                 REMAINS="$REMAINS \"$OPT\""
@@ -581,7 +794,7 @@ eval set -- $REMAINS
 # -------------------------------------------------------------------------------------------------
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-29
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-09-21
 
 # MODIFIED 2018-05-03-2 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
@@ -598,7 +811,19 @@ export CLIparm_logpath=$CLIparm_logpath
 
 export CLIparm_outputpath=$CLIparm_outputpath
 
+export CLIparm_exportpath=$CLIparm_exportpath
+export CLIparm_importpath=$CLIparm_importpath
+export CLIparm_deletepath=$CLIparm_deletepath
+
+export CLIparm_csvpath=$CLIparm_csvpath
+
+export CLIparm_NoSystemObjects=`echo "$CLIparm_NoSystemObjects" | tr '[:upper:]' '[:lower:]'`
+
+# ADDED 2018-05-03-2 -
 export CLIparm_NOWAIT=`echo "$CLIparm_NOWAIT" | tr '[:upper:]' '[:lower:]'`
+export CLIparm_CLEANUPWIP=`echo "$CLIparm_CLEANUPWIP" | tr '[:upper:]' '[:lower:]'`
+export CLIparm_NODOMAINFOLDERS=`echo "$CLIparm_NODOMAINFOLDERS" | tr '[:upper:]' '[:lower:]'`
+export CLIparm_CSVEXPORTADDIGNOREERR=`echo "$CLIparm_CSVEXPORTADDIGNOREERR" | tr '[:upper:]' '[:lower:]'`
 
 export REMAINS=$REMAINS
 
@@ -620,21 +845,7 @@ dumpcliparmparseresults "$@"
 if [ x"$SHOWHELP" = x"true" ] ; then
     # Show Help
     doshowhelp "$@"
-
-    # Show Local Help
-    if [ -r $BASHScriptHelpFile ]; then
-        #we have a script specific help file!
-        cat $BASHScriptHelpFile
-        echo
-    fi
-
-    echo
-
-    # don't want a log file for showing help
-    rm $logfilepath
-
-    # this is done now, so exit hard
-    exit 255 
+    return 255 
 fi
 
 #

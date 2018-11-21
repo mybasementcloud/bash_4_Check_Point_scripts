@@ -5,11 +5,11 @@
 # (C) 2017-2018 Eric James Beasley
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.00.00
-ScriptDate=2018-10-04
+ScriptVersion=02.01.00
+ScriptDate=2018-11-21
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x01x00
 
 # =============================================================================
 # =============================================================================
@@ -24,6 +24,7 @@ touch --reference=__root_script_config.sh _template/Code_Snipets/*.sh
 touch --reference=__root_script_config.sh Common/*.sh
 touch --reference=__root_script_config.sh Config/*.sh
 touch --reference=__root_script_config.sh GW/*.sh
+touch --reference=__root_script_config.sh Health_Check/check_status_checkpoint_services.*.sh
 touch --reference=__root_script_config.sh Health_Check/run_healthcheck_to_dump_dtg.*.sh
 touch --reference=__root_script_config.sh MDM/*.sh
 touch --reference=__root_script_config.sh Patch_HotFix/*.sh

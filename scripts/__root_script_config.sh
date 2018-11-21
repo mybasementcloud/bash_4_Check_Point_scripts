@@ -6,7 +6,7 @@
 #
 RootScriptTemplateLevel=005
 RootScriptVersion=02.00.00
-RootScriptDate=2018-10-04
+RootScriptDate=2018-11-20
 #
 
 RootScriptVersion=v02x00x00
@@ -28,8 +28,16 @@ export DATEYMD=`date +%Y-%m-%d`
 # points to where jq is installed
 if [ -r ${CPDIR}/jq/jq ] ; then
     export JQ=${CPDIR}/jq/jq
-elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
-    export JQ=/opt/CPshrd-R80/jq/jq
+elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
+    export JQ=${CPDIR_PATH}/jq/jq
+elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
+    export JQ=${MDS_CPDIR}/jq/jq
+#elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
+#    export JQ=/opt/CPshrd-R80/jq/jq
+#elif [ -r /opt/CPshrd-R80.10/jq/jq ] ; then
+#    export JQ=/opt/CPshrd-R80.10/jq/jq
+#elif [ -r /opt/CPshrd-R80.20/jq/jq ] ; then
+#    export JQ=/opt/CPshrd-R80.20/jq/jq
 else
     export JQ=
 fi

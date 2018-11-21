@@ -6,7 +6,8 @@
 #
 SubScriptTemplateLevel=005
 SubScriptVersion=02.00.00
-SubScriptDate=2018-10-04
+SubScriptRevision=001
+SubScriptDate=2018-11-20
 #
 
 BASHSubScriptVersion=v02x00x00
@@ -48,7 +49,7 @@ fi
 
 
 echo >> $logfilepath
-echo 'SubscriptName:  '$SubScriptName'  Template Version: '$SubScriptTemplateLevel'  Script Version: '$SubScriptVersion >> $logfilepath
+echo 'SubscriptName:  '$SubScriptName'  Template Version: '$SubScriptTemplateLevel'  Script Version: '$SubScriptVersion' Revision:  '$SubScriptRevision >> $logfilepath
 echo >> $logfilepath
 
 # -------------------------------------------------------------------------------------------------
@@ -77,7 +78,7 @@ localrootscriptconfiguration () {
     export customerpathroot=/var/log/__customer
     export customerworkpathroot=$customerpathroot/upgrade_export
     export outputpathroot=$customerworkpathroot
-    export dumppathroot=$outputpathroot/dump
+    export dumppathroot=$customerworkpathroot/dump
     export changelogpathroot=$customerworkpathroot/Change_Log
     
     echo
@@ -165,10 +166,13 @@ HandleLaunchInHomeFolder () {
     if [ $isitthispath -eq 1 ] ; then
         #Oh, Oh, we're in the home directory executing, not good!!!
         #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
+        echo 'In home directory folder : '$startpathroot >> $logfilepath
         export outputpathroot=$alternatepathroot
     else
         #OK use the current folder and create working sub-folder
-        export outputpathroot=$startpathroot
+        echo 'NOT in home directory folder : '$startpathroot >> $logfilepath
+        # let's not change the configuration provided
+        #export outputpathroot=$startpathroot
     fi
     
     if [ ! -r $outputpathroot ] ; then

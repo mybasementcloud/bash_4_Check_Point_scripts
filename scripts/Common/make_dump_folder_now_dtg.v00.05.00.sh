@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT for BASH to generate a dump folder based on the current time and date
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.02.01
+ScriptVersion=00.05.00
 ScriptDate=2018-11-20
 #
 
-export BASHScriptVersion=v00x02x01
+export BASHScriptVersion=v00x05x00
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 # points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
+export JQ=${CPDIR}/jq/jq
     
 # -------------------------------------------------------------------------------------------------
 # END:  Basic Configuration
@@ -68,8 +68,7 @@ localrootscriptconfiguration () {
     
     export customerpathroot=/var/log/__customer
     export customerworkpathroot=$customerpathroot/upgrade_export
-    export outputpathroot=$customerworkpathroot
-    export dumppathroot=$customerworkpathroot/dump
+    export outputpathroot=$customerworkpathroot/dump
     export changelogpathroot=$customerworkpathroot/Change_Log
     
     echo
@@ -113,21 +112,22 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-export outputpathbase=$changelogpathroot/$DATEDTGS
+export outputpathbase=$dumppathroot/$DATEDTGS
 
-if [ ! -r $changelogpathroot ]; then
-    mkdir $changelogpathroot
+if [ ! -r $outputpathroot ] ; then
+    mkdir $outputpathroot
 fi
-if [ ! -r $outputpathbase ]; then
+if [ ! -r $dumppathroot ] ; then
+    mkdir $dumppathroot
+fi
+if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
 fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
 
 echo 'Created folder :  '$outputpathbase
 echo
 ls -al $outputpathbase
 echo
 
+echo 'Done...'
+echo
