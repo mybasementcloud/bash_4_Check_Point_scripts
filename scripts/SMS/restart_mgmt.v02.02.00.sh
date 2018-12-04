@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT add content of alias_commands.add.all.sh to .bashrc file
+# SCRIPT for BASH to execute restart of cp processes
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="add_alias_commands.all.v$ScriptVersion"
-export BASHScriptShortName="add_alias_commands"
-export BASHScriptDescription="Add content of alias_commands.add.all.sh to .bashrc files"
+export BASHScriptName=restart_mgmt.v$ScriptVersion
+export BASHScriptShortName=Restart_CP_Processes
+export BASHScriptDescription="Restart Check Point processes"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -43,8 +43,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -66,7 +66,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=false
+export ShowGaiaVersionResults=true
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -886,119 +886,110 @@ esac
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
 
-export targetversion=$gaiaversion
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with Migrate Export..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
+    exit 255
+else
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
+fi
+
+
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
+
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfileprefix=restart_mgmt_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
-if [ ! -r $outputfilepath ] ; then
-    mkdir $outputfilepath | tee -a -i $logfilepath
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
-else
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
+
+if [ ! -r $outputfilepath ] 
+then
+    mkdir $outputfilepath
 fi
 
-
-#----------------------------------------------------------------------------------------
-# Execute modification of the .bashrc file for the user in $HOME
-#----------------------------------------------------------------------------------------
-
-export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-export alliasAddFile=alias_commands.add.all.sh
-export alliasAddFilefqdn=$scriptspathroot/UserConfig/$alliasAddFile
+touch $outputfilefqdn
 
-export dotbashrcmodfile=alias_commands_for_dot_bashrc.v00.01.00.sh
-export dotbashrcmodfilefqdn=$scriptspathroot/UserConfig/$dotbashrcmodfile
-
-
-if [ ! -r $alliasAddFilefqdn ] ; then
-    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
-    echo 'Exiting!' | tee -a "$outputfilefqdn"
-    exit 255
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
 else
-    echo 'Found '"$alliasAddFilefqdn"' file :  '$alliasAddFilefqdn
-    echo | tee -a "$outputfilefqdn"
-    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
+    echo | tee -a -i $outputfilefqdn
 fi
 
-if [ ! -r $dotbashrcmodfilefqdn ] ; then
-    echo 'Missing '"$dotbashrcmodfilefqdn"' file !!!' | tee -a "$outputfilefqdn"
-    echo 'Exiting!' | tee -a "$outputfilefqdn"
-    exit 255
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+cpstop | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
 else
-    echo 'Found '"$dotbashrcmodfilefqdn"' file :  '$alliasAddFilefqdn
-    echo | tee -a "$outputfilefqdn"
-    cat $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
+    echo | tee -a -i $outputfilefqdn
 fi
 
-echo | tee -a "$outputfilefqdn"
-dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-dos2unix $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
-cp $alliasAddFilefqdn $HOME/ | tee -a "$outputfilefqdn"
-cp $dotbashrcmodfilefqdn $HOME/ | tee -a "$outputfilefqdn"
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo "Adding alias commands from $alliasAddFilefqdn to user's $HOME/.bashrc file" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+echo "Short $WAITTIME second nap..."
+sleep $WAITTIME
 
-echo | tee -a "$outputfilefqdn"
-echo "Original $HOME/.bashrc file" | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-cat $HOME/.bashrc | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+cpstart | tee -a -i $outputfilefqdn
 
-cat $dotbashrcmodfilefqdn >> $HOME/.bashrc | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+echo | tee -a -i $outputfilefqdn
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-echo | tee -a "$outputfilefqdn"
-echo "Updated $HOME/.bashrc file" | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-cat $HOME/.bashrc | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-ls -alh $HOME/ | tee -a "$outputfilefqdn"
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo
+else
+    watch -d -n 1 "cpwd_admin list"
+    echo | tee -a -i $outputfilefqdn
+fi
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
-echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
-echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
 
-. $HOME/$alliasAddFile
-
-echo | tee -a "$outputfilefqdn"
-
-alias | tee -a "$outputfilefqdn"
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-pwd | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
 
 #==================================================================================================

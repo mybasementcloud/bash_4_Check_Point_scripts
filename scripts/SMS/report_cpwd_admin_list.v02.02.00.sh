@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT Reset SmartLog/SmartEvent Indexing back X days
+# SCRIPT for BASH to report on cp management processes
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=Reset_SmartLog_Indexing_Back_X_Days_v$ScriptVersion
-export BASHScriptShortName=Reset_SmartLog_Indexing
-export BASHScriptDescription="Reset SmartLog/SmartEvent Indexing back X days"
+export BASHScriptName="report_cpwd_admin_list.v$ScriptVersion"
+export BASHScriptShortName="Report_Management_Processes"
+export BASHScriptDescription="Report on Check Point management processess"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -886,53 +886,35 @@ esac
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-# Check if operation allowed based on version and installation type
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
 
-
-if ! $IsR8XVersion; then
-    # echo not doing reset indexing
-    echo 'Wrong version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Wrong version for '$BASHScriptName' ! ' >> $logfilepath
-    echo 'Exiting... ' | tee -a -i $outputfilefqdn
-    echo 'Exiting... ' >> $logfilepath
-    exit 255
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with reporting of admin processes..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "Continueing with reporting of admin processes..."
+    echo
 else
-    # echo not doing reset indexing
-    echo 'Supported version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
 fi
 
 
-if $sys_type_STANDALONE; then
-    # Standalone installations can be re-indexed
-    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
-elif $sys_type_GW; then
-    # echo not doing reset indexing, this is gateway
-    echo 'Wrong installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Wrong installation type for '$BASHScriptName' ! ' >> $logfilepath
-    echo 'Exiting... ' | tee -a -i $outputfilefqdn
-    echo 'Exiting... ' >> $logfilepath
-    exit 255
-else
-    # echo doing reset indexing
-    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
-fi
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
-
-export targetversion=$gaiaversion
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
@@ -943,147 +925,47 @@ else
     chmod 775 $outputfilepath
 fi
 
-
-#----------------------------------------------------------------------------------------
-# bash - Backup current settings and and initiate re-indexing for X = $1 days
-#----------------------------------------------------------------------------------------
-
-export outputfile='Reset_SmartLog_SmartEvent_Indexing_'$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
+touch $outputfilefqdn
 
-#----------------------------------------------------------------------------------------
-# Check if CLI parm was passed as a number
-#----------------------------------------------------------------------------------------
-
-export number_of_days_to_index=$1
-export minimum_days_to_index=1
-export maximum_days_to_index=730
-
-echo 'number_of_days_to_index) :  '$number_of_days_to_index | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-if [ -n $number_of_days_to_index ]; then
-    # non-empty value
-    if [ $number_of_days_to_index -ge $minimum_days_to_index ] && [ $number_of_days_to_index -le $maximum_days_to_index ]; then
-        # value between $minimum_days_to_index and $maximum_days_to_index
-        echo 'using number_of_day_to_index value : '$number_of_days_to_index | tee -a -i $outputfilefqdn
-    else
-        # value out of range or not an integer
-        echo 'number_of_day_to_index value : '$number_of_days_to_index' NOT USABLE !' | tee -a -i $outputfilefqdn
-        echo 'number_of_day_to_index value : '$number_of_days_to_index' NOT USABLE !' >> $logfilepath
-        echo 'Exiting ... ' | tee -a -i $outputfilefqdn
-        echo 'Exiting ... ' >> $logfilepath
-        exit 255
-    fi
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
 else
-    # value empty
-    echo 'number_of_day_to_index value EMPTY: >'$number_of_days_to_index'< NOT USABLE !' | tee -a -i $outputfilefqdn
-    echo 'Provide the number of days to index in first command line parameter!' | tee -a -i $outputfilefqdn
-    echo 'Provide the number of days to index in first command line parameter!' >> $logfilepath
-    echo 'Exiting ... ' | tee -a -i $outputfilefqdn
-    echo 'Exiting ... ' >> $logfilepath
-    exit 255
-fi
-echo | tee -a -i $outputfilefqdn
-
-
-#----------------------------------------------------------------------------------------
-# Proceed with operations
-#----------------------------------------------------------------------------------------
-
-
-export command2run="Stop SmartEvent, SmartLog indexing process"
-
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
-echo '] evstop' | tee -a -i "$outputfilefqdn"
-echo '] ps auxw | grep log_indexer' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-evstop | tee -a -i "$outputfilefqdn"
-ps auxw | grep log_indexer | tee -a -i "$outputfilefqdn"
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-
-echo | tee -a -i "$outputfilefqdn"
-
-export command2run="Backup Log Indexer Settings"
-
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-export originalfile=$INDEXERDIR/log_indexer_custom_settings.conf
-export targetfile=$INDEXERDIR/log_indexer_custom_settings.conf.backup.$$DATEDTGS
-
-echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
-echo '] cp '"$originalfile"' '"$targetfile" | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-cp $originalfile $targetfile | tee -a -i "$outputfilefqdn" 
-
-echo | tee -a -i "$outputfilefqdn"
-
-export command2run="Reset Indexing value to $1"
-
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
-echo '] cd '"$INDEXERDIR" | tee -a -i "$outputfilefqdn"
-echo '] ./log_indexer -days_to_index '"$number_of_days_to_index" | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-cd $INDEXERDIR | tee -a -i "$outputfilefqdn"
-pwd $INDEXERDIR | tee -a -i "$outputfilefqdn"
-./log_indexer -days_to_index $number_of_days_to_index | tee -a -i "$outputfilefqdn"
-
-echo | tee -a -i "$outputfilefqdn"
-
-export command2run="Restart SmartEvent, SmartLog indexing process"
-
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo | tee -a -i "$outputfilefqdn"
-
-echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
-
-if $sys_type_MDS; then
-    
-    echo '] mdsstart' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    
-    mdsstart | tee -a -i "$outputfilefqdn"
-    
-else
-    
-    echo '] evstart' | tee -a -i "$outputfilefqdn"
-    echo | tee -a -i "$outputfilefqdn"
-    
-    evstart | tee -a -i "$outputfilefqdn"
-    
+    echo | tee -a -i $outputfilefqdn
 fi
 
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-echo | tee -a -i "$outputfilefqdn"
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
+    echo
+else
+    watch -d -n 1 "cpwd_admin list"
+    echo
+fi
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+fi
+
+cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+$MDS_FWDIR/scripts/cpm_status.sh
+echo
+cpwd_admin list
+echo
 
 
 #==================================================================================================

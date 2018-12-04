@@ -47,12 +47,19 @@ GetGaiaVersionAndInstallationType () {
     # Requires that $JQ is properly defined in the script
     # so $UseJSONJQ = true must be set on template version 2.0.0 and higher
     #
+    # Test string, use this to validate if there are problems:
+    #
+    #export pythonpath=$MDS_FWDIR/Python/bin/;echo $pythonpath;echo
+    #$pythonpath/python --help
+    #$pythonpath/python --version
+    #
+    export pythonpath=$MDS_FWDIR/Python/bin/
     if $UseJSONJQ ; then
-        export get_platform_release=`python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
     else
-        export get_platform_release=`python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
     fi
-
+    
     export platform_release=${get_platform_release//\"/}
     export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
     export platform_release_version=${get_platform_release_version//\"/}

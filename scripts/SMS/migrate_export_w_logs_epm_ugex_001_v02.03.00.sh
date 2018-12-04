@@ -1,19 +1,21 @@
 #!/bin/bash
 #
-# Enable more informative logging of implied rules
+# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
+# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
+# EPM export includes standard NPM export with logs, but also another export with logs and MSI files
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.03.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x03x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=set_informative_logging_implied_rules_on_R8x.v$ScriptVersion
-export BASHScriptShortName=set_informative_logging
-export BASHScriptDescription="Enable more informative logging of implied rules"
+export BASHScriptName="migrate_export_epm_ugex_001_v$ScriptVersion"
+export BASHScriptShortName="migrate_export_epm"
+export BASHScriptDescription="migrate export EPM to local folder using version tools"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +35,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -43,8 +45,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -868,7 +870,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -885,80 +887,309 @@ esac
 #==================================================================================================
 #==================================================================================================
 
+
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
+
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with Migrate Export..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
+    exit 255
+else
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
+fi
+
+
 # -------------------------------------------------------------------------------------------------
 # Setup script values
 # -------------------------------------------------------------------------------------------------
 
 
-export targetversion=$gaiaversion
-
-export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilepath=$outputpathroot/
+export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
+export outputfiletype=.tgz
 
-if [ ! -r $outputfilepath ] ; then
-    mkdir $outputfilepath
-    chmod 775 $outputfilepath
-else
-    chmod 775 $outputfilepath
+export toolsversion=$gaiaversion
+
+export migratefilefolderroot=migration_tools/$toolsversion
+export migratefilename=migrate
+
+export migratefilepath=$outputpathroot/$migratefilefolderroot/
+export migratefile=$migratefilepath$migratefilename
+
+if [ ! -r $migratefilepath ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
+    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
 fi
 
+if [ ! -r $migratefile ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
+    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
 
-export outputfilename='gw_enable_informative_logs_'$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath
-export outputfile=$outputfilepath$outputfilename
+    exit 255
+fi
 
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-#----------------------------------------------------------------------------------------
-# Enable more informative logging of implied rules
-#----------------------------------------------------------------------------------------
+echo | tee -a -i $logfilepath
+echo 'Execute fw logswitch' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-#
-# Set temporary value
-#
+fw logswitch | tee -a "$outputfile"
+fw logswitch -audit | tee -a "$outputfile"
+echo | tee -a "$outputfile"
 
-echo | tee -a -i $outputfile
-echo Check Value | tee -a -i $outputfile
-echo | tee -a -i $outputfile
-fw ctl get int fw_log_informative_implied_rules_enabled | tee -a -i $outputfile
-echo | tee -a -i $outputfile
-echo Set value to on | tee -a -i $outputfile
-fw ctl set int fw_log_informative_implied_rules_enabled 1 | tee -a -i $outputfile
-echo | tee -a -i $outputfile
-fw ctl get int fw_log_informative_implied_rules_enabled | tee -a -i $outputfile
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+case "$gaiaversion" in
+    R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
+        export IsMigrateWIndexes=true
+        ;;
+    *)
+        export IsMigrateWIndexes=false
+        ;;
+esac
 
-#
-# Set permanent value
-#
-echo | tee -a -i $outputfile
-echo Set permanent value | tee -a -i $outputfile
-echo | tee -a -i $outputfile
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    export command2run='export -n -x'
+else
+    # Migrate does not supports export of indexes
+    export command2run='export -n -l'
+fi
 
-cp $FWDIR/boot/modules/fwkern.conf $FWDIR/boot/modules/fwkern.conf.original.$DATEDTGS | tee -a -i $outputfile
-cp $FWDIR/boot/modules/fwkern.conf $outputfilepath/fwkern.conf.original.$DATEDTGS | tee -a -i $outputfile
-echo Original fwkern.conf | tee -a -i $outputfile
-echo | tee -a -i $outputfile
-cat $FWDIR/boot/modules/fwkern.conf | tee -a -i $outputfile
+export outputfile=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
-echo "fw_log_informative_implied_rules_enabled=1" >> $FWDIR/boot/modules/fwkern.conf | tee -a -i $outputfile
-echo | tee -a -i $outputfile
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run2='export -n -x --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+else
+    # Migrate does not supports export of indexes
+    #export command2run2='export -n -l --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+fi
 
-cp $FWDIR/boot/modules/fwkern.conf $FWDIR/boot/modules/fwkern.conf.modified.$DATEDTGS | tee -a -i $outputfile
-cp $FWDIR/boot/modules/fwkern.conf $outputfilepath/fwkern.conf.modified.$DATEDTGS | tee -a -i $outputfile
-cp $FWDIR/boot/modules/fwkern.conf $outputfilepath/fwkern.conf | tee -a -i $outputfile
+export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn2=$outputfilepath$outputfile2
 
-echo Modified fwkern.conf | tee -a -i $outputfile
-echo | tee -a -i $outputfile
-cat $FWDIR/boot/modules/fwkern.conf | tee -a -i $outputfile
+echo | tee -a -i $logfilepath
+echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-echo | tee -a -i $outputfile
-echo Working directory contents | tee -a -i $outputfile
-echo Folder : $outputfilepath | tee -a -i $outputfile
-echo | tee -a -i $outputfile
+if [ $Check4EPM -gt 0 ]; then
+    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
 
-ls -alh $outputfilepath | tee -a -i $outputfile
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#else
+#    # test mode
+#    echo Test Mode! | tee -a -i $logfilepath
+#fi
+
+$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo | tee -a -i $logfilepath
+    echo 'Executing 2...' | tee -a -i $logfilepath
+    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    #if [ $testmode -eq 0 ]; then
+    #    # Not test mode
+    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    #else
+    #    # test mode
+    #    echo Test Mode! | tee -a -i $logfilepath
+    #fi
+    
+    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    echo | tee -a -i $logfilepath
+    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
+echo | tee -a -i $logfilepath
+ls -alh $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
+sleep $WAITTIME
+
+echo | tee -a -i $logfilepath
+echo 'cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+sleep $WAITTIME
+
+cpstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+if [ $CPVer80 -gt 0 ]; then
+    # R80 version so kick the API on
+    echo | tee -a -i $logfilepath
+    echo 'api start ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    api start | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'api start completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    # not R80 version so no API
+    echo | tee -a -i $logfilepath
+fi
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================

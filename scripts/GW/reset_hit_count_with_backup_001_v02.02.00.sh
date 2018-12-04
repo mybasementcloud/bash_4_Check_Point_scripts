@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT Configure Gateway to enable TLS ECDHE and ECDSA ciphers
+# Gateway - Reset Hit Count to zero, backing up current
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=config_gw_TLS_ECDHE_ECDSA_v$ScriptVersion
-export BASHScriptShortName=config_gw_TLS
-export BASHScriptDescription="Configure Gateway to enable TLS ECDHE and ECDSA ciphers"
+export BASHScriptName=reset_hit_count_with_backup_001_v$ScriptVersion
+export BASHScriptShortName=reset_hit_count
+export BASHScriptDescription="Reset Hit Count to zero, backing up current"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -885,22 +885,24 @@ esac
 #==================================================================================================
 #==================================================================================================
 
-
 # -------------------------------------------------------------------------------------------------
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-if [ $Check4GW -gt 0 ]; then
-    echo "System is Gateway!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Continueing with TLS configuration..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-else
-    echo "System is NOT a gateway!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "This script is meant for gateways, exiting!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "This script is not meant for management, exiting!"
     exit 255
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for management, exiting!"
+    exit 255
+else
+    echo "System is a gateway!"
+    echo
+    echo "Continueing with Hit Counte Reset..."
 fi
 
 
@@ -909,97 +911,50 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-#----------------------------------------------------------------------------------------
-# Execute configuration change
-#----------------------------------------------------------------------------------------
+export workfilepath=$CPDIR/database/cpeps
+export bufilepath=$workfilepath/BACKUP.$DATEDTGS
 
-#
-# Backup registry before making changes and document original in Change Log
-#
 echo | tee -a -i $logfilepath
-echo 'Backup registry before making changes and document original in Change Log' | tee -a -i $logfilepath
+echo 'Start operation to reset hit count on '$HOSTNAME' at '$DATEDTGS | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-cp -v $CPDIR/registry/HKLM_registry.data $CPDIR/registry/HKLM_registry.data.$DATEDTGS.BKP | tee -a -i $logfilepath
+cd $workfilepath/ | tee -a -i $logfilepath
+pwd | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
 
-cp -v $CPDIR/registry/HKLM_registry.data $outputpathbase/HKLM_registry.data.$DATEDTGS.original | tee -a -i $logfilepath
+mkdir $bufilepath | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
 
-#
-# Make the changes
-#
-echo | tee -a -i $logfilepath
-echo 'Make Registry Changes, these are boot resilient!' | tee -a -i $logfilepath
+echo 'Stop gateway services again' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_ACCEPT_ECDHE 1
-ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_PROPOSE_ECDHE 1
-ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_ACCEPT_ECDSA 1
-ckp_regedit –a SOFTWARE//CheckPoint//FW1 CPTLS_PROPOSE_ECDSA 1
-
-echo | tee -a -i $logfilepath
-grep -C 2 --color CPTLS $CPDIR/registry/HKLM_registry.data | tee -a -i $logfilepath
-
-#
-# Document modification in Change Log
-#
-echo | tee -a -i $logfilepath
-echo 'Document changed registry in Change Log' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-
-cp -v $CPDIR/registry/HKLM_registry.data $outputpathbase/HKLM_registry.data.$DATEDTGS.modified | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-
-
-#
-# Handle service stop
-#
-echo | tee -a -i $logfilepath
-echo 'Handle service cpstop, cpstart' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Stopping with cpstop!' | tee -a -i $logfilepath
 cpstop | tee -a -i $logfilepath
 
-#----------------------------------------------------------------------------------------
-# shell clean-up and log dump - do this now since cpstart will kill SSH connection to GW
-#----------------------------------------------------------------------------------------
-
-echo
-ls -alh $outputpathbase
-echo
-
-echo
-echo 'Output location for all results is here : '$outputpathbase
-echo 'Results documented in this log file     : '$logfilepath
-echo
-
-#----------------------------------------------------------------------------------------
-# shell clean-up and log dump - do this now since cpstart will kill SSH connection to GW
-#----------------------------------------------------------------------------------------
-
-#
-# Handle service start
-#
-echo 'this SSH connection will most likely disconnect due to cpstart...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+
+echo 'Backup hit count files to '$bufilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-echo 'Starting with cpstart!' | tee -a -i $logfilepath
+
+cp *1.3.6.1.4.1.2620.1.45.5* $bufilepath/ | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Remove hit count files' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+rm *1.3.6.1.4.1.2620.1.45.5* | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Start gateway services again' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
 cpstart | tee -a -i $logfilepath
-
 echo | tee -a -i $logfilepath
 
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+echo | tee -a -i $logfilepath
+echo 'Finished operation to reset hit count on '$HOSTNAME' at '$DATEDTGS | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 
 #==================================================================================================

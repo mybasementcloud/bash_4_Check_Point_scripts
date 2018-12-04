@@ -1,20 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
-# using mds_backup
+# SCRIPT SmartEvent Restore for R8X
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.02.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.0X-NR
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x02x00
+export BASHScriptVersion=v02x02x0X-NR
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=backup_mds_ugex_001_v$ScriptVersion
-export BASHScriptShortName=log_mds_backup_ugex
-export BASHScriptDescription="Template for bash scripts"
+export BASHScriptName=SmartEvent_Restore_R8X_v$ScriptVersion
+export BASHScriptShortName=SmartEvent_Restore_R8X
+export BASHScriptDescription="SmartEvent Restore for R8X"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -44,20 +43,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
+export OutputToDump=true
 export OutputToChangeLog=false
-export OutputToOther=true
+export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=./backups
+export OtherOutputFolder=./backup_SmartEvent
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -869,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -891,16 +890,15 @@ esac
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "Continueing with MDS Backup..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!"
     echo
-    echo "This script is not meant for SMS, exiting!"
-    exit 255
+    echo "Continueing with SmartEvent Restore..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "Continueing with SmartEvent Restore..."
     echo
 else
     echo "System is a gateway!"
@@ -914,142 +912,129 @@ fi
 # Setup script values
 # -------------------------------------------------------------------------------------------------
 
+
+export targetversion=$gaiaversion
+
 export outputfilepath=$outputpathbase/
-export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATE
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
-if [ ! -r $outputfilepath ]; then
-    mkdir $outputfilepath | tee -a -i $logfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir $outputfilepath
+    chmod 775 $outputfilepath
+else
+    chmod 775 $outputfilepath
 fi
 
-export command2run='mds_backup -b -l -i -s -d'
-export outputfile=$outputfileprefix'_mds_backup-blisd'$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
 
-echo | tee -a -i $logfilepath
-echo 'Execute command : '"$command2run"' '"$outputfilepath" | tee -a -i $logfilepath
-echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------'
+#----------------------------------------------------------------------------------------
+# Execute SmartEvent, SmartReport Data Backup
+#----------------------------------------------------------------------------------------
 
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+export outputfilename='restore_SmartEvent_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath
+export outputfile=$outputfilepath$outputfilename
 
-echo | tee -a -i $logfilepath
-echo 'Preparing ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cd "$outputfilepath" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-mdsstat | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstop ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstop | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstop completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-#if [ $testmode -eq 0 ]; then
-#    # Not test mode
-#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-#    mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
-#else
-#    # test mode
-#    echo 'Test Mode!' | tee -a -i $logfilepath
-#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-#fi
+#pushd $outputfilefqdn
+#pwd | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 #
-
-echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
-
-
-echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" >> tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-echo | tee -a -i $logfilepath
-echo 'Done performing mds_backup' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstart ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstart | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'mdsstart completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-mdsstat | tee -a -i $logfilepath
-
-
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'CLI Operations Completed' | tee -a -i $logfilepath
-
+#fw logswitch | tee -a "$outputfile"
+#fw logswitch -audit | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 #
-# shell clean-up and log dump
+#cpstop | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 #
+#gtar -zcvf $outputfilepath/fwlogs.tgz $FWDIR/log/* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#gtar -zcvf $outputfilepath/indexes_other.tgz $RTDIR/log_indexes/other* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zcvf $outputfilepath/indexes_firewallandvpn.tgz $RTDIR/log_indexes/firewallandvpn* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zcvf $outputfilepath/indexes_audit.tgz $RTDIR/log_indexes/audit* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zcvf $outputfilepath/indexes_smartevent.tgz $RTDIR/log_indexes/smartevent* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#mkdir FetchedFiles
+#cp $INDEXERDIR/data/FetchedFiles ./FetchedFiles | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#cpstart | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#popd
+#pwd | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 
-echo | tee -a -i $logfilepath
-ls -alh $outputpathroot | tee -a -i $logfilepath
+# Restore Procedure
+#
+#
+#cpstop | tee -a "$outputfile"
+#
+#
+# Remove all old files:
+#rm -r $RTDIR/log_indexes/other* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#rm -r $RTDIR/log_indexes/audit* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#rm -r $RTDIR/log_indexes/firewallandvpn* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#rm -r $RTDIR/log_indexes/smartevent* | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#rm $INDEXERDIR/data/FetchedFiles | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#Extract indexes_other.tgz, indexes_firewallandvpn.tgz, indexes_audit.tgz, indexes_smartevent.tgz to $RTDIR/log_indexes/
+#cp $sourcepath/indexes_other.tgz $RTDIR/log_indexes/ | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#cp $sourcepath/indexes_firewallandvpn.tgz $RTDIR/log_indexes/ | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#cp $sourcepath/indexes_audit.tgz $RTDIR/log_indexes/ | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#cp $sourcepath/indexes_smartevent.tgz $RTDIR/log_indexes/ | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#pushd $RTDIR/log_indexes/
+#
+#gtar -zxvf $RTDIR/log_indexes/indexes_other.tgz | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zxvf $RTDIR/log_indexes/indexes_firewallandvpn.tgz | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zxvf $RTDIR/log_indexes/indexes_audit.tgz | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#gtar -zxvf $RTDIR/log_indexes/indexes_smartevent.tgz | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#popd
+#
+#Extract fwlogs.tgz to $FWDIR/log/
+#cp $sourcepath/fwlogs.tgz $FWDIR/log/ | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#pushd $FWDIR/log/
+#echo | tee -a "$outputfile"
+#
+#gtar -zxvf $FWDIR/log/fwlogs.tgz | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#popd
+#echo | tee -a "$outputfile"
+#
+#
+#cp $sourcepath/FetchedFiles/ $INDEXERDIR/data/FetchedFiles | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
+#
+#cpstart | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 
-cd "$outputpathroot" | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i  | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+#popd
+#pwd | tee -a "$outputfile"
+#echo | tee -a "$outputfile"
 
 
 #==================================================================================================

@@ -1,21 +1,20 @@
 #!/bin/bash
 #
-# SCRIPT Delete all logs and indexes from SmartEvent/SmartLog
-# Based on sk111734 - How to remove all logs and events from R80.x SmartEvent Server
-# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk111734
+# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
+# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.03.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x03x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=NUKE_ALL_LOGS_AND_INDEXES_v$ScriptVersion
-export BASHScriptShortName=NUKE_ALL_LOGS_AND_INDEXES
-export BASHScriptDescription="elete all logs and indexes from SmartEvent/SmartLog"
+export BASHScriptName="migrate_export_npm_ugex_001_v$ScriptVersion"
+export BASHScriptShortName="migrate_export_npm"
+export BASHScriptDescription="migrate export NPM to local folder using version tools"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -870,7 +869,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -887,129 +886,259 @@ esac
 #==================================================================================================
 #==================================================================================================
 
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
 
-#----------------------------------------------------------------------------------------
-# Check if operation allowed based on version and installation type
-#----------------------------------------------------------------------------------------
-
-
-if $sys_type_STANDALONE; then
-    # Standalone installations can be re-indexed
-    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
-elif $sys_type_GW; then
-    # echo not doing reset indexing, this is gateway
-    echo 'Wrong installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Wrong installation type for '$BASHScriptName' ! ' >> $logfilepath
-    echo 'Exiting... ' | tee -a -i $outputfilefqdn
-    echo 'Exiting... ' >> $logfilepath
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with Migrate Export..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
     exit 255
 else
-    # echo doing reset indexing
-    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
 fi
 
-echo | tee -a -i $outputfilefqdn
 
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
+
+
+export outputfilepath=$outputpathroot/
+export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.tgz
+
+export toolsversion=$gaiaversion
+
+export migratefilefolderroot=migration_tools/$toolsversion
+export migratefilename=migrate
+
+export migratefilepath=$outputpathroot/$migratefilefolderroot/
+export migratefile=$migratefilepath$migratefilename
+
+if [ ! -r $migratefilepath ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
+    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+if [ ! -r $migratefile ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
+    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
-        export do_nuke_logs=true
+    R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
+        export IsMigrateWIndexes=true
         ;;
     *)
-        export do_nuke_logs=false
+        export IsMigrateWIndexes=false
         ;;
 esac
 
-if ! $do_nuke_logs; then
-    # echo not doing reset indexing
-    echo 'Wrong version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Wrong version for '$BASHScriptName' ! ' >> $logfilepath
-    echo 'Exiting... ' | tee -a -i $outputfilefqdn
-    echo 'Exiting... ' >> $logfilepath
-    exit 255
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run='export -n -x'
+    export command2run='export -n'
 else
-    # echo not doing reset indexing
-    echo 'Supported version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
-    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+    # Migrate does not supports export of indexes
+    #export command2run='export -n -l'
+    export command2run='export -n'
 fi
 
-
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
-
-export targetversion=$gaiaversion
-
-export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
-
-if [ ! -r $outputfilepath ] ; then
-    mkdir $outputfilepath
-    chmod 775 $outputfilepath
-else
-    chmod 775 $outputfilepath
-fi
-
-export outputfile='NUKE_ALL_LOGS_AND_INDEXES_'$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-export garbagedumpfolder=/var/tmp/$DATEDTGS'.NUKE_ALL_LOGS_AND_INDEXES'
+echo | tee -a -i $logfilepath
+echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-if [ ! -r $garbagedumpfolder ] ; then
-    mkdir $garbagedumpfolder >> $outputfilefqdn
-    chmod 775 $garbagedumpfolder >> $outputfilefqdn
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
 else
-    chmod 775 $garbagedumpfolder >> $outputfilefqdn
+    echo | tee -a -i $logfilepath
 fi
 
+cpwd_admin list | tee -a -i $logfilepath
 
-#----------------------------------------------------------------------------------------
-# Proceed with operations
-#----------------------------------------------------------------------------------------
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+cpstop | tee -a -i $logfilepath
 
-#Stop Check Point services:
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-cpstop | tee -a -i $outputfilefqdn
- 
-#Backup and remove the following files:
-#
-#Note: If you do not want to have the events and logs indexed again, then do not remove the $INDEXERDIR/data/FetchedFiles file.
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-mv $INDEXERDIR/data/FetchedFiles $garbagedumpfolder | tee -a -i $outputfilefqdn
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#else
+#    # test mode
+#    echo Test Mode! | tee -a -i $logfilepath
+#fi
 
-mv $RTDIR/log_indexes/other* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-mv $RTDIR/log_indexes/firewallandvpn* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-mv $RTDIR/log_indexes/audit* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-mv $RTDIR/log_indexes/smartevent* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-# On R80.10, also remove:
-
-mv $RTDIR/log_indexes/other-smartlog* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-mv $RTDIR/log_indexes/resources* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-mv $RTDIR/log_indexes/files* $garbagedumpfolder | tee -a -i $outputfilefqdn
-
-# Start Check Point services:
-cpstart | tee -a -i $outputfilefqdn
-
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i "$outputfilefqdn"
+$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ls -alh $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
+sleep $WAITTIME
+
+echo | tee -a -i $logfilepath
+echo 'cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+sleep $WAITTIME
+
+cpstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+if [ $CPVer80 -gt 0 ]; then
+    # R80 version so kick the API on
+    echo | tee -a -i $logfilepath
+    echo 'api start ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    api start | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'api start completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    # not R80 version so no API
+    echo | tee -a -i $logfilepath
+fi
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================

@@ -1,22 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to generate a dump folder based on the current time and date
-# run healthcheck script, and dump result files into the dtg folder
-# Based on sk121447 - How to perform an automated health check of a Gaia based system 
-# Link: https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447
+# SCRIPT Determine Gaia version and Installation type
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="run_healthcheck_to_dump_dtg.v$ScriptVersion"
-export BASHScriptShortName="healthcheck"
-export BASHScriptDescription="Run healthcheck.sh and move to dump Date Time Group folder"
+export BASHScriptName=determine_gaia_version_and_installation_type.v$ScriptVersion
+export BASHScriptShortName=gaia_version_type
+export BASHScriptDescription="Determine Gaia version and installation type"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -36,7 +33,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -68,8 +65,8 @@ export localdotpath=`echo $PWD`
 export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
-export UseGaiaVersionAndInstallation=false
-export ShowGaiaVersionResults=false
+export UseGaiaVersionAndInstallation=true
+export ShowGaiaVersionResults=true
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -871,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -888,39 +885,9 @@ esac
 #==================================================================================================
 #==================================================================================================
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Example framework for executing bash commands and documenting those specifically
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
 
-
-./healthcheck
-
-# logfile=/var/log/$(hostname)-health_check-$(date +%Y%m%d%H%M).txt
-# full_output_log=/var/log/$(hostname)-health_check_full-$(date +%Y%m%d%H%M).log
-# csv_log=/var/log/$(hostname)-health_check-summary-$(date +%Y%m%d%H%M).csv
-#
-#export hclogfilebase=/var/log/$(hostname)-health_check-*
-#
-# Modified in healthcheck.sh v 05.04
-# logfile=/var/log/$(hostname)_health-check_$(date +%Y%m%d%H%M).txt
-# full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).log
-# csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
-#
-export hclogfilebase=/var/log/$(hostname)_health-check_*
-
-echo | tee -a -i $logfilepath
-echo 'Moving healthcheck log files to '$outputpathbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-mv $hclogfilebase $outputpathbase | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+# Call to determine gaia version and type was executed and handled via the procedures and exteral
+# script call
 
 
 #==================================================================================================
@@ -941,6 +908,7 @@ mv $hclogfilebase $outputpathbase | tee -a -i $logfilepath
 #==================================================================================================
 
 echo
+echo 'List folder : '$outputpathbase
 ls -alh $outputpathbase
 echo
 
@@ -948,6 +916,7 @@ echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath
 echo
+
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

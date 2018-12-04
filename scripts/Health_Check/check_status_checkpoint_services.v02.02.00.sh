@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT Determine Gaia version and Installation type
+# SCRIPT Check Status of Check Point Services
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=determine_gaia_version_and_installation_type.v$ScriptVersion
-export BASHScriptShortName=gaia_version_type
-export BASHScriptDescription="Determine Gaia version and installation type"
+export BASHScriptName="check_status_checkpoint_services.v$ScriptVersion"
+export BASHScriptShortName="CP_services_status"
+export BASHScriptDescription="Check Status of Check Point Services"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +33,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=true
+export UseJSONJQ=false
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -886,8 +886,262 @@ esac
 #==================================================================================================
 
 
-# Call to determine gaia version and type was executed and handled via the procedures and exteral
-# script call
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Verify Check Point services access
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START: Verify Check Point services access
+# -------------------------------------------------------------------------------------------------
+
+
+clish -i -c "show proxy" | tee -a -i $logfilepath
+
+# curl_cli -v -k ...
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'cws.checkpoint.com : Application Control, URLF, AV, Malware' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://cws.checkpoint.com/APPI/SystemStatus/type/short | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://cws.checkpoint.com/URLF/SystemStatus/type/short | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://cws.checkpoint.com/AntiVirus/SystemStatus/type/short | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://cws.checkpoint.com/Malware/SystemStatus/type/short | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'updates.checkpoint.com : IPS Updates' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v -k https://updates.checkpoint.com/ | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'dl3.checkpoint.com : Download Service updates' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v -k http://dl3.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'usercenter.checkpoint.com : Contract Entitlement : IPS, Traditional AV, Traditional URLF' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v -k https://usercenter.checkpoint.com/usercenter/services/ProductCoverageService | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'usercenter.checkpoint.com : Contract Entitlement : Software Blades Manager Service' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v --cacert $CPDIR/conf/ca-bundle.crt https://usercenter.checkpoint.com/usercenter/services/BladesManagerService | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'resolver[1-5].chkp.ctmail.com : Suspicious Mail Outbreaks' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://resolver1.chkp.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://resolver2.chkp.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://resolver3.chkp.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://resolver4.chkp.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v http://resolver5.chkp.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'download.ctmail.com : Anti-Spam' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://download.ctmail.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'te.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://te.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'teadv.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://teadv.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'kav8.zonealarm.com : Archive Scanning and Deep Inspection' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://kav8.zonealarm.com/version.txt | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'kav8.checkpoint.com : Traditional AV' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://kav8.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'avupdates.checkpoint.com : Traditional AV, Legacy URLF' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://avupdates.checkpoint.com/UrlList.txt | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'sigcheck.checkpoint.com : Traditional AV, Legacy URLF, edge devices' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://sigcheck.checkpoint.com/Siglist2.txt | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'smbmgmtservice.checkpoint.com : Manage SMB Gateways' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+smp_connectivity_test smbmgmtservice.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'zerotouch.checkpoint.com : ZeroTouch Deployment (SMB)' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+test zero-touch-request | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'secureupdates.checkpoint.com : General updates server for Check Points gateways' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+rm index.html
+wget http://secureupdates.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+rm index.html
+
+curl_cli -v secureupdates.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://productcoverage.checkpoint.com/ProductCoverageService : Contract Check' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v https://productcoverage.checkpoint.com/ProductCoverageService | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://sc[1-5].checkpoint.com : Download of icons and screenshots from Check Point media storage servers' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v https://sc1.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc1.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc1.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc2.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc2.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc2.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc3.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc3.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc3.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc4.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc4.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc4.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc5.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc5.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+curl_cli -v https://sc5.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://push.checkpoint.com : Push Notifications (since R77.10) for incoming e-mails and meeting requests on hand held devices, while the Capsule Workspace Mail app is in the background' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v https://push.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'http://downloads.checkpoint.com : Download of Endpoint Compliance Updates (Endpoint Security On Demand (ESOD) database)' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+curl_cli -v http://downloads.checkpoint.com | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# END: Verify Check Point services access
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
 
 #==================================================================================================
@@ -916,7 +1170,6 @@ echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath
 echo
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

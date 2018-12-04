@@ -5,11 +5,11 @@
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.03.00
-ScriptDate=2018-11-20
+ScriptVersion=02.04.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x03x00
+export BASHScriptVersion=v02x04x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="config_capture.v$ScriptVersion"
 export BASHScriptShortName="config_capture"
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)

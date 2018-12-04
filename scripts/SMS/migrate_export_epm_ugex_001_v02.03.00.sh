@@ -1,19 +1,21 @@
 #!/bin/bash
 #
-# SCRIPT Check Status of Check Point Services
+# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
+# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
+# EPM export includes standard NPM export, but also another export with logs and MSI files
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.03.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x03x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="check_status_checkpoint_services.v$ScriptVersion"
-export BASHScriptShortName="CP_services_status"
-export BASHScriptDescription="Check Status of Check Point Services"
+export BASHScriptName="migrate_export_epm_ugex_001_v$ScriptVersion"
+export BASHScriptShortName="migrate_export_epm"
+export BASHScriptDescription="migrate export EPM to local folder using version tools"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +35,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -868,7 +870,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -886,262 +888,298 @@ esac
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Verify Check Point services access
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# START: Verify Check Point services access
+# Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-
-clish -i -c "show proxy" | tee -a -i $logfilepath
-
-# curl_cli -v -k ...
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'cws.checkpoint.com : Application Control, URLF, AV, Malware' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://cws.checkpoint.com/APPI/SystemStatus/type/short | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://cws.checkpoint.com/URLF/SystemStatus/type/short | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://cws.checkpoint.com/AntiVirus/SystemStatus/type/short | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://cws.checkpoint.com/Malware/SystemStatus/type/short | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'updates.checkpoint.com : IPS Updates' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v -k https://updates.checkpoint.com/ | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'dl3.checkpoint.com : Download Service updates' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v -k http://dl3.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'usercenter.checkpoint.com : Contract Entitlement : IPS, Traditional AV, Traditional URLF' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v -k https://usercenter.checkpoint.com/usercenter/services/ProductCoverageService | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'usercenter.checkpoint.com : Contract Entitlement : Software Blades Manager Service' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v --cacert $CPDIR/conf/ca-bundle.crt https://usercenter.checkpoint.com/usercenter/services/BladesManagerService | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'resolver[1-5].chkp.ctmail.com : Suspicious Mail Outbreaks' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://resolver1.chkp.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://resolver2.chkp.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://resolver3.chkp.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://resolver4.chkp.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v http://resolver5.chkp.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'download.ctmail.com : Anti-Spam' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://download.ctmail.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'te.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://te.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'teadv.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://teadv.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'kav8.zonealarm.com : Archive Scanning and Deep Inspection' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://kav8.zonealarm.com/version.txt | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'kav8.checkpoint.com : Traditional AV' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://kav8.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'avupdates.checkpoint.com : Traditional AV, Legacy URLF' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://avupdates.checkpoint.com/UrlList.txt | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'sigcheck.checkpoint.com : Traditional AV, Legacy URLF, edge devices' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://sigcheck.checkpoint.com/Siglist2.txt | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'smbmgmtservice.checkpoint.com : Manage SMB Gateways' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-smp_connectivity_test smbmgmtservice.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'zerotouch.checkpoint.com : ZeroTouch Deployment (SMB)' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-test zero-touch-request | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'secureupdates.checkpoint.com : General updates server for Check Points gateways' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-rm index.html
-wget http://secureupdates.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-rm index.html
-
-curl_cli -v secureupdates.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'https://productcoverage.checkpoint.com/ProductCoverageService : Contract Check' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v https://productcoverage.checkpoint.com/ProductCoverageService | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'https://sc[1-5].checkpoint.com : Download of icons and screenshots from Check Point media storage servers' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v https://sc1.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc1.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc1.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc2.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc2.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc2.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc3.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc3.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc3.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc4.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc4.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc4.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc5.checkpoint.com/sc/images/checkmark.gif | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc5.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-curl_cli -v https://sc5.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'https://push.checkpoint.com : Push Notifications (since R77.10) for incoming e-mails and meeting requests on hand held devices, while the Capsule Workspace Mail app is in the background' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v https://push.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'http://downloads.checkpoint.com : Download of Endpoint Compliance Updates (Endpoint Security On Demand (ESOD) database)' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-curl_cli -v http://downloads.checkpoint.com | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with Migrate Export..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
+    exit 255
+else
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
+fi
 
 
 # -------------------------------------------------------------------------------------------------
-# END: Verify Check Point services access
-# -------------------------------------------------------------------------------------------------
+# Setup script values
 # -------------------------------------------------------------------------------------------------
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+export outputfilepath=$outputpathroot/
+export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.tgz
+
+export toolsversion=$gaiaversion
+
+export migratefilefolderroot=migration_tools/$toolsversion
+export migratefilename=migrate
+
+export migratefilepath=$outputpathroot/$migratefilefolderroot/
+export migratefile=$migratefilepath$migratefilename
+
+if [ ! -r $migratefilepath ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
+    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+if [ ! -r $migratefile ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
+    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+case "$gaiaversion" in
+    R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
+        export IsMigrateWIndexes=true
+        ;;
+    *)
+        export IsMigrateWIndexes=false
+        ;;
+esac
+
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run='export -n -x'
+    export command2run='export -n'
+else
+    # Migrate does not supports export of indexes
+    #export command2run='export -n -l'
+    export command2run='export -n'
+fi
+
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run2='export -n -x --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+else
+    # Migrate does not supports export of indexes
+    #export command2run2='export -n -l --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+fi
+
+export outputfile2=$outputfileprefix'_msi'$outputfilesuffix$outputfiletype
+export outputfilefqdn2=$outputfilepath$outputfile2
+
+echo | tee -a -i $logfilepath
+echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#else
+#    # test mode
+#    echo Test Mode! | tee -a -i $logfilepath
+#fi
+
+$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo | tee -a -i $logfilepath
+    echo 'Executing 2...' | tee -a -i $logfilepath
+    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    #if [ $testmode -eq 0 ]; then
+    #    # Not test mode
+    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    #else
+    #    # test mode
+    #    echo Test Mode! | tee -a -i $logfilepath
+    #fi
+    
+    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    echo | tee -a -i $logfilepath
+    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
+echo | tee -a -i $logfilepath
+ls -alh $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
+sleep $WAITTIME
+
+echo | tee -a -i $logfilepath
+echo 'cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+sleep $WAITTIME
+
+cpstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+if $IsR8XVersion ; then
+    # cpm_status.sh only exists in R8X
+    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    echo | tee -a -i $logfilepath
+fi
+
+cpwd_admin list | tee -a -i $logfilepath
+
+if [ $CPVer80 -gt 0 ]; then
+    # R80 version so kick the API on
+    echo | tee -a -i $logfilepath
+    echo 'api start ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    api start | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'api start completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+else
+    # not R80 version so no API
+    echo | tee -a -i $logfilepath
+fi
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================

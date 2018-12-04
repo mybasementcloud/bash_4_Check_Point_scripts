@@ -5,11 +5,11 @@
 # (C) 2017-2018 Eric James Beasley
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.00.00
-ScriptDate=2018-10-04
+ScriptVersion=02.01.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v02x01x00
 
 # =============================================================================
 # =============================================================================
@@ -28,6 +28,7 @@ dos2unix Health_Check/*.sh
 dos2unix MDM/*.sh
 dos2unix Patch_HotFix/*.sh
 dos2unix Session_Cleanup/*.sh
+dos2unix Session_Cleanup/common/*.sh
 dos2unix SmartEvent/*.sh
 dos2unix SMS/*.sh
 dos2unix UserConfig/*.sh

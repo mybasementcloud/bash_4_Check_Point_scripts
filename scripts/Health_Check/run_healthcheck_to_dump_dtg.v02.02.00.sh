@@ -1,19 +1,22 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to report on cp MDM management processes
+# SCRIPT for BASH to generate a dump folder based on the current time and date
+# run healthcheck script, and dump result files into the dtg folder
+# Based on sk121447 - How to perform an automated health check of a Gaia based system 
+# Link: https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=report_mdsstat.v$ScriptVersion
-export BASHScriptShortName=report_mdsstat
-export BASHScriptDescription="Report on Check Point Multi-Domain Management (MDM) Domains and Processes"
+export BASHScriptName="run_healthcheck_to_dump_dtg.v$ScriptVersion"
+export BASHScriptShortName="healthcheck"
+export BASHScriptDescription="Run healthcheck.sh and move to dump Date Time Group folder"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +36,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=true
+export UseJSONJQ=false
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -65,8 +68,8 @@ export localdotpath=`echo $PWD`
 export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
-export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export UseGaiaVersionAndInstallation=false
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -863,8 +866,12 @@ fi
 #----------------------------------------------------------------------------------------
 
 
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
+
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -881,78 +888,39 @@ esac
 #==================================================================================================
 #==================================================================================================
 
-
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
-
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "Continueing with MDS mdsstat reporting..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "This script is not meant for SMS, exiting!"
-    exit 255
-    echo
-else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
-    exit 255
-fi
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Example framework for executing bash commands and documenting those specifically
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
+./healthcheck
 
-export outputfilepath=$outputpathbase/
-export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
+# logfile=/var/log/$(hostname)-health_check-$(date +%Y%m%d%H%M).txt
+# full_output_log=/var/log/$(hostname)-health_check_full-$(date +%Y%m%d%H%M).log
+# csv_log=/var/log/$(hostname)-health_check-summary-$(date +%Y%m%d%H%M).csv
+#
+#export hclogfilebase=/var/log/$(hostname)-health_check-*
+#
+# Modified in healthcheck.sh v 05.04
+# logfile=/var/log/$(hostname)_health-check_$(date +%Y%m%d%H%M).txt
+# full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).log
+# csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
+#
+export hclogfilebase=/var/log/$(hostname)_health-check_*
 
-if [ ! -r $outputfilepath ]; then
-    mkdir $outputfilepath
-fi
-
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-touch $outputfilefqdn
-
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
-mdsstat | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
+echo | tee -a -i $logfilepath
+echo 'Moving healthcheck log files to '$outputpathbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+mv $hclogfilebase $outputpathbase | tee -a -i $logfilepath
 
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;mdsstat"
-    echo
-else
-    watch -d -n 1 "mdsstat"
-    echo
-fi
-
-
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
-mdsstat | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
 
 #==================================================================================================
@@ -973,7 +941,6 @@ echo | tee -a -i $outputfilefqdn
 #==================================================================================================
 
 echo
-echo 'List folder : '$outputpathbase
 ls -alh $outputpathbase
 echo
 

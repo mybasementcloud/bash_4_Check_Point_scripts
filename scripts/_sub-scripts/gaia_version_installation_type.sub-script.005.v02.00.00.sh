@@ -6,8 +6,8 @@
 #
 SubScriptTemplateLevel=005
 SubScriptVersion=02.00.00
-SubScriptRevision=001
-SubScriptDate=2018-11-20
+SubScriptRevision=002
+SubScriptDate=2018-12-03
 #
 
 BASHSubScriptVersion=v02x00x00
@@ -96,6 +96,12 @@ touch $gaiaversionoutputfile >> $logfilepath
 # Requires that $JQ is properly defined in the script
 # so $UseJSONJQ = true must be set on template version 2.0.0 and higher
 #
+# Test string, use this to validate if there are problems:
+#
+#export pythonpath=$MDS_FWDIR/Python/bin/;echo $pythonpath;echo
+#$pythonpath/python --help
+#$pythonpath/python --version
+#
 export pythonpath=$MDS_FWDIR/Python/bin/
 if $UseJSONJQ ; then
     export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
@@ -119,16 +125,23 @@ Check4GW=0
 
 workfile=/var/tmp/cpinfo_ver.txt
 cpinfo -y all > $workfile 2>&1
+
+Check4EP=`grep -c "Endpoint Security Management" $workfile`
 Check4EP773003=`grep -c "Endpoint Security Management R77.30.03 " $workfile`
 Check4EP773002=`grep -c "Endpoint Security Management R77.30.02 " $workfile`
 Check4EP773001=`grep -c "Endpoint Security Management R77.30.01 " $workfile`
 Check4EP773000=`grep -c "Endpoint Security Management R77.30 " $workfile`
-Check4EP=`grep -c "Endpoint Security Management" $workfile`
+
 Check4SMS=`grep -c "Security Management Server" $workfile`
 Check4SMSR80x10=`grep -c "Security Management Server R80.10 " $workfile`
 Check4SMSR80x20=`grep -c "Security Management Server R80.20 " $workfile`
+Check4SMSR80x30=`grep -c "Security Management Server R80.30 " $workfile`
 Check4SMSR80x20xM1=`grep -c "Security Management Server R80.20.M1 " $workfile`
 Check4SMSR80x20xM2=`grep -c "Security Management Server R80.20.M2 " $workfile`
+Check4SMSR80x20xM3=`grep -c "Security Management Server R80.20.M3 " $workfile`
+Check4SMSR80x30xM1=`grep -c "Security Management Server R80.30.M1 " $workfile`
+Check4SMSR80x30xM2=`grep -c "Security Management Server R80.30.M2 " $workfile`
+Check4SMSR80x30xM3=`grep -c "Security Management Server R80.30.M3 " $workfile`
 rm $workfile
 
 if [ "$MDSDIR" != '' ]; then
@@ -183,6 +196,51 @@ elif [ $Check4SMSR80x20xM2 -gt 0 ]; then
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
     	Check4EPM=1
         echo "Endpoint Security Server version R80.20.M2" >> $gaiaversionoutputfile
+    else
+    	Check4EPM=0
+    fi
+elif [ $Check4SMSR80x20xM3 -gt 0 ]; then
+    echo "Security Management Server version R80.20.M3" >> $gaiaversionoutputfile
+    export gaiaversion=R80.20.M3
+    if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
+    	Check4EPM=1
+        echo "Endpoint Security Server version R80.20.M3" >> $gaiaversionoutputfile
+    else
+    	Check4EPM=0
+    fi
+elif [ $Check4SMSR80x30 -gt 0 ]; then
+    echo "Security Management Server version R80.30" >> $gaiaversionoutputfile
+    export gaiaversion=R80.30
+    if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
+    	Check4EPM=1
+        echo "Endpoint Security Server version R80.30" >> $gaiaversionoutputfile
+    else
+    	Check4EPM=0
+    fi
+elif [ $Check4SMSR80x30xM1 -gt 0 ]; then
+    echo "Security Management Server version R80.30.M1" >> $gaiaversionoutputfile
+    export gaiaversion=R80.30.M1
+    if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
+    	Check4EPM=1
+        echo "Endpoint Security Server version R80.30.M1" >> $gaiaversionoutputfile
+    else
+    	Check4EPM=0
+    fi
+elif [ $Check4SMSR80x30xM2 -gt 0 ]; then
+    echo "Security Management Server version R80.30.M2" >> $gaiaversionoutputfile
+    export gaiaversion=R80.30.M2
+    if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
+    	Check4EPM=1
+        echo "Endpoint Security Server version R80.30.M2" >> $gaiaversionoutputfile
+    else
+    	Check4EPM=0
+    fi
+elif [ $Check4SMSR80x30xM3 -gt 0 ]; then
+    echo "Security Management Server version R80.30.M3" >> $gaiaversionoutputfile
+    export gaiaversion=R80.30.M3
+    if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
+    	Check4EPM=1
+        echo "Endpoint Security Server version R80.30.M3" >> $gaiaversionoutputfile
     else
     	Check4EPM=0
     fi
@@ -269,6 +327,7 @@ sys_type="N/A"
 sys_type_MDS=false
 sys_type_SMS=false
 sys_type_SmartEvent=false
+sys_type_SmartEvent_CorrelationUnit=false
 sys_type_GW=false
 sys_type_STANDALONE=false
 sys_type_VSX=false
@@ -300,6 +359,12 @@ if [[ $($CPDIR/bin/cpprod_util RtIsAnalyzerServer 2> /dev/null) == *"1"*  ]]; th
     sys_type="SmartEvent"
 else
     sys_type_SmartEvent=false
+fi
+
+if [[ $($CPDIR/bin/cpprod_util RtIsAnalyzerCorrelationUnit 2> /dev/null) == *"1"*  ]]; then
+    sys_type_SmartEvent_CorrelationUnit=true
+else
+    sys_type_SmartEvent_CorrelationUnit=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util FwIsVSX 2> /dev/null) == *"1"* ]]; then
@@ -345,15 +410,16 @@ fi
 echo "sys_type = "$sys_type >> $gaiaversionoutputfile
 
 echo >> $gaiaversionoutputfile
-echo "System Type : SMS                  :"$sys_type_SMS >> $gaiaversionoutputfile
-echo "System Type : MDS                  :"$sys_type_MDS >> $gaiaversionoutputfile
-echo "System Type : SmartEvent           :"$sys_type_SmartEvent >> $gaiaversionoutputfile
-echo "System Type : GATEWAY              :"$sys_type_GW >> $gaiaversionoutputfile
-echo "System Type : STANDALONE           :"$sys_type_STANDALONE >> $gaiaversionoutputfile
-echo "System Type : VSX                  :"$sys_type_VSX >> $gaiaversionoutputfile
-echo "System Type : UEPM Installed       :"$sys_type_UEPM_Installed >> $gaiaversionoutputfile
-echo "System Type : UEPM Endpoint Server :"$sys_type_UEPM_EndpointServer >> $gaiaversionoutputfile
-echo "System Type : UEPM Policy Server   :"$sys_type_UEPM_PolicyServer >> $gaiaversionoutputfile
+echo "System Type : SMS                   :"$sys_type_SMS >> $gaiaversionoutputfile
+echo "System Type : MDS                   :"$sys_type_MDS >> $gaiaversionoutputfile
+echo "System Type : SmartEvent            :"$sys_type_SmartEvent >> $gaiaversionoutputfile
+echo "System Type : SmEv Correlation Unit :"$sys_type_SmartEvent_CorrelationUnit >> $gaiaversionoutputfile
+echo "System Type : GATEWAY               :"$sys_type_GW >> $gaiaversionoutputfile
+echo "System Type : STANDALONE            :"$sys_type_STANDALONE >> $gaiaversionoutputfile
+echo "System Type : VSX                   :"$sys_type_VSX >> $gaiaversionoutputfile
+echo "System Type : UEPM Installed        :"$sys_type_UEPM_Installed >> $gaiaversionoutputfile
+echo "System Type : UEPM Endpoint Server  :"$sys_type_UEPM_EndpointServer >> $gaiaversionoutputfile
+echo "System Type : UEPM Policy Server    :"$sys_type_UEPM_PolicyServer >> $gaiaversionoutputfile
 echo >> $gaiaversionoutputfile
 
 # -------------------------------------------------------------------------------------------------

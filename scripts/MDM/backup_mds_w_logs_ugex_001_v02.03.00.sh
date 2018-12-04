@@ -1,19 +1,20 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to report on cp management processes
+# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
+# using mds_backup
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.03.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x03x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="report_cpwd_admin_list.v$ScriptVersion"
-export BASHScriptShortName="Report_Management_Processes"
-export BASHScriptDescription="Report on Check Point management processess"
+export BASHScriptName=backup_w_logs_mds_ugex_001_v$ScriptVersion
+export BASHScriptShortName=log_mds_backup_logs_ugex
+export BASHScriptDescription="Template for bash scripts"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -43,20 +44,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./backups
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=true
+export OutputSubfolderScriptShortName=false
 
 export notthispath=/home/
 export startpathroot=.
@@ -868,7 +869,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -890,15 +891,16 @@ esac
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "Continueing with reporting of admin processes..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
     echo "System is Multi-Domain Management Server!"
     echo
-    echo "Continueing with reporting of admin processes..."
+    echo "Continueing with MDS Backup..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "This script is not meant for SMS, exiting!"
+    exit 255
     echo
 else
     echo "System is a gateway!"
@@ -912,60 +914,142 @@ fi
 # Setup script values
 # -------------------------------------------------------------------------------------------------
 
-
 export outputfilepath=$outputpathbase/
-export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATEDTGS
+export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATE
 export outputfiletype=.txt
 
-if [ ! -r $outputfilepath ] ; then
-    mkdir $outputfilepath
-    chmod 775 $outputfilepath
-else
-    chmod 775 $outputfilepath
+if [ ! -r $outputfilepath ]; then
+    mkdir $outputfilepath | tee -a -i $logfilepath
 fi
 
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export command2run='mds_backup -b -i -s -d'
+export outputfile=$outputfileprefix'_mds_backup-bisd'$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-touch $outputfilefqdn
+echo | tee -a -i $logfilepath
+echo 'Execute command : '"$command2run"' '"$outputfilepath" | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------'
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cd "$outputfilepath" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+pwd | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+mdsstat | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+#else
+#    # test mode
+#    echo 'Test Mode!' | tee -a -i $logfilepath
+#    echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#fi
+#
+
+echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+
+
+echo 'Execute > mds_backup -b -i -s -d '"$outputfilepath" >> tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
-    echo
-else
-    watch -d -n 1 "cpwd_admin list"
-    echo
-fi
+mds_backup -b -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
 
-
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
-
-cpwd_admin list | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
 
-$MDS_FWDIR/scripts/cpm_status.sh
-echo
-cpwd_admin list
-echo
+
+echo | tee -a -i $logfilepath
+echo 'Done performing mds_backup' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+ls -alh $outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'CLI Operations Completed' | tee -a -i $logfilepath
+
+#
+# shell clean-up and log dump
+#
+
+echo | tee -a -i $logfilepath
+ls -alh $outputpathroot | tee -a -i $logfilepath
+
+cd "$outputpathroot" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+pwd | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i  | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================

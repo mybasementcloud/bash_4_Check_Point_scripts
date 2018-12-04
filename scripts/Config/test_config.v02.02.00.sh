@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# Gateway - Reset Hit Count to zero, backing up current
+# SCRIPT test stuff for config
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=reset_hit_count_with_backup_001_v$ScriptVersion
-export BASHScriptShortName=reset_hit_count
-export BASHScriptDescription="Reset Hit Count to zero, backing up current"
+export BASHScriptName=test_config.v$ScriptVersion
+export BASHScriptShortName=test_for_config
+export BASHScriptDescription="test stuff for config"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +33,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -43,8 +43,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -868,7 +868,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -885,76 +885,149 @@ esac
 #==================================================================================================
 #==================================================================================================
 
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Example framework for executing bash commands and documenting those specifically
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "This script is not meant for management, exiting!"
-    exit 255
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "This script is not meant for management, exiting!"
-    exit 255
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
+
+#export targetversion=$gaiaversion
+#
+#export outputfilepath=$outputpathbase/
+#export outputfileprefix=$HOSTNAME'_'$targetversion
+#export outputfilesuffix='_'$DATEDTGS
+#export outputfiletype=.txt
+#
+#if [ ! -r $outputfilepath ] ; then
+#    mkdir $outputfilepath
+#    chmod 775 $outputfilepath
+#else
+#    chmod 775 $outputfilepath
+#fi
+#
+
+#case "$gaiaversion" in
+#    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+#        export do_session_cleanup=true
+#        ;;
+#    *)
+#        export do_session_cleanup=false
+#        ;;
+#esac
+#
+#if [ "$do_session_cleanup" == "true" ]; then
+#
+
+echo '! doing something !' 
+
+#----------------------------------------------------------------------------------------
+# bash - ?what next?
+#----------------------------------------------------------------------------------------
+
+#export command2run=command
+#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+#export outputfilefqdn=$outputfilepath$outputfile
+#
+#echo
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn
+#command > "$outputfilefqdn"
+#
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#echo 'fwacell stats -s' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#
+#fwaccel stats -s >> "$outputfilefqdn"
+#
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+
+export notthispath=/home/
+export startpathroot=.
+export alternatepathroot=$customerpathroot
+
+export expandedpath=$(cd $startpathroot ; pwd)
+export startpathroot=$expandedpath
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+
+if [ $isitthispath -eq 1 ] ; then
+    #Oh, Oh, we're in the home directory executing, not good!!!
+    #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
+    echo 'looks like we are in home path'
+    export outputpathroot=$alternatepathroot
 else
-    echo "System is a gateway!"
-    echo
-    echo "Continueing with Hit Counte Reset..."
+    #OK use the current folder and create host_data sub-folder
+    echo 'NOT in home path'
+    export outputpathroot=$startpathroot
 fi
 
+echo '1 expandedpath   = '\"$expandedpath\"
+echo '1 checkthispath  = '\"$checkthispath\"
+echo '1 isitthispath   = '\"$isitthispath\"
+echo '1 outputpathroot = '\"$outputpathroot\"
+echo
 
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
+if [ ! -r $outputpathroot ] ; then
+    #not where we're expecting to be, since $outputpathroot is missing here
+    #OK, so make the expected folder and set permissions we need
+    mkdir $outputpathroot
+    chmod 775 $outputpathroot
+else
+    #set permissions we need
+    chmod 775 $outputpathroot
+fi
+
+#Now that outputroot is not in /home/ let's work on where we are working from
+
+export expandedpath=$(cd $outputpathroot ; pwd)
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+export outputpathroot=${expandedpath}
+
+echo '2 expandedpath   = '\"$expandedpath\"
+echo '2 checkthispath  = '\"$checkthispath\"
+echo '2 isitthispath   = '\"$isitthispath\"
+echo '2 outputpathroot = '\"$outputpathroot\"
+echo
+
+echo
+export gaia_kernel_version=$(uname -r)
+export kernelv2x06=2.6
+export kernelv3x10=3.10
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv2x06"`
+export isitoldkernel=`test -z $checkthiskernel; echo $?`
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
+export isitnewkernel=`test -z $checkthiskernel; echo $?`
+
+if [ $isitoldkernel -eq 1 ] ; then
+    echo "OLD Kernel version $gaia_kernel_version"
+elif [ $isitnewkernel -eq 1 ]; then
+    echo "NEW Kernel version $gaia_kernel_version"
+else
+    echo "Kernel version $gaia_kernel_version"
+fi
+echo
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
 
-export workfilepath=$CPDIR/database/cpeps
-export bufilepath=$workfilepath/BACKUP.$DATEDTGS
+echo 'CLI Operations Completed'
 
-echo | tee -a -i $logfilepath
-echo 'Start operation to reset hit count on '$HOSTNAME' at '$DATEDTGS | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cd $workfilepath/ | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-
-mkdir $bufilepath | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-
-echo 'Stop gateway services again' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cpstop | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-
-echo 'Backup hit count files to '$bufilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cp *1.3.6.1.4.1.2620.1.45.5* $bufilepath/ | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Remove hit count files' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-rm *1.3.6.1.4.1.2620.1.45.5* | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Start gateway services again' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cpstart | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Finished operation to reset hit count on '$HOSTNAME' at '$DATEDTGS | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
 #==================================================================================================
@@ -975,7 +1048,6 @@ echo | tee -a -i $logfilepath
 #==================================================================================================
 
 echo
-echo 'List folder : '$outputpathbase
 ls -alh $outputpathbase
 echo
 

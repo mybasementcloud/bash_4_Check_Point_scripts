@@ -1,19 +1,21 @@
 #!/bin/bash
 #
-# SCRIPT generate an array of domains and show that array
+# SCRIPT Delete all logs and indexes from SmartEvent/SmartLog
+# Based on sk111734 - How to remove all logs and events from R80.x SmartEvent Server
+# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk111734
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=show_all_domains_in_array.v$ScriptVersion
-export BASHScriptShortName=show_all_domains_in_array
-export BASHScriptDescription="Template for bash scripts"
+export BASHScriptName=NUKE_ALL_LOGS_AND_INDEXES_v$ScriptVersion
+export BASHScriptShortName=NUKE_ALL_LOGS_AND_INDEXES
+export BASHScriptDescription="elete all logs and indexes from SmartEvent/SmartLog"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -868,7 +870,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -885,101 +887,130 @@ esac
 #==================================================================================================
 #==================================================================================================
 
+
 #----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Generate list of domains in Array
-#
-#----------------------------------------------------------------------------------------
+# Check if operation allowed based on version and installation type
 #----------------------------------------------------------------------------------------
 
 
-if [ "$sys_type_MDS" != "true" ]; then
-    
-    echo | tee -a -i $logfilepath
-    echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i $logfilepath
-    echo 'Exiting...!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+if $sys_type_STANDALONE; then
+    # Standalone installations can be re-indexed
+    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+elif $sys_type_GW; then
+    # echo not doing reset indexing, this is gateway
+    echo 'Wrong installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Wrong installation type for '$BASHScriptName' ! ' >> $logfilepath
+    echo 'Exiting... ' | tee -a -i $outputfilefqdn
+    echo 'Exiting... ' >> $logfilepath
     exit 255
-    
+else
+    # echo doing reset indexing
+    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
 fi
 
-echo | tee -a -i $logfilepath
-echo 'Generate Array with list of domains on MDS' | tee -a -i $logfilepath
-echo  | tee -a -i $logfilepath
+echo | tee -a -i $outputfilefqdn
 
-#clish -c "show web ssl-port"
-#MGMTSSLPORT=4344
-clish -i -c "lock database override" >> $logfilepath
-clish -i -c "lock database override" >> $logfilepath
 
-GETWEBSSLPORT=`clish -c "show web ssl-port" | awk '{print $2}'`
-export MGMTSSLPORT=$GETWEBSSLPORT
+case "$gaiaversion" in
+    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+        export do_nuke_logs=true
+        ;;
+    *)
+        export do_nuke_logs=false
+        ;;
+esac
 
-echo 'web SSL Port = '$MGMTSSLPORT | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+if ! $do_nuke_logs; then
+    # echo not doing reset indexing
+    echo 'Wrong version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Wrong version for '$BASHScriptName' ! ' >> $logfilepath
+    echo 'Exiting... ' | tee -a -i $outputfilefqdn
+    echo 'Exiting... ' >> $logfilepath
+    exit 255
+else
+    # echo not doing reset indexing
+    echo 'Supported version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+fi
 
-DOMAINSARRAY=()
 
-GETDOMAINS="`mgmt_cli show domains -r true --port $MGMTSSLPORT --format json | jq '.objects[].name'`"
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-echo 'Populate array of domains : ' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+export targetversion=$gaiaversion
 
-line="\"System Data\""
-DOMAINSARRAY+=("$line")
-echo -n 'Domains :  '$line | tee -a -i $logfilepath
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
 
-line="\"Global\""
-DOMAINSARRAY+=("$line")
-echo -n ', '$line | tee -a -i $logfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir $outputfilepath
+    chmod 775 $outputfilepath
+else
+    chmod 775 $outputfilepath
+fi
 
-arraylength=2
-while read -r line; do
+export outputfile='NUKE_ALL_LOGS_AND_INDEXES_'$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
-    if [ $arraylength -eq 0 ]; then
-    	echo -n 'Domains :  ' | tee -a -i $logfilepath
-    else
-    	echo -n ', ' | tee -a -i $logfilepath
-    fi
+export garbagedumpfolder=/var/tmp/$DATEDTGS'.NUKE_ALL_LOGS_AND_INDEXES'
 
-    DOMAINSARRAY+=("$line")
-    echo -n $line | tee -a -i $logfilepath
+if [ ! -r $garbagedumpfolder ] ; then
+    mkdir $garbagedumpfolder >> $outputfilefqdn
+    chmod 775 $garbagedumpfolder >> $outputfilefqdn
+else
+    chmod 775 $garbagedumpfolder >> $outputfilefqdn
+fi
 
-    #if [ "$line" == 'lo' ]; then
-    #    echo -n 'Not adding '$line | tee -a -i $logfilepath
-    #else 
-    #    DOMAINSARRAY+=("$line")
-    #    echo -n $line | tee -a -i $logfilepath
-    #fi
-	
-	arraylength=${#DOMAINSARRAY[@]}
-	arrayelement=$((arraylength-1))
-	
-done <<< "$GETDOMAINS"
-echo | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
 
-echo 'Show list of domains in array' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-for j in "${DOMAINSARRAY[@]}"
-do
-    echo "${j}" | tee -a -i $logfilepath
-done
+#----------------------------------------------------------------------------------------
+# Proceed with operations
+#----------------------------------------------------------------------------------------
+
+
+#Stop Check Point services:
+
+cpstop | tee -a -i $outputfilefqdn
+ 
+#Backup and remove the following files:
+#
+#Note: If you do not want to have the events and logs indexed again, then do not remove the $INDEXERDIR/data/FetchedFiles file.
+
+mv $INDEXERDIR/data/FetchedFiles $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/other* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/firewallandvpn* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/audit* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/smartevent* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+# On R80.10, also remove:
+
+mv $RTDIR/log_indexes/other-smartlog* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/resources* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+mv $RTDIR/log_indexes/files* $garbagedumpfolder | tee -a -i $outputfilefqdn
+
+# Start Check Point services:
+cpstart | tee -a -i $outputfilefqdn
+
+read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
 echo
 
-echo 'Raw dump of domains array : ' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo ${DOMAINSARRAY[@]} | tee -a -i $logfilepath
-#echo ${DOMAINSARRAY[*]} | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+#
 
-echo Done! | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
 
 #==================================================================================================
 #==================================================================================================

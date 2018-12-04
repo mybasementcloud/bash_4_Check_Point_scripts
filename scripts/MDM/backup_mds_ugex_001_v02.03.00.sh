@@ -1,19 +1,20 @@
 #!/bin/bash
 #
-# SCRIPT Configure script link files and copy versioned scripts to generics
+# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
+# using mds_backup
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.04.00
-ScriptDate=2018-11-20
+ScriptVersion=02.03.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x04x00
+export BASHScriptVersion=v02x03x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName="generate_script_links.v$ScriptVersion"
-export BASHScriptShortName="generate_links"
-export BASHScriptDescription="Generate Script Links"
+export BASHScriptName=backup_mds_ugex_001_v$ScriptVersion
+export BASHScriptShortName=log_mds_backup_ugex
+export BASHScriptDescription="Template for bash scripts"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -33,7 +34,7 @@ export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -43,20 +44,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./backups
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=true
+export OutputSubfolderScriptShortName=false
 
 export notthispath=/home/
 export startpathroot=.
@@ -311,7 +312,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -323,10 +324,26 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-10-03 -
+    # MODIFIED 2018-11-20 -
     
-    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
+    export configured_handler_root=$cli_script_cmdlineparm_handler_root
+    export actual_handler_root=$configured_handler_root
     
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -339,6 +356,8 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
+            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
+            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -444,10 +463,57 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
+# GetScriptSourceFolder - Get the actual source folder for the running script
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+GetScriptSourceFolder () {
+    #
+    # repeated procedure description
+    #
+
+    echo >> $logfilepath
+
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+        TARGET="$(readlink "$SOURCE")"
+        if [[ $TARGET == /* ]]; then
+            echo "SOURCE '$SOURCE' is an absolute symlink to '$TARGET'" >> $logfilepath
+            SOURCE="$TARGET"
+        else
+            DIR="$( dirname "$SOURCE" )"
+            echo "SOURCE '$SOURCE' is a relative symlink to '$TARGET' (relative to '$DIR')" >> $logfilepath
+            SOURCE="$DIR/$TARGET" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+        fi
+    done
+
+    echo "SOURCE is '$SOURCE'" >> $logfilepath
+
+    RDIR="$( dirname "$SOURCE" )"
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    if [ "$DIR" != "$RDIR" ]; then
+        echo "DIR '$RDIR' resolves to '$DIR'" >> $logfilepath
+    fi
+    echo "DIR is '$DIR'" >> $logfilepath
+    
+    export ScriptSourceFolder=$DIR
+
+    echo >> $logfilepath
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
+
+
+# -------------------------------------------------------------------------------------------------
 # ConfigureJQforJSON - Configure JQ variable value for JSON parsing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureJQforJSON () {
@@ -485,7 +551,7 @@ ConfigureJQforJSON () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-22
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -601,8 +667,26 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
+    # MODIFIED 2018-11-20 -
     
+    export configured_handler_root=$gaia_version_type_handler_root
+    export actual_handler_root=$configured_handler_root
+    
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -728,6 +812,15 @@ echo | tee -a -i $logfilepath
 
 
 # -------------------------------------------------------------------------------------------------
+# Script Source Folder
+# -------------------------------------------------------------------------------------------------
+
+# We need the Script's actual source folder to find subscripts
+#
+GetScriptSourceFolder
+
+
+# -------------------------------------------------------------------------------------------------
 # JQ and json related
 # -------------------------------------------------------------------------------------------------
 
@@ -776,7 +869,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -794,458 +887,169 @@ esac
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Scripts link generation and setup
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
 
-
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
-
-
-if [ ! -r $workingbase ] ; then
-    echo | tee -a -i $logfilepath
-    echo Error! | tee -a -i $logfilepath
-    echo Missing folder $workingbase | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo Exiting! | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "Continueing with MDS Backup..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "This script is not meant for SMS, exiting!"
     exit 255
+    echo
 else
-    chmod 775 $workingbase | tee -a -i $logfilepath
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
 fi
 
 
-if [ ! -r $linksbase ] ; then
-    mkdir $linksbase | tee -a -i $logfilepath
-    chmod 775 $linksbase | tee -a -i $logfilepath
-else
-    chmod 775 $linksbase | tee -a -i $logfilepath
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
+
+export outputfilepath=$outputpathbase/
+export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATE
+export outputfiletype=.txt
+
+if [ ! -r $outputfilepath ]; then
+    mkdir $outputfilepath | tee -a -i $logfilepath
 fi
 
-if [ -r $workingbase/updatescripts.sh ] ; then
-    chmod 775 $workingbase/updatescripts.sh | tee -a -i $logfilepath
-    cp $workingbase/updatescripts.sh $workingroot | tee -a -i $logfilepath
-fi
-
-
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_gaia_version=determine_gaia_version_and_installation_type.v02.01.00.sh
-
-file_godump=go_dump_folder_now.v00.05.00.sh
-file_mkdump=make_dump_folder_now.v00.05.00.sh
-file_godumpdtg=go_dump_folder_now_dtg.v00.05.00.sh
-file_mkdumpdtg=make_dump_folder_now_dtg.v00.05.00.sh
-file_goChgLogdtg=go_change_log_folder_now_dtg.v00.05.00.sh
-
-ln -sf $sourcefolder/$file_gaia_version $linksfolder/gaia_version_type
-ln -sf $sourcefolder/$file_gaia_version $workingroot/gaia_version_type
-
-ln -sf $sourcefolder/$file_godump $linksfolder/godump
-ln -sf $sourcefolder/$file_godump $workingroot/godump
-ln -sf $sourcefolder/$file_godumpdtg $linksfolder/godtgdump
-ln -sf $sourcefolder/$file_godumpdtg $workingroot/godtgdump
-
-ln -sf $sourcefolder/$file_goChgLogdtg $linksfolder/goChangeLog
-ln -sf $sourcefolder/$file_goChgLogdtg $workingroot/goChangeLog
-
-ln -sf $sourcefolder/$file_mkdump $linksfolder/mkdump
-ln -sf $sourcefolder/$file_mkdump $workingroot/mkdump
-ln -sf $sourcefolder/$file_mkdumpdtg $linksfolder/mkdtgdump
-ln -sf $sourcefolder/$file_mkdumpdtg $workingroot/mkdtgdump
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_configcapture=config_capture_005_v02.03.00.sh
-file_interface_info=show_interface_information_v02.01.00.sh
-
-ln -sf $sourcefolder/$file_configcapture $linksfolder/config_capture
-ln -sf $sourcefolder/$file_interface_info $linksfolder/interface_info
-ln -sf $sourcefolder/$file_configcapture $workingroot/config_capture
-ln -sf $sourcefolder/$file_interface_info $workingroot/interface_info
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
-
-
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_watch_accel_stats=watch_accel_stats.v02.01.00.sh
-file_set_inf_log_implied=set_informative_logging_implied_rules_on_R8x.v02.01.00.sh
-file_reset_hitcount_w_bu=reset_hit_count_with_backup_001_v02.01.00.sh
-
-
-ln -sf $sourcefolder/$file_watch_accel_stats $linksfolder/watch_accel_stats
-ln -sf $sourcefolder/$file_set_inf_log_implied $linksfolder/set_informative_logging_implied_rules_on_R8x
-
-ln -sf $sourcefolder/$file_reset_hitcount_w_bu $linksfolder/reset_hit_count_with_backup
-
-if [ "$sys_type_GW" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_watch_accel_stats $workingroot/watch_accel_stats
-    ln -sf $sourcefolder/$file_set_inf_log_implied $workingroot/set_informative_logging_implied_rules_on_R8x
-    
-    ln -sf $sourcefolder/$file_reset_hitcount_w_bu $workingroot/reset_hit_count_with_backup
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
-
-
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-
-file_healthcheck=healthcheck.sh
-file_healthdump=run_healthcheck_to_dump_dtg.v02.01.00.sh
-file_cpservicecheck=check_status_checkpoint_services.v02.01.00.sh
-
-ln -sf $sourcefolder/$file_healthcheck $linksfolder/healthcheck
-ln -sf $sourcefolder/$file_healthcheck $workingroot/healthcheck
-ln -sf $sourcefolder/$file_healthdump $linksfolder/healthdump
-ln -sf $sourcefolder/$file_healthdump $workingroot/healthdump
-ln -sf $sourcefolder/$file_cpservicecheck $linksfolder/checkpoint_service_status_check
-ln -sf $sourcefolder/$file_cpservicecheck $workingroot/checkpoint_service_status_check
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
-
-
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_backup_mds=backup_mds_ugex_001_v02.02.00.sh
-file_backup_mds_w_logs=backup_mds_w_logs_ugex_001_v02.02.00.sh
-file_report_mdsstat=report_mdsstat.v02.01.00.sh
-file_watch_mdsstat=watch_mdsstat.v02.01.00.sh
-file_show_domains_in_array=show_all_domains_in_array.v02.01.00.sh
-
-ln -sf $sourcefolder/$file_backup_mds $linksfolder/backup_mds_ugex
-ln -sf $sourcefolder/$file_backup_mds_w_logs $linksfolder/backup_mds_w_logs_ugex
-ln -sf $sourcefolder/$file_report_mdsstat $linksfolder/report_mdsstat
-ln -sf $sourcefolder/$file_watch_mdsstat $linksfolder/watch_mdsstat
-ln -sf $sourcefolder/$file_show_domains_in_array $linksfolder/show_domains_in_array
-
-if [ "$sys_type_MDS" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_backup_mds $workingroot/backup_mds_ugex
-    ln -sf $sourcefolder/$file_backup_mds_w_logs $workingroot/backup_mds_w_logs_ugex
-    ln -sf $sourcefolder/$file_report_mdsstat $workingroot/report_mdsstat
-    ln -sf $sourcefolder/$file_watch_mdsstat $workingroot/watch_mdsstat
-    ln -sf $sourcefolder/$file_show_domains_in_array $workingroot/show_domains_in_array
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_patch_fix_webui_standard=fix_gaia_webui_login_dot_js.sh
-file_patch_fix_webui_generic=fix_gaia_webui_login_dot_js_generic.sh
-
-export need_fix_webui=false
-
-case "$gaiaversion" in
-    R80.20.M1 | R80.20 ) 
-        export need_fix_webui=false
-        ;;
-    *)
-        export need_fix_webui=true
-        ;;
-esac
-
-if [ "$need_fix_webui" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_patch_fix_webui_standard $linksfolder/fix_gaia_webui_login_dot_js
-    ln -sf $sourcefolder/$file_patch_fix_webui_standard $workingroot/fix_gaia_webui_login_dot_js
-    
-    ln -sf $sourcefolder/$file_patch_fix_webui_generic $linksfolder/fix_gaia_webui_login_dot_js_generic
-
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
-
-
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_rem_zl_sessions=remove_zerolocks_sessions.v02.00.00.sh
-file_rem_zl_sessions_webapi=remove_zerolocks_web_api_sessions.v02.00.00.sh
-file_show_zl_sessions=show_zerolocks_sessions.v02.00.00.sh
-file_show_zl_sessions_webapi=show_zerolocks_web_api_sessions.v02.00.00.sh
-
-export do_session_cleanup=false
-
-case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
-        export do_session_cleanup=true
-        ;;
-    *)
-        export do_session_cleanup=false
-        ;;
-esac
-
-if [ "$do_session_cleanup" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_show_zl_sessions $linksfolder/show_zerolocks_sessions
-    ln -sf $sourcefolder/$file_show_zl_sessions_webapi $linksfolder/show_zerolocks_web_api_sessions
-    ln -sf $sourcefolder/$file_rem_zl_sessions $linksfolder/remove_zerolocks_sessions
-    ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $linksfolder/remove_zerolocks_web_api_sessions
-
-    if [ "$sys_type_GW" == "false" ]; then
-        
-        ln -sf $sourcefolder/$file_show_zl_sessions $workingroot/show_zerolocks_sessions
-        ln -sf $sourcefolder/$file_show_zl_sessions_webapi $workingroot/show_zerolocks_web_api_sessions
-        ln -sf $sourcefolder/$file_rem_zl_sessions $workingroot/remove_zerolocks_sessions
-        ln -sf $sourcefolder/$file_rem_zl_sessions_webapi $workingroot/remove_zerolocks_web_api_sessions
-            
-    fi
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
-
-
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_smev_backup=SmartEvent_Backup_R8X_v02.01.00.sh
-file_smev_restore=SmartEvent_Restore_R8X_v02.01.06.sh
-file_smev_reset_indexing=Reset_SmartLog_Indexing_Back_X_Days_v02.01.00.sh
-file_smev_nuke=NUKE_ALL_LOGS_AND_INDEXES_v02.01.00.sh
-
-ln -sf $sourcefolder/$file_smev_backup $linksfolder/SmartEvent_backup
-ln -sf $sourcefolder/$file_smev_restore $linksfolder/SmartEvent_restore
-ln -sf $sourcefolder/$file_smev_reset_indexing $linksfolder/Reset_SmartEvent_Indexing
-ln -sf $sourcefolder/$file_smev_nuke $linksfolder/SmartEvent_NUKE_Index_and_Logs
-
-if [ "$sys_type_SmartEvent" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_smev_backup $workingroot/SmartEvent_backup
-    #ln -sf $sourcefolder/$file_smev_restore $workingroot/SmartEvent_restore
-    #ln -sf $sourcefolder/$file_smev_reset_indexing $workingroot/Reset_SmartLog_Indexing
-    #ln -sf $sourcefolder/$file_smev_nuke $workingroot/SmartEvent_NUKE_Index_and_Logs
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
-
-
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_migrate_export_npm=migrate_export_npm_ugex_001_v02.02.00.sh
-file_migrate_export_w_logs_npm=migrate_export_w_logs_npm_ugex_001_v02.02.00.sh
-file_migrate_export_epm=migrate_export_epm_ugex_001_v02.02.00.sh
-file_migrate_export_w_logs_epm=migrate_export_w_logs_epm_ugex_001_v02.02.00.sh
-file_mgmt_report=report_cpwd_admin_list.v02.01.00.sh
-file_mgmt_restart=restart_mgmt.v02.01.00.sh
-file_mgmt_watch=watch_cpwd_admin_list.v02.01.00.sh
-file_reset_hitcount_sms=reset_hit_count_on_R80_SMS_commands_001_v00.01.00.sh
-
-ln -sf $sourcefolder/$file_migrate_export_npm $linksfolder/migrate_export_npm_ugex
-ln -sf $sourcefolder/$file_migrate_export_w_logs_npm $linksfolder/migrate_export_w_logs_npm_ugex
-ln -sf $sourcefolder/$file_mgmt_restart $linksfolder/restart_mgmt
-ln -sf $sourcefolder/$file_mgmt_report $linksfolder/report_cpwd_admin_list
-ln -sf $sourcefolder/$file_mgmt_watch $linksfolder/watch_cpwd_admin_list
-
-ln -sf $sourcefolder/$file_reset_hitcount_sms $linksfolder/reset_hit_count_on_R80_SMS_commands
-
-ln -sf $sourcefolder/$file_mgmt_report $workingroot/report_cpwd_admin_list
-
-if [ "$sys_type_SMS" == "true" ]; then
-    
-    ln -sf $sourcefolder/$file_migrate_export_npm $workingroot/migrate_export_npm_ugex
-    ln -sf $sourcefolder/$file_migrate_export_w_logs_npm $workingroot/migrate_export_w_logs_npm_ugex
-    ln -sf $sourcefolder/$file_mgmt_restart $workingroot/restart_mgmt
-    ln -sf $sourcefolder/$file_mgmt_watch $workingroot/watch_cpwd_admin_list
-    
-    ln -sf $sourcefolder/$file_reset_hitcount_sms $workingroot/reset_hit_count_on_R80_SMS_commands
-    
-fi
-
-if [ $Check4EPM -gt 0 ]; then
-
-    ln -sf $sourcefolder/$file_migrate_export_epm $linksfolder/migrate_export_epm_ugex
-    ln -sf $sourcefolder/$file_migrate_export_w_logs_epm $linksfolder/migrate_export_w_logs_epm_ugex
-
-    ln -sf $sourcefolder/$file_migrate_export_epm $workingroot/migrate_export_epm_ugex
-    ln -sf $sourcefolder/$file_migrate_export_w_logs_epm $workingroot/migrate_export_w_logs_epm_ugex
-
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
-
-
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-if [ ! -r $linksfolder ] ; then
-    mkdir $linksfolder | tee -a -i $logfilepath
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-else
-    chmod 775 $linksfolder | tee -a -i $logfilepath
-fi
-
-file_add_allias_all=add_alias_commands.all.v02.01.00.sh
-
-ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands
-ln -sf $sourcefolder/$file_add_allias_all $workingroot/add_alias_commands
-
-ln -sf $sourcefolder/$file_add_allias_all $linksfolder/add_alias_commands.all
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
+export command2run='mds_backup -b -l -i -s -d'
+export outputfile=$outputfileprefix'_mds_backup-blisd'$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
 echo | tee -a -i $logfilepath
-echo 'List folder : '$workingroot | tee -a -i $logfilepath
-ls -alh $workingroot | tee -a -i $logfilepath
+echo 'Execute command : '"$command2run"' '"$outputfilepath" | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-echo 'List folder : '$workingbase | tee -a -i $logfilepath
-ls -alh $workingbase | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------'
+
 echo | tee -a -i $logfilepath
-echo 'List folder : '$linksbase | tee -a -i $logfilepath
-ls -alh $linksbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done with links generation!' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-# =============================================================================
-# =============================================================================
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+cd "$outputfilepath" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+pwd | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+mdsstat | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+echo | tee -a -i $logfilepath
+echo 'mdsstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+mdsstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+#else
+#    # test mode
+#    echo 'Test Mode!' | tee -a -i $logfilepath
+#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#fi
 #
+
+echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+
+
+echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" >> tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+echo | tee -a -i $logfilepath
+echo 'Done performing mds_backup' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+ls -alh $outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'CLI Operations Completed' | tee -a -i $logfilepath
+
+#
+# shell clean-up and log dump
+#
+
+echo | tee -a -i $logfilepath
+ls -alh $outputpathroot | tee -a -i $logfilepath
+
+cd "$outputpathroot" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+pwd | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i  | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================
@@ -1268,6 +1072,8 @@ echo | tee -a -i $logfilepath
 echo
 echo 'List folder : '$outputpathbase
 ls -alh $outputpathbase
+echo
+
 echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath

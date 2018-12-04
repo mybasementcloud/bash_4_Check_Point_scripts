@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute restart of cp processes
+# SCRIPT Template for bash scripts, level - 005
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-11-20
+ScriptVersion=02.02.00
+ScriptDate=2018-12-03
 #
 
-export BASHScriptVersion=v02x01x00
+export BASHScriptVersion=v02x02x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
-export BASHScriptName=restart_mgmt.v$ScriptVersion
-export BASHScriptShortName=Restart_CP_Processes
-export BASHScriptDescription="Restart Check Point processes"
+export BASHScriptName="show_interface_information.v$ScriptVersion"
+export BASHScriptShortName="interface_info"
+export BASHScriptDescription="Collect and show interface related information for all interfaces"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -49,7 +49,7 @@ export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=dump
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
@@ -66,8 +66,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
-export KeepGaiaVersionResultsFile=false
+export ShowGaiaVersionResults=false
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -868,7 +867,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -886,110 +885,519 @@ esac
 #==================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "Continueing with Migrate Export..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "This script is not meant for MDM, exiting!"
-    exit 255
-else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
-    exit 255
-fi
-
-
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
-
+export targetversion=$gaiaversion
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=restart_mgmt_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=$HOSTNAME'_'$targetversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
-
-if [ ! -r $outputfilepath ] 
-then
-    mkdir $outputfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+
+#----------------------------------------------------------------------------------------
+# bash - generate device and system information via dmidecode
+#----------------------------------------------------------------------------------------
+
+export command2run=dmidecode
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-touch $outputfilefqdn
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+dmidecode > "$outputfilefqdn"
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
 
-cpwd_admin list | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
+#----------------------------------------------------------------------------------------
+# bash - collect /var/log/dmesg and copy if it exists
+#----------------------------------------------------------------------------------------
 
-cpstop | tee -a -i $outputfilefqdn
+# /var/log/dmesg
+export file2copy=dmesg
+export file2copypath="/var/log/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
-echo | tee -a -i $outputfilefqdn
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
+dmesg > $outputfilefqdn
 
-cpwd_admin list | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
+# Gaia should have /var/log/dmesg file
+#
 
-echo "Short $WAITTIME second nap..."
-sleep $WAITTIME
-
-cpstart | tee -a -i $outputfilefqdn
-
-echo | tee -a -i $outputfilefqdn
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
-
-cpwd_admin list | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
+if [ ! -r $file2copypath ] ; then
     echo
+    echo 'No '$file2copy' file at :  '$file2copypath
 else
-    watch -d -n 1 "cpwd_admin list"
+    echo
+    echo 'found '$file2copy' file at :  '$file2copypath
+    echo
+    echo 'copy '$file2copy' to : '"$outputfilepath"
+    cp "$file2copypath" "$outputfilepath"
+fi
+echo
+    
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/modprobe.conf and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/modprobe.conf
+export file2copy=modprobe.conf
+export file2copypath="/etc/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+find / -name $file2copy | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo 'Find all file variants : '$file2copy*' and document locations' | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+find / -name $file2copy* | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+# Gaia should have /etc/modprobe.conf file
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo | tee -a -i $outputfilefqdn
+    echo 'No '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+    echo 'found '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    echo 'copy '$file2copy' to : '"$outputfilepath" | tee -a -i $outputfilefqdn
+    cp "$file2copypath" "$outputfilepath" | tee -a -i $outputfilefqdn
+
+    echo | tee -a -i $outputfilefqdn
+    echo 'Contents of '$file2copypath' file' | tee -a -i $outputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    cat "$file2copypath" | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $outputfilefqdn
     echo | tee -a -i $outputfilefqdn
 fi
+echo
+    
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
+#----------------------------------------------------------------------------------------
+# bash - gather interface details - lspci
+#----------------------------------------------------------------------------------------
+
+export command2run=lspci
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+lspci -n -v > "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details
+#----------------------------------------------------------------------------------------
+
+export command2run=ifconfig
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqdn
+ifconfig > "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - Collect Interface Information per interface
+#----------------------------------------------------------------------------------------
+
+export command2run=interfaces_details
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export dmesgfilefqdn=$outputfilepath'dmesg'
+if [ ! -r $dmesgfilefqdn ] ; then
+    echo
+    echo 'No dmesg file at :  '$dmesgfilefqdn
+    echo 'Generating dmesg file!'
+    echo
+    dmesg > $dmesgfilefqdn
 else
-    echo | tee -a -i $outputfilefqdn
+    echo
+    echo 'found dmesg file at :  '$dmesgfilefqdn
+    echo
 fi
+echo
 
-cpwd_admin list | tee -a -i $outputfilefqdn
+echo > $outputfilefqdn
+echo 'Executing commands for '$command2run' with output to file : '$outputfilefqdn | tee -a -i $outputfilefqdn
 echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+
+clish -i -c "show interfaces" | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+IFARRAY=()
+
+GETINTERFACES="`clish -i -c "show interfaces"`"
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo 'Build array of interfaces : ' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+arraylength=0
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo -n 'Interfaces :  ' | tee -a -i $outputfilefqdn
+    else
+    	echo -n ', ' | tee -a -i $outputfilefqdn
+    fi
+
+    #IFARRAY+=("$line")
+    if [ "$line" == 'lo' ]; then
+        echo -n 'Not adding '$line | tee -a -i $outputfilefqdn
+    else 
+        IFARRAY+=("$line")
+    	echo -n $line | tee -a -i $outputfilefqdn
+    fi
+	
+	arraylength=${#IFARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETINTERFACES"
+
+echo | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+echo 'Identified Interfaces in array for detail data collection :' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+for j in "${IFARRAY[@]}"
+do
+    #echo "$j, ${j//\'/}"  | tee -a -i $outputfilefqdn
+    echo $j | tee -a -i $outputfilefqdn
+done
+echo | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+export ifshortoutputfile=$outputfileprefix'_'$command2run'_short'$outputfilesuffix$outputfiletype
+export ifshortoutputfilefqdn=$outputfilepath$ifshortoutputfile
+touch $ifshortoutputfilefqdn
+echo >> $ifshortoutputfilefqdn
+echo '----------------------------------------------------------------------------------------' >> $ifshortoutputfilefqdn
+
+for i in "${IFARRAY[@]}"
+do
+    
+    #------------------------------------------------------------------------------------------------------------------
+    # Short Information
+    #------------------------------------------------------------------------------------------------------------------
+
+    echo 'Interface : '$i >> $ifshortoutputfilefqdn
+    ifconfig $i | grep -i HWaddr >> $ifshortoutputfilefqdn
+    ethtool -i $i | grep -i bus >> $ifshortoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $ifshortoutputfilefqdn
+
+    #------------------------------------------------------------------------------------------------------------------
+    # Detailed Information
+    #------------------------------------------------------------------------------------------------------------------
+
+    export interfaceoutputfile=$outputfileprefix'_'$command2run'_'$i$outputfilesuffix$outputfiletype
+    export interfaceoutputfilefqdn=$outputfilepath$interfaceoutputfile
+    
+    echo 'Executing commands for interface : '$i' with output to file : '$interfaceoutputfilefqdn | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ifconfig $i | tee -a -i $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute clish -i -c "show interface '$i'"' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    clish -i -c "show interface $i" | tee -a -i $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -i '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -i $i >> $interfaceoutputfilefqdn
+
+    echo | tee -a -i $outputfilefqdn
+    cat $interfaceoutputfilefqdn | grep bus | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -g '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -g $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -k '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -k $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute ethtool -S '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    ethtool -S $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    echo 'Execute grep of dmesg for '$i >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+
+    cat $dmesgfilefqdn | grep -i $i >> $interfaceoutputfilefqdn
+
+    echo >> $interfaceoutputfilefqdn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqdn
+    echo >> $interfaceoutputfilefqdn
+    
+    cat $interfaceoutputfilefqdn >> $outputfilefqdn
+    echo >> $outputfilefqdn
+
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+    echo >> $outputfilefqdn
+
+   
+done
+
+echo | tee -a -i $outputfilefqdn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/sysconfig/network and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/network
+export file2copy=network
+export file2copypath="/etc/sysconfig/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# Gaia sould have /etc/sysconfig/network file
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo
+    echo 'No '$file2copy' file at :  '$file2copypath
+else
+    echo
+    echo 'found '$file2copy' file at :  '$file2copypath
+    echo
+    echo 'copy '$file2copy' to : '"$outputfilepath"
+    cp "$file2copypath" "$outputfilefqdn"
+    cp "$file2copypath" "$outputfilepath"
+    #cp "$file2copypath" .
+fi
+echo
+    
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/networking
+#----------------------------------------------------------------------------------------
+
+#/etc/sysconfig/networking
+
+export command2run=etc_sysconfig_networking
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export sourcepath=/etc/sysconfig/networking
+export targetpath=$outputfilepath$command2run/
+
+echo | tee -a -i "$outputfilefqdn"
+echo 'Copy files from '$sourcepath' to '$targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+mkdir $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/network-scripts
+#----------------------------------------------------------------------------------------
+
+#/etc/sysconfig/network-scripts
+
+export command2run=etc_sysconfig_networking_scripts
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export sourcepath=/etc/sysconfig/network-scripts
+export targetpath=$outputfilepath$command2run/
+
+echo | tee -a -i "$outputfilefqdn"
+echo 'Copy files from '$sourcepath' to '$targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+mkdir $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface name rules
+#----------------------------------------------------------------------------------------
+
+export command2run=interfaces_naming_rules
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export file2copy=00-OS-XX.rules
+export file2copypath="/etc/udev/rules.d/$file2copy"
+export file2findpath="/"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+find / -name $file2copy* | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cat "$file2copypath" | tee -a -i "$outputfilefqdn"
+cp "$file2copypath" "$outputfilepath" | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+
+export file2copy=00-ANACONDA.rules
+export file2copypath="/etc/sysconfig/$file2copy"
+export file2findpath="/"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo 'Find file : '$file2copy' and document locations' | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+find / -name $file2copy* | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+
+cat "$file2copypath" | tee -a -i "$outputfilefqdn"
+cp "$file2copypath" "$outputfilepath" | tee -a -i "$outputfilefqdn"
+
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - ?what next?
+#----------------------------------------------------------------------------------------
+
+#export command2run=command
+#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+#export outputfilefqdn=$outputfilepath$outputfile
+
+#echo | tee -a -i $outputfilefqdn
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i $outputfilefqdn
+#command | tee -a -i $outputfilefqdn
+
+#echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+#echo | tee -a -i $outputfilefqdn
+#echo 'fwacell stats -s' | tee -a -i $outputfilefqdn
+#echo | tee -a -i $outputfilefqdn
+#
+#fwaccel stats -s | tee -a -i $outputfilefqdn
+#
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
 
 #==================================================================================================
@@ -1018,6 +1426,7 @@ echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath
 echo
+
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

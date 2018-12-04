@@ -6,12 +6,12 @@
 #
 ScriptTemplateLevel=005
 #ScriptVersion=02.00.00
-ScriptVersion=02.06.00
-ScriptDate=2018-11-20
+ScriptVersion=02.08.00
+ScriptDate=2018-12-03
 #
 
 #export BASHScriptVersion=v02x00x00
-export BASHScriptVersion=v02x06x00
+export BASHScriptVersion=v02x08x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName=_template_bash_scripts_$ScriptTemplateLevel_v$ScriptVersion
 export BASHScriptShortName=_template_$ScriptTemplateLevel_v$ScriptVersion
@@ -870,7 +870,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
         ;;
     *)
