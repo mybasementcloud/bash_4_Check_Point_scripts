@@ -1,14 +1,16 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to Watch mdsstat
+# SCRIPT for BASH to watch cp management processes
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=02.02.00
-ScriptDate=2018-12-03
+ScriptVersion=02.03.00
+ScriptDate=2018-12-16
 #
 
-export BASHScriptVersion=v02x02x00
+export BASHScriptVersion=v02x03x00
+
+export UseJSONJQ=false
 
 # Removing dependency on clish to avoid collissions when database is locked
 #
@@ -42,6 +44,8 @@ export gaiaversion=$platform_release_version
 echo 'Gaia Version : $gaiaversion = '$gaiaversion
 echo
 
+export toolsversion=$gaiaversion
+
 case "$gaiaversion" in
     R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
         export IsR8XVersion=true
@@ -54,10 +58,10 @@ esac
 
 if $IsR8XVersion ; then
     # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;mdsstat"
+    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;cpwd_admin list"
     echo
 else
-    watch -d -n 1 "mdsstat"
+    watch -d -n 1 "cpwd_admin list"
     echo
 fi
 
