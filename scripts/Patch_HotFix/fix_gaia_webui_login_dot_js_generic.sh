@@ -4,11 +4,12 @@
 #
 # (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptVersion=00.02.00  Generic
-ScriptDate=2018-06-30
+RootScriptTemplateLevel=006
+RootScriptVersion=03.00.00 Generic
+RootScriptDate=2018-12-18
 #
 
-export BASHScriptVersion=v00x02x00
+RootScriptVersion=v03x00x00
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTG=`date +%Y-%m-%d-%H%M%Z`

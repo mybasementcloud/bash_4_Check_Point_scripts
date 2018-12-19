@@ -4,12 +4,12 @@
 #
 # (C) 2017-2018 Eric James Beasley
 #
-ScriptTemplateLevel=005
-ScriptVersion=02.01.00
-ScriptDate=2018-12-03
+RootScriptTemplateLevel=006
+RootScriptVersion=03.00.00
+RootScriptDate=2018-12-18
 #
 
-export BASHScriptVersion=v02x01x00
+RootScriptVersion=v03x00x00
 
 # =============================================================================
 # =============================================================================

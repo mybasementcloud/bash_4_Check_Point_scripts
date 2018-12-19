@@ -4,12 +4,12 @@
 #
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptTemplateLevel=005
-ScriptVersion=02.00.00
-ScriptDate=2018-11-21
+ScriptTemplateLevel=006
+ScriptVersion=03.00.00
+ScriptDate=2018-12-18
 #
 
-export BASHScriptVersion=v02x00x00
+export BASHScriptVersion=v03x00x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="updatescripts"
 export BASHScriptShortName="updatescripts"
