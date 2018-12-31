@@ -5,11 +5,11 @@
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.00.01
-ScriptDate=2018-12-18
+ScriptVersion=03.01.00
+ScriptDate=2018-12-30
 #
 
-export BASHScriptVersion=v03x00x01
+export BASHScriptVersion=v03x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="remove_script_links.v$ScriptVersion"
 export BASHScriptShortName="remove_links"
@@ -898,6 +898,8 @@ export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
 
 rm $workingroot/gaia_version_type
+
+rm $workingroot/do_script_nohup
 
 rm $workingroot/godump
 rm $workingroot/godtgdump

@@ -5,11 +5,11 @@
 # (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.00.01
-ScriptDate=2018-12-18
+ScriptVersion=03.01.00
+ScriptDate=2018-12-30
 #
 
-export BASHScriptVersion=v03x00x01
+export BASHScriptVersion=v03x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="generate_script_links.v$ScriptVersion"
 export BASHScriptShortName="generate_links"
@@ -913,15 +913,21 @@ else
 fi
 
 file_gaia_version=determine_gaia_version_and_installation_type.v03.00.00.sh
+file_do_script_nohup=do_script_nohup.v00.01.00.sh
 
 file_godump=go_dump_folder_now.v00.05.00.sh
-file_mkdump=make_dump_folder_now.v00.05.00.sh
 file_godumpdtg=go_dump_folder_now_dtg.v00.05.00.sh
-file_mkdumpdtg=make_dump_folder_now_dtg.v00.05.00.sh
+
 file_goChgLogdtg=go_change_log_folder_now_dtg.v00.05.00.sh
+
+file_mkdump=make_dump_folder_now.v00.05.00.sh
+file_mkdumpdtg=make_dump_folder_now_dtg.v00.05.00.sh
 
 ln -sf $sourcefolder/$file_gaia_version $linksfolder/gaia_version_type
 ln -sf $sourcefolder/$file_gaia_version $workingroot/gaia_version_type
+
+ln -sf $sourcefolder/$file_do_script_nohup $linksfolder/do_script_nohup
+ln -sf $sourcefolder/$file_do_script_nohup $workingroot/do_script_nohup
 
 ln -sf $sourcefolder/$file_godump $linksfolder/godump
 ln -sf $sourcefolder/$file_godump $workingroot/godump
