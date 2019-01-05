@@ -8,7 +8,7 @@
 # AUTHOR (all versions): Nathan Davieau (Check Point Diamond Services Tech Lead)
 # CO-AUTHOR (v0.2-v3.6): Rosemarie Rodriguez
 # CODE CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman
-# VERSION:               6.01
+# VERSION:               6.02
 # SK:                    sk121447
 #====================================================================================================
 
@@ -36,7 +36,7 @@ executed_script_path=$(readlink -f $0)
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="6.01 12-12-2018"
+script_ver="6.02 01-02-2019"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -2739,7 +2739,7 @@ check_clusterxl()
         failover_temp_file=/var/tmp/failovers.tmp
         
         #Collect list of failovers
-        clish -c "show routed cluster-state detailed" | grep -A 11 "Cluster State Change History" | grep "[0-9]" > $failover_temp_file
+        clish -c "show routed cluster-state detailed" | grep -A 11 "Cluster State Change History" | egrep -v 'Master to Master|Slave to Slave' | grep "[0-9]" > $failover_temp_file
         
         #Log full failover text
         printf "\n\nCluster State Change History:\nTimestamp                 State Change Type\n" >> $full_output_log
@@ -2813,7 +2813,6 @@ check_clusterxl()
     unset cphaprob_stat
     unset active_active_check
     unset single_member_check
-    unset cluster_status
     unset other_member_status
     unset cluster_a_if
     unset cluster_pnotes
@@ -2942,7 +2941,13 @@ check_securexl()
         #====================================================================================================
         #  F2F Check
         #====================================================================================================
-        if [[ $(echo "$fwaccel_stats_s" | grep F2F) ]]; then
+        
+        #Set cluster status to "Active" if the variable is blank (in the case of GW that is not part of a cluster)
+        if [[  -z $cluster_status ]]; then
+            cluster_status="Active"
+        fi
+        
+        if [[ $(echo "$fwaccel_stats_s" | grep F2F) ]] && [[ $cluster_status == "Active" || $cluster_status == "Active Attention" ]]; then
             test_output_error=0
             printf "|\t\t\t| F2F Packets\t\t\t|" | tee -a $output_log
             printf '<span><b>F2F Packets - </b></span><b>' >> $html_file
@@ -2968,7 +2973,7 @@ check_securexl()
         #====================================================================================================
         #  PXL Check
         #====================================================================================================
-        if [[ $(echo "$fwaccel_stats_s" | grep PXL | grep -v Delayed) ]]; then
+        if [[ $(echo "$fwaccel_stats_s" | grep PXL | grep -v Delayed) ]] && [[ $cluster_status == "Active" || $cluster_status == "Active Attention" ]]; then
             test_output_error=0
             printf "|\t\t\t| PXL Packets\t\t\t|" | tee -a $output_log
             printf '<span><b>PXL Packets - </b></span><b>' >> $html_file
@@ -3547,7 +3552,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="12-12-2018"
+    script_build_date="01-02-2019"
     current_check_message="Check Point\t\t"
     
     
@@ -3558,7 +3563,7 @@ check_cp_software()
     printf '<tr class="sectionTableBorder"><td class="sectionTableBorder"><p class="paragraphSpacing"><span class="checkNameBlue"><b>Check Point</b></span><br>\n' >> $html_file
     printf '<span><b>CPInfo Build Number - </b></span><b>' >> $html_file
     cpinfo_build_version=$(cpvinfo /opt/CPinfo-10/bin/cpinfo | grep Build | awk '{print $4}')
-    latest_cpinfo_build="914000190"
+    latest_cpinfo_build="914000191"
     printf "\n\ncpinfo build:\n$cpinfo_build_version\n"  >> $full_output_log
 	if [[ $cpinfo_build_version -ge $latest_cpinfo_build ]]; then
         check_passed

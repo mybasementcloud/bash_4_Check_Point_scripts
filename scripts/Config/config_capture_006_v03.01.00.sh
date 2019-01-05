@@ -1,15 +1,15 @@
-#!/bin/bash
+F#!/bin/bash
 #
 # SCRIPT capture configuration values for bash and clish level 005
 #
-# (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.00.00
-ScriptDate=2018-12-18
+ScriptVersion=03.01.00
+ScriptDate=2019-01-03
 #
 
-export BASHScriptVersion=v03x00x00
+export BASHScriptVersion=v03x01x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="config_capture.v$ScriptVersion"
 export BASHScriptShortName="config_capture"
@@ -1107,6 +1107,19 @@ echo 'Disk Mount : mount' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 
 mount >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo 'Volume Group information : vgdisplay -C' >> "$outputfilefqdn"
+echo 'Volume Group information : vgdisplay -v' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+vgdisplay -C >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+vgdisplay -v >> "$outputfilefqdn"
 
 echo >> "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
@@ -2214,6 +2227,23 @@ if [ $Check4GW -eq 1 ]; then
     echo >> "$outputfilefqdn"
     
     fwaccel templates -S >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'Get list of loaded anti spoofing ranges' >> "$outputfilefqdn"
+    echo 'fwaccel ranges -l' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    fwaccel ranges -l >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'fwaccel ranges' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    fwaccel ranges >> "$outputfilefqdn"
     
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
