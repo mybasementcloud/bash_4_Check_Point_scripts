@@ -1,15 +1,15 @@
-F#!/bin/bash
+#!/bin/bash
 #
 # SCRIPT capture configuration values for bash and clish level 005
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.01.00
-ScriptDate=2019-01-03
+ScriptVersion=03.04.00
+ScriptDate=2019-01-14
 #
 
-export BASHScriptVersion=v03x01x00
+export BASHScriptVersion=v03x04x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="config_capture.v$ScriptVersion"
 export BASHScriptShortName="config_capture"
@@ -1111,6 +1111,14 @@ mount >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
+echo 'Snapshot Space : clish -i -c "show snapshots"' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
+
+clish -i -c "show snapshots" >> "$outputfilefqdn"
+
+echo >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+echo >> "$outputfilefqdn"
 echo 'Volume Group information : vgdisplay -C' >> "$outputfilefqdn"
 echo 'Volume Group information : vgdisplay -v' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
@@ -1208,6 +1216,75 @@ else
     echo >> $outputfilefqdn
 fi
 echo | tee -a -i $outputfilefqdn
+    
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/routed*.conf and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/routed*.conf
+export file2copy=routed.conf
+export file2copypath="/etc/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# Gaia should have /etc/routed*.conf
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo | tee -a -i $outputfilefqdn
+    echo 'No '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+    echo 'found '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    echo 'copy '$file2copy' to : '"$outputfilepath" | tee -a -i $outputfilefqdn
+    cp "$file2copypath" "$outputfilepath" | tee -a -i $outputfilefqdn
+ 
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo 'Dump contents of '$file2copypath' file to '$outputfilefqdn | tee -a -i $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo >> $outputfilefqdn
+    cat "$file2copypath" >> $outputfilefqdn
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo >> $outputfilefqdn
+fi
+echo | tee -a -i $outputfilefqdn
+
+export file2copy=routed0.conf
+export file2copypath="/etc/$file2copy"
+export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+# Gaia should have /etc/routed*.conf
+#
+
+if [ ! -r $file2copypath ] ; then
+    echo | tee -a -i $outputfilefqdn
+    echo 'No '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+else
+    echo | tee -a -i $outputfilefqdn
+    echo 'found '$file2copy' file at :  '$file2copypath | tee -a -i $outputfilefqdn
+    echo | tee -a -i $outputfilefqdn
+    echo 'copy '$file2copy' to : '"$outputfilepath" | tee -a -i $outputfilefqdn
+    cp "$file2copypath" "$outputfilepath" | tee -a -i $outputfilefqdn
+ 
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo 'Dump contents of '$file2copypath' file to '$outputfilefqdn | tee -a -i $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo >> $outputfilefqdn
+    cat "$file2copypath" >> $outputfilefqdn
+    echo >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqdn
+    echo >> $outputfilefqdn
+fi
+echo | tee -a -i $outputfilefqdn
+
     
 
 #----------------------------------------------------------------------------------------
@@ -1725,7 +1802,7 @@ if [[ $sys_type_MDS = 'true' ]] ; then
 
     # HANDLE MDS
     
-    export outputfile=$outputfileprefix'_file_MDS_'$file2copy$outputfilesuffix
+    export outputfile=$outputfileprefix'_file_MDS_'$file2copy$outputfilesuffix$outputfiletype
     export outputfilefqdn=$outputfilepath$outputfile
 
     if [ ! -r $file2copypath ] ; then
@@ -1758,7 +1835,7 @@ if [[ $sys_type_MDS = 'true' ]] ; then
 else
     # System is not MDS, so no need to cycle through domains
     
-    export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
+    export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
     export outputfilefqdn=$outputfilepath$outputfile
 
     if [ ! -r $file2copypath ] ; then
@@ -1818,7 +1895,7 @@ echo | tee -a -i $outputfilefqdn
 # $FWDIR/conf/user.def
 #export file2copy=user.def
 #export file2copypath="$FWDIR/conf/$file2copy"
-#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
+#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
 #export outputfilefqdn=$outputfilepath$outputfile
 #
 #if [[ $sys_type_MDS = 'true' ]] ; then
@@ -1885,7 +1962,7 @@ echo | tee -a -i $outputfilefqdn
 # $FWDIR/lib/table.def
 #export file2copy=table.def
 #export file2copypath="$FWDIR/lib/$file2copy"
-#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix
+#export outputfile=$outputfileprefix'_file_'$file2copy$outputfilesuffix$outputfiletype
 #export outputfilefqdn=$outputfilepath$outputfile
 #
 #if [[ $sys_type_MDS = 'true' ]] ; then
@@ -2127,7 +2204,7 @@ if [ $Check4GW -eq 1 ]; then
         echo | tee -a -i $outputfilefqdn
         echo 'copy '$file2copy' to : '"$outputfilepath" | tee -a -i $outputfilefqdn
         cp "$file2copypath" "$outputfilepath" | tee -a -i $outputfilefqdn
-        cp "$file2copypath" .
+        #cp "$file2copypath" .
      
         echo | tee -a -i $outputfilefqdn
         echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -2152,7 +2229,7 @@ else
         echo | tee -a -i $outputfilefqdn
         echo 'copy '$file2copy' to : '"$outputfilepath" | tee -a -i $outputfilefqdn
         cp "$file2copypath" "$outputfilepath" | tee -a -i $outputfilefqdn
-        cp "$file2copypath" .
+        #cp "$file2copypath" .
      
         echo | tee -a -i $outputfilefqdn
         echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
@@ -2272,17 +2349,6 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    #case "$gaiaversion" in
-    #    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
-    #        # cpm_status.sh only exists in R8X
-    #        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-    #        echo | tee -a -i "$outputfilefqdn"
-    #        ;;
-    #    *)
-    #        echo | tee -a -i "$outputfilefqdn"
-    #        ;;
-    #esac
-
     if $IsR8XVersion; then
         # cpm_status.sh only exists in R8X
         $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
@@ -2290,15 +2356,6 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     else
         echo | tee -a -i "$outputfilefqdn"
     fi
-
-    
-    echo >> "$outputfilefqdn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    echo 'cpwd_admin list' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cpwd_admin list >> "$outputfilefqdn"
 
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
@@ -2309,15 +2366,24 @@ if [[ $sys_type_MDS = 'true' ]] ; then
     export COLUMNS=128
     mdsstat >> "$outputfilefqdn"
 
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cpwd_admin list' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cpwd_admin list >> "$outputfilefqdn"
+
 elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
 
     export command2run=cpwd_admin
     export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
     export outputfilefqdn=$outputfilepath$outputfile
     
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqdn
-    command > "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    command >> "$outputfilefqdn"
     
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
@@ -2325,17 +2391,6 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
     echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqdn"
     echo | tee -a -i "$outputfilefqdn"
     
-    #case "$gaiaversion" in
-    #    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
-    #        # cpm_status.sh only exists in R8X
-    #        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
-    #        echo | tee -a -i "$outputfilefqdn"
-    #        ;;
-    #    *)
-    #        echo | tee -a -i "$outputfilefqdn"
-    #        ;;
-    #esac
-
     if $IsR8XVersion; then
         # cpm_status.sh only exists in R8X
         $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqdn"
@@ -2344,7 +2399,6 @@ elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
         echo | tee -a -i "$outputfilefqdn"
     fi
 
-    
     echo >> "$outputfilefqdn"
     echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
     echo >> "$outputfilefqdn"
@@ -2357,6 +2411,43 @@ fi
 
 echo | tee -a -i "$outputfilefqdn"
 
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+
+#----------------------------------------------------------------------------------------
+# API Information
+#----------------------------------------------------------------------------------------
+
+if $IsR8XVersion; then
+    # api currently only exists in R8X
+
+    export command2run=api_status
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqdn=$outputfilepath$outputfile
+    
+    echo | tee -a -i "$outputfilefqdn"
+    echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'api status' >> "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
+    
+    api status | tee -a -i "$outputfilefqdn"
+    echo | tee -a -i "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+else
+    echo
+fi
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -2445,26 +2536,30 @@ export clishoutputfilefqdn=$outputfilepath$clishoutputfile
 #----------------------------------------------------------------------------------------
 
 export command2run=clish_config
-export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix
+export configfile=$command2run'_'$outputfileprefix$outputfilesuffix
+export configfilefqdn=$outputfilepath$configfile
+export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-echo | tee -a $clishoutputfilefqdn
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a $clishoutputfilefqdn
-echo | tee -a $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save config" >> $clishoutputfilefqdn
+echo | tee -a $outputfilefqdn
+echo 'Execute '$command2run' with output to : '$configfilefqdn | tee -a $outputfilefqdn
+echo | tee -a $outputfilefqdn
 
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save configuration $outputfile" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "save config" >> $outputfilefqdn
 
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "lock database override" >> $clishoutputfilefqdn
-clish -i -c "save config" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "save configuration $configfile" >> $outputfilefqdn
 
-cp "$outputfile" "$outputfilefqdn" >> $clishoutputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "lock database override" >> $outputfilefqdn
+clish -i -c "save config" >> $outputfilefqdn
 
+cp "$configfile" "$configfilefqdn" >> $outputfilefqdn
+
+cat $outputfilefqdn >> $clishoutputfilefqdn
 
 #----------------------------------------------------------------------------------------
 # clish - show assets
@@ -2566,22 +2661,118 @@ echo >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
 
-case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20 ) 
-        # installed_jumbo_take only exists in R7X
-        echo >> "$outputfilefqdn"
-        ;;
-    *)
-        echo >> "$outputfilefqdn"
-        echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
-        echo >> "$outputfilefqdn"
-        installed_jumbo_take >> "$outputfilefqdn"
-        echo >> "$outputfilefqdn"
-        ;;
-esac
+if $IsR8XVersion; then
+    # installed_jumbo_take only exists in R7X
+    echo >> "$outputfilefqdn"
+else
+    echo >> "$outputfilefqdn"
+    echo 'installed_jumbo_take : ' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    installed_jumbo_take >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+fi
 
 echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
 echo >> "$outputfilefqdn"
+
+
+#----------------------------------------------------------------------------------------
+# clish and bash - Gather ClusterXL information from all possible methods if it is a cluster
+#----------------------------------------------------------------------------------------
+
+export command2run=ClusterXL
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+echo
+if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+    # is a cluster
+    echo 'A cluster member.'
+    echo
+
+    touch $outputfilefqdn
+
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cphaprob stat' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob stat >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cphaprob mmagic' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob mmagic >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'Interface and CPP Status : cphaprob -a if' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob -a if >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'pnotes in problem state : cphaprob -ia list' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob -ia list >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cpstat ha -f all' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cpstat ha -f all >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'Sync Status : fw ctl pstat | grep -A50 Sync:' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    fw ctl pstat | grep -A50 Sync: >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cphaprob -l list' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob -l list >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'cphaprob syncstat' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    cphaprob syncstat >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    echo 'clish -c "show routed cluster-state detailed"' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    clish -c "show routed cluster-state detailed" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+else
+    # is not a cluster
+    echo 'Not a cluster member.'
+    echo
+fi
+
 
 
 #==================================================================================================

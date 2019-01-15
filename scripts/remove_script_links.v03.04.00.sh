@@ -5,11 +5,11 @@
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.02.00
-ScriptDate=2019-01-03
+ScriptVersion=03.04.00
+ScriptDate=2019-01-14
 #
 
-export BASHScriptVersion=v03x01x00
+export BASHScriptVersion=v03x04x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="remove_script_links.v$ScriptVersion"
 export BASHScriptShortName="remove_links"

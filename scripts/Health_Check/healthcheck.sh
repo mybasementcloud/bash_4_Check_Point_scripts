@@ -8,7 +8,7 @@
 # AUTHOR (all versions): Nathan Davieau (Check Point Diamond Services Tech Lead)
 # CO-AUTHOR (v0.2-v3.6): Rosemarie Rodriguez
 # CODE CONTRIBUTORS:     Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman
-# VERSION:               6.02
+# VERSION:               6.03
 # SK:                    sk121447
 #====================================================================================================
 
@@ -36,7 +36,7 @@ executed_script_path=$(readlink -f $0)
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="6.02 01-02-2019"
+script_ver="6.03 01-08-2019"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -2734,12 +2734,12 @@ check_clusterxl()
         printf '<span><b>Cluster Failovers - </b></span><b>' >> $html_file
         
         #Misc. Variables
-        current_day_of_the_year=$(date +%j)
+        current_day_of_the_year=$(date +%j | bc)
         failovers_in_the_last_week=0
         failover_temp_file=/var/tmp/failovers.tmp
         
         #Collect list of failovers
-        clish -c "show routed cluster-state detailed" | grep -A 11 "Cluster State Change History" | egrep -v 'Master to Master|Slave to Slave' | grep "[0-9]" > $failover_temp_file
+        clish -c "show routed cluster-state detailed" | grep -A 11 "Cluster State Change History" | egrep -v 'Master to Master|Slave to Slave' | grep "[0-9]" | sort -u > $failover_temp_file
         
         #Log full failover text
         printf "\n\nCluster State Change History:\nTimestamp                 State Change Type\n" >> $full_output_log
@@ -3552,7 +3552,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="01-02-2019"
+    script_build_date="01-08-2019"
     current_check_message="Check Point\t\t"
     
     

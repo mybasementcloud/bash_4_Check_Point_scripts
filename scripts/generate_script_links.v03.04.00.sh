@@ -5,11 +5,11 @@
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptTemplateLevel=006
-ScriptVersion=03.02.00
-ScriptDate=2019-01-03
+ScriptVersion=03.04.00
+ScriptDate=2019-01-14
 #
 
-export BASHScriptVersion=v03x01x00
+export BASHScriptVersion=v03x04x00
 export BASHScriptTemplateLevel=$ScriptTemplateLevel
 export BASHScriptName="generate_script_links.v$ScriptVersion"
 export BASHScriptShortName="generate_links"
@@ -913,7 +913,7 @@ else
 fi
 
 file_gaia_version=determine_gaia_version_and_installation_type.v03.00.00.sh
-file_do_script_nohup=do_script_nohup.v00.01.00.sh
+file_do_script_nohup=do_script_nohup.v00.02.00.sh
 
 file_godump=go_dump_folder_now.v00.05.00.sh
 file_godumpdtg=go_dump_folder_now_dtg.v00.05.00.sh
@@ -959,7 +959,7 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_configcapture=config_capture_006_v03.01.00.sh
+file_configcapture=config_capture_006_v03.04.00.sh
 
 file_interface_info=show_interface_information_v03.00.00.sh
 
