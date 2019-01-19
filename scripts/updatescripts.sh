@@ -2,15 +2,16 @@
 #
 # SCRIPT Update scripts from NAS storage via tftp pull, clear, and replace
 #
-# (C) 2016-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptTemplateLevel=006
-ScriptVersion=03.00.00
-ScriptDate=2018-12-18
+ScriptDate=2019-01-18
+ScriptVersion=03.01.00
+ScriptRevision=000
+TemplateLevel=006
+TemplateVersion=03.00.00
 #
 
-export BASHScriptVersion=v03x00x00
-export BASHScriptTemplateLevel=$ScriptTemplateLevel
+export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptName="updatescripts"
 export BASHScriptShortName="updatescripts"
 export BASHScriptDescription="Update scripts from NAS storage via tftp pull, clear, and replace"
@@ -40,7 +41,7 @@ fi
 touch $logfilepath
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath

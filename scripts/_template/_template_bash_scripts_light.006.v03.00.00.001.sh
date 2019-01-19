@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT Template for bash scripts, level - 006
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2019-01-18
-ScriptVersion=03.01.00
+ScriptVersion=03.00.00
 ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=03.00.00
@@ -14,9 +14,9 @@ TemplateVersion=03.00.00
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 
-export BASHScriptName=fix_gaia_webui_login_dot_js_generic.v$ScriptVersion
-export BASHScriptShortName=fix_gaia_webui_login_dot_js_generic.v$ScriptVersion
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptName=_template_bash_scripts_light.$TemplateLevel.v$ScriptVersion
+export BASHScriptShortName=_template_light.$TemplateLevel.v$ScriptVersion
+export BASHScriptDescription="Template Light for bash scripts"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -32,48 +32,28 @@ export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem 
 
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
-export DATEDTSG=`date +%Y-%m-%d-%H%M%S%Z`
+export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-echo 'Date Time Group   :  '$DATEDTGS
+echo 'Date Time Group   :  '$DATE $DATEDTG $DATEDTGS
 echo 'Date (YYYY-MM-DD) :  '$DATEYMD
 echo
-
+    
 
 # -------------------------------------------------------------------------------------------------
 # Other variable configuration
 # -------------------------------------------------------------------------------------------------
 
 
-# WAITTIME in seconds for read -t commands
-export WAITTIME=60
-
-export outputpathroot=/var/tmp/Change_Log
-export outputpathbase=$outputpathroot/$DATEDTGS
+WAITTIME=20
 
 
 # -------------------------------------------------------------------------------------------------
-# Start Script
+# Script Operations
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -r $outputpathroot ] 
-then
-    mkdir $outputpathroot
-fi
-if [ ! -r $outputpathbase ] 
-then
-    mkdir $outputpathbase
-fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
-
-echo 'Created folder :  '$outputpathbase
-echo
-ls -al $outputpathbase
-echo
+# do something
 
 
 # -------------------------------------------------------------------------------------------------

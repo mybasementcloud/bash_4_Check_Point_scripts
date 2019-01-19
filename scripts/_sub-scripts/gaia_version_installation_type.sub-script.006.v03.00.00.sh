@@ -2,15 +2,20 @@
 #
 # SCRIPT Subscript to Determine Gaia version and Installation type
 #
-# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptTemplateLevel=006
+SubScriptDate=2019-01-18
+SubScriptsLevel=006
 SubScriptVersion=03.00.00
-SubScriptRevision=002
-SubScriptDate=2018-12-17
+SubScriptRevision=004
+TemplateVersion=03.00.00
+TemplateLevel=006
 #
 
-BASHSubScriptVersion=v03x00x00
+BASHSubScriptVersion=v${SubScriptVersion//./x}
+BASHScriptTemplateVersion=v${TemplateVersion//./x}
+SubScriptsVersion=$SubScriptsLevel.v${SubScriptVersion//./x}
+
 SubScriptName=gaia_version_installation_type.sub-script.$ScriptTemplateLevel.v$ScriptVersion
 SubScriptShortName="gaia_version_type.$ScriptTemplateLevel"
 SubScriptDescription="Determine Gaia version and Installation type"
@@ -21,7 +26,7 @@ SubScriptDescription="Determine Gaia version and Installation type"
 # =================================================================================================
 
 
-if [ x"$BASHScriptTemplateLevel" = x"$SubScriptTemplateLevel" ] ; then
+if [ x"$BASHExpectedSubScriptsVersion" = x"$SubScriptsVersion" ] ; then
     # Script and Actions Script versions match, go ahead
     echo >> $logfilepath
     echo 'Verify Actions Scripts Version - OK' >> $logfilepath
@@ -30,8 +35,8 @@ else
     # Script and Actions Script versions don't match, ALL STOP!
     echo | tee -a -i $logfilepath
     echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Calling Script template version : '$BASHScriptTemplateLevel | tee -a -i $logfilepath
-    echo 'Actions Script template version : '$SubScriptVersion | tee -a -i $logfilepath
+    echo 'Expected Subscript version : '$BASHExpectedSubScriptsVersion | tee -a -i $logfilepath
+    echo 'Current  Subscript version : '$SubScriptsVersion | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
     echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
@@ -49,8 +54,9 @@ fi
 
 
 echo >> $logfilepath
-echo 'SubscriptName:  '$SubScriptName'  Template Version: '$SubScriptTemplateLevel'  Script Version: '$SubScriptVersion' Revision:  '$SubScriptRevision >> $logfilepath
+echo 'Subscript Name:  '$SubScriptName'  Subcript Version: '$SubScriptVersion' Level:  '$SubScriptsLevel' Revision:  '$SubScriptRevision'  Template Version: '$TemplateVersion >> $logfilepath
 echo >> $logfilepath
+
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
@@ -94,11 +100,22 @@ if $isitR77version; then
     # This is an R77.X version...
     # We don't have the luxury of python get_platform.py script
     #
-    clish -i -c "lock database override" >> $gaiaversionoutputfile
-    clish -i -c "lock database override" >> $gaiaversionoutputfile
-    
-    export gaiaversion=$(clish -i -c "show version product" | cut -d " " -f 6)
-    
+    export productversion=$(clish -i -c "show version product" | cut -d " " -f 6)
+
+    # Keep the first string before next space in returned product version, since that could be owned 
+    # if clish is owned elsewhere
+    #
+    export gaiaversion=$(echo $productversion | cut -d " " -f 1)
+
+    # check if clish is owned and if it is, try a different alternative to get the version
+    #
+    export checkgaiaversion=`echo "${gaiaversion}" | grep -i "owned"`
+    export isclishowned=`test -z $checkgaiaversion; echo $?`
+    if [ $isclishowned -eq 1 ]; then 
+        cpreleasefile=/etc/cp-release
+        export gaiaversion=$(cat $cpreleasefile | cut -d " " -f 4)
+    fi
+
 elif $isitR80version; then
 
     # Requires that $JQ is properly defined in the script
@@ -111,19 +128,42 @@ elif $isitR80version; then
     #$pythonpath/python --version
     #
 
-    export pythonpath=$MDS_FWDIR/Python/bin/
+    export productversion=$(clish -i -c "show version product" | cut -d " " -f 6)
 
-    if $UseJSONJQ ; then
-        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
-    else
-        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    # Keep the first string before next space in returned product version, since that could be owned 
+    # if clish is owned elsewhere
+    #
+    export gaiaversion=$(echo $productversion | cut -d " " -f 1)
+
+    # check if clish is owned and if it is, try a different alternative to get the version
+    #
+    export checkgaiaversion=`echo "${gaiaversion}" | grep -i "owned"`
+    export isclishowned=`test -z $checkgaiaversion; echo $?`
+    if [ $isclishowned -eq 1 ]; then 
+        cpreleasefile=/etc/cp-release
+        if [ -r $cpreleasefile ] ; then
+            # OK we have the easy-button alternative
+            export gaiaversion=$(cat $cpreleasefile | cut -d " " -f 4)
+        else
+            # OK that's not going to work without the file
+
+            # Requires that $JQ is properly defined in the script
+            # so $UseJSONJQ = true must be set on template version 0.32.0 and higher
+            #
+            export pythonpath=$MDS_FWDIR/Python/bin/
+            if $UseJSONJQ ; then
+                export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+            else
+                export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+            fi
+            
+            export platform_release=${get_platform_release//\"/}
+            export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
+            export platform_release_version=${get_platform_release_version//\"/}
+            
+            export gaiaversion=$platform_release_version
+        fi
     fi
-    
-    export platform_release=${get_platform_release//\"/}
-    export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
-    export platform_release_version=${get_platform_release_version//\"/}
-    
-    export gaiaversion=$platform_release_version
 
 else
 
@@ -140,19 +180,42 @@ else
     #$pythonpath/python --version
     #
 
-    export pythonpath=$MDS_FWDIR/Python/bin/
+    export productversion=$(clish -i -c "show version product" | cut -d " " -f 6)
 
-    if $UseJSONJQ ; then
-        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
-    else
-        export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+    # Keep the first string before next space in returned product version, since that could be owned 
+    # if clish is owned elsewhere
+    #
+    export gaiaversion=$(echo $productversion | cut -d " " -f 1)
+
+    # check if clish is owned and if it is, try a different alternative to get the version
+    #
+    export checkgaiaversion=`echo "${gaiaversion}" | grep -i "owned"`
+    export isclishowned=`test -z $checkgaiaversion; echo $?`
+    if [ $isclishowned -eq 1 ]; then 
+        cpreleasefile=/etc/cp-release
+        if [ -r $cpreleasefile ] ; then
+            # OK we have the easy-button alternative
+            export gaiaversion=$(cat $cpreleasefile | cut -d " " -f 4)
+        else
+            # OK that's not going to work without the file
+
+            # Requires that $JQ is properly defined in the script
+            # so $UseJSONJQ = true must be set on template version 0.32.0 and higher
+            #
+            export pythonpath=$MDS_FWDIR/Python/bin/
+            if $UseJSONJQ ; then
+                export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+            else
+                export get_platform_release=`$pythonpath/python $MDS_FWDIR/scripts/get_platform.py -f json | ${CPDIR_PATH}/jq/jq '. | .release'`
+            fi
+            
+            export platform_release=${get_platform_release//\"/}
+            export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
+            export platform_release_version=${get_platform_release_version//\"/}
+            
+            export gaiaversion=$platform_release_version
+        fi
     fi
-    
-    export platform_release=${get_platform_release//\"/}
-    export get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
-    export platform_release_version=${get_platform_release_version//\"/}
-    
-    export gaiaversion=$platform_release_version
 
 fi
 
@@ -164,10 +227,10 @@ echo >> $gaiaversionoutputfile
 # -------------------------------------------------------------------------------------------------
 
 
-Check4SMS=0
-Check4EPM=0
-Check4MDS=0
-Check4GW=0
+export Check4SMS=0
+export Check4EPM=0
+export Check4MDS=0
+export Check4GW=0
 
 workfile=/var/tmp/cpinfo_ver.txt
 cpinfo -y all > $workfile 2>&1
@@ -181,138 +244,138 @@ Check4EP773000=`grep -c "Endpoint Security Management R77.30 " $workfile`
 Check4SMS=`grep -c "Security Management Server" $workfile`
 Check4SMSR80x10=`grep -c "Security Management Server R80.10 " $workfile`
 Check4SMSR80x20=`grep -c "Security Management Server R80.20 " $workfile`
-Check4SMSR80x30=`grep -c "Security Management Server R80.30 " $workfile`
 Check4SMSR80x20xM1=`grep -c "Security Management Server R80.20.M1 " $workfile`
 Check4SMSR80x20xM2=`grep -c "Security Management Server R80.20.M2 " $workfile`
 Check4SMSR80x20xM3=`grep -c "Security Management Server R80.20.M3 " $workfile`
+Check4SMSR80x30=`grep -c "Security Management Server R80.30 " $workfile`
 Check4SMSR80x30xM1=`grep -c "Security Management Server R80.30.M1 " $workfile`
 Check4SMSR80x30xM2=`grep -c "Security Management Server R80.30.M2 " $workfile`
 Check4SMSR80x30xM3=`grep -c "Security Management Server R80.30.M3 " $workfile`
 rm $workfile
 
 if [ "$MDSDIR" != '' ]; then
-    Check4MDS=1
+    export Check4MDS=1
 else 
-    Check4MDS=0
+    export Check4MDS=0
 fi
 
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
     echo "System is Multi-Domain Management Server!" >> $gaiaversionoutputfile
-    Check4GW=0
+    export Check4GW=0
 elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!" >> $gaiaversionoutputfile
-    Check4SMS=1
-    Check4GW=0
+    export Check4SMS=1
+    export Check4GW=0
 else
     echo "System is a gateway!" >> $gaiaversionoutputfile
-    Check4GW=1
+    export Check4GW=1
 fi
 echo >> $gaiaversionoutputfile
 
 if [ $Check4SMSR80x10 -gt 0 ]; then
     echo "Security Management Server version R80.10" >> $gaiaversionoutputfile
-    export gaiaversion=R80.10
+    #export gaiaversion=R80.10
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.10" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x20 -gt 0 ]; then
     echo "Security Management Server version R80.20" >> $gaiaversionoutputfile
-    export gaiaversion=R80.20
+    #export gaiaversion=R80.20
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.20" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x20xM1 -gt 0 ]; then
     echo "Security Management Server version R80.20.M1" >> $gaiaversionoutputfile
-    export gaiaversion=R80.20.M1
+    #export gaiaversion=R80.20.M1
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.20.M1" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x20xM2 -gt 0 ]; then
     echo "Security Management Server version R80.20.M2" >> $gaiaversionoutputfile
-    export gaiaversion=R80.20.M2
+    #export gaiaversion=R80.20.M2
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.20.M2" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x20xM3 -gt 0 ]; then
     echo "Security Management Server version R80.20.M3" >> $gaiaversionoutputfile
-    export gaiaversion=R80.20.M3
+    #export gaiaversion=R80.20.M3
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.20.M3" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x30 -gt 0 ]; then
     echo "Security Management Server version R80.30" >> $gaiaversionoutputfile
-    export gaiaversion=R80.30
+    #export gaiaversion=R80.30
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.30" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x30xM1 -gt 0 ]; then
     echo "Security Management Server version R80.30.M1" >> $gaiaversionoutputfile
-    export gaiaversion=R80.30.M1
+    #export gaiaversion=R80.30.M1
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.30.M1" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x30xM2 -gt 0 ]; then
     echo "Security Management Server version R80.30.M2" >> $gaiaversionoutputfile
-    export gaiaversion=R80.30.M2
+    #export gaiaversion=R80.30.M2
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
     	Check4EPM=1
         echo "Endpoint Security Server version R80.30.M2" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4SMSR80x30xM3 -gt 0 ]; then
     echo "Security Management Server version R80.30.M3" >> $gaiaversionoutputfile
-    export gaiaversion=R80.30.M3
+    #export gaiaversion=R80.30.M3
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
         echo "Endpoint Security Server version R80.30.M3" >> $gaiaversionoutputfile
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
 elif [ $Check4EP773000 -gt 0 ] && [ $Check4EP773003 -gt 0 ]; then
     echo "Endpoint Security Server version R77.30.03" >> $gaiaversionoutputfile
     export gaiaversion=R77.30.03
-    Check4EPM=1
+    export Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ] && [ $Check4EP773002 -gt 0 ]; then
     echo "Endpoint Security Server version R77.30.02" >> $gaiaversionoutputfile
     export gaiaversion=R77.30.02
-    Check4EPM=1
+    export Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ] && [ $Check4EP773001 -gt 0 ]; then
     echo "Endpoint Security Server version R77.30.01" >> $gaiaversionoutputfile
     export gaiaversion=R77.30.01
-    Check4EPM=1
+    export Check4EPM=1
 elif [ $Check4EP773000 -gt 0 ]; then
     echo "Endpoint Security Server version R77.30" >> $gaiaversionoutputfile
     export gaiaversion=R77.30
-    Check4EPM=1
+    export Check4EPM=1
 else
     echo "Not Gaia Endpoint Security Server R77.30" >> $gaiaversionoutputfile
     
     if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-    	Check4EPM=1
+    	export Check4EPM=1
     else
-    	Check4EPM=0
+    	export Check4EPM=0
     fi
     
 fi
@@ -369,31 +432,31 @@ echo >> $gaiaversionoutputfile
 
 # Alternative approach from Health Check
 
-sys_type="N/A"
-sys_type_MDS=false
-sys_type_SMS=false
-sys_type_SmartEvent=false
-sys_type_SmartEvent_CorrelationUnit=false
-sys_type_GW=false
-sys_type_STANDALONE=false
-sys_type_VSX=false
-sys_type_UEPM_Installed=false
-sys_type_UEPM_EndpointServer=false
-sys_type_UEPM_PolicyServer=false
+export sys_type="N/A"
+export sys_type_MDS=false
+export sys_type_SMS=false
+export sys_type_SmartEvent=false
+export sys_type_SmartEvent_CorrelationUnit=false
+export sys_type_GW=false
+export sys_type_STANDALONE=false
+export sys_type_VSX=false
+export sys_type_UEPM_Installed=false
+export sys_type_UEPM_EndpointServer=false
+export sys_type_UEPM_PolicyServer=false
 
 
 #  System Type
 if [[ $(echo $MDSDIR | grep mds) ]]; then
-    sys_type_MDS=true
-    sys_type_SMS=false
-    sys_type="MDS"
+    export sys_type_MDS=true
+    export sys_type_SMS=false
+    export sys_type="MDS"
 elif [[ $($CPDIR/bin/cpprod_util FwIsFirewallMgmt 2> /dev/null) == *"1"*  ]]; then
-    sys_type_SMS=true
-    sys_type_MDS=false
-    sys_type="SMS"
+    export sys_type_SMS=true
+    export sys_type_MDS=false
+    export sys_type="SMS"
 else
-    sys_type_SMS=false
-    sys_type_MDS=false
+    export sys_type_SMS=false
+    export sys_type_MDS=false
 fi
 
 # Updated to correctly identify if SmartEvent is active
@@ -401,56 +464,56 @@ fi
 # $CPDIR/bin/cpprod_util RtIsAnalyzerServer -> returns correct result for MDM
 
 if [[ $($CPDIR/bin/cpprod_util RtIsAnalyzerServer 2> /dev/null) == *"1"*  ]]; then
-    sys_type_SmartEvent=true
-    sys_type="SmartEvent"
+    export sys_type_SmartEvent=true
+    export sys_type="SmartEvent"
 else
-    sys_type_SmartEvent=false
+    export sys_type_SmartEvent=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util RtIsAnalyzerCorrelationUnit 2> /dev/null) == *"1"*  ]]; then
-    sys_type_SmartEvent_CorrelationUnit=true
+    export sys_type_SmartEvent_CorrelationUnit=true
 else
-    sys_type_SmartEvent_CorrelationUnit=false
+    export sys_type_SmartEvent_CorrelationUnit=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util FwIsVSX 2> /dev/null) == *"1"* ]]; then
-	sys_type_VSX=true
-	sys_type="VSX"
+	export sys_type_VSX=true
+	export sys_type="VSX"
 else
-	sys_type_VSX=false
+	export sys_type_VSX=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util FwIsFirewallModule 2> /dev/null) == *"1"*  ]]; then
-    sys_type_GW=true
-    sys_type="GATEWAY"
+    export sys_type_GW=true
+    export sys_type="GATEWAY"
 else
-    sys_type_GW=false
+    export sys_type_GW=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util FwIsStandAlone 2> /dev/null) == *"1"* ]]; then
-    sys_type_STANDALONE=true
-    sys_type="STANDALONE"
+    export sys_type_STANDALONE=true
+    export sys_type="STANDALONE"
 else
-    sys_type_STANDALONE=false
-fi
-
-if [[ $($CPDIR/bin/cpprod_util UepmIsInstalled 2> /dev/null) == *"1"* ]]; then
-	sys_type_UEPM_Installed=true
-else
-	sys_type_UEPM_Installed=false
+    export sys_type_STANDALONE=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util UepmIsEps 2> /dev/null) == *"1"* ]]; then
-	sys_type_UEPM_EndpointServer=true
-	sys_type="UEPM"
+	export sys_type_UEPM_EndpointServer=true
+	export sys_type="UEPM"
 else
-	sys_type_UEPM_EndpointServer=false
+	export sys_type_UEPM_EndpointServer=false
 fi
 
 if [[ $($CPDIR/bin/cpprod_util UepmIsPolicyServer 2> /dev/null) == *"1"* ]]; then
-	sys_type_UEPM_PolicyServer=true
+	export sys_type_UEPM_PolicyServer=true
 else
-	sys_type_UEPM_PolicyServer=false
+	export sys_type_UEPM_PolicyServer=false
+fi
+
+if [[ $($CPDIR/bin/cpprod_util UepmIsInstalled 2> /dev/null) == *"1"* ]]; then
+	export sys_type_UEPM_Installed=true
+else
+	export sys_type_UEPM_Installed=false
 fi
 
 echo "sys_type = "$sys_type >> $gaiaversionoutputfile
@@ -463,9 +526,9 @@ echo "System Type : SmEv Correlation Unit :"$sys_type_SmartEvent_CorrelationUnit
 echo "System Type : GATEWAY               :"$sys_type_GW >> $gaiaversionoutputfile
 echo "System Type : STANDALONE            :"$sys_type_STANDALONE >> $gaiaversionoutputfile
 echo "System Type : VSX                   :"$sys_type_VSX >> $gaiaversionoutputfile
-echo "System Type : UEPM Installed        :"$sys_type_UEPM_Installed >> $gaiaversionoutputfile
 echo "System Type : UEPM Endpoint Server  :"$sys_type_UEPM_EndpointServer >> $gaiaversionoutputfile
 echo "System Type : UEPM Policy Server    :"$sys_type_UEPM_PolicyServer >> $gaiaversionoutputfile
+echo "System Type : UEPM Installed        :"$sys_type_UEPM_Installed >> $gaiaversionoutputfile
 echo >> $gaiaversionoutputfile
 
 # -------------------------------------------------------------------------------------------------

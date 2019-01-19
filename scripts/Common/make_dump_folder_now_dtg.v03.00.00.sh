@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT for BASH to generate a dump folder based on the current time and date
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2019-01-18
-ScriptVersion=03.01.00
-ScriptRevision=001
+ScriptVersion=03.00.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=03.00.00
 #
@@ -14,9 +14,9 @@ TemplateVersion=03.00.00
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 
-export BASHScriptName=fix_gaia_webui_login_dot_js.v$ScriptVersion
-export BASHScriptShortName=fix_gaia_webui_login_dot_js.v$ScriptVersion
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptName="make_dump_folder_now_dtg.v$ScriptVersion"
+export BASHScriptShortName="make_dump_folder_now_dtg"
+export BASHScriptDescription="Generate a dump folder based on the current time and date"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 # points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
+export JQ=${CPDIR}/jq/jq
     
 # -------------------------------------------------------------------------------------------------
 # END:  Basic Configuration
@@ -79,8 +79,7 @@ localrootscriptconfiguration () {
     
     export customerpathroot=/var/log/__customer
     export customerworkpathroot=$customerpathroot/upgrade_export
-    export outputpathroot=$customerworkpathroot
-    export dumppathroot=$customerworkpathroot/dump
+    export outputpathroot=$customerworkpathroot/dump
     export changelogpathroot=$customerworkpathroot/Change_Log
     
     echo
@@ -124,28 +123,22 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-export outputpathbase=$changelogpathroot/$DATEDTGS
+export outputpathbase=$dumppathroot/$DATEDTGS
 
-if [ ! -r $changelogpathroot ]; then
-    mkdir $changelogpathroot
+if [ ! -r $outputpathroot ] ; then
+    mkdir $outputpathroot
 fi
-if [ ! -r $outputpathbase ]; then
+if [ ! -r $dumppathroot ] ; then
+    mkdir $dumppathroot
+fi
+if [ ! -r $outputpathbase ] ; then
     mkdir $outputpathbase
 fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
 
 echo 'Created folder :  '$outputpathbase
 echo
 ls -al $outputpathbase
 echo
 
-
-# -------------------------------------------------------------------------------------------------
-# End of script
-# -------------------------------------------------------------------------------------------------
-
-echo 'Done!'
+echo 'Done...'
 echo

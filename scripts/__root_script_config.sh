@@ -2,15 +2,20 @@
 #
 # SCRIPT Root Script Configuration Parameters
 #
-# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-RootScriptTemplateLevel=006
+RootScriptDate=2019-01-18
 RootScriptVersion=03.00.00
-RootScriptDate=2018-12-18
+RootScriptRevision=001
+TemplateLevel=006
+TemplateVersion=03.00.00
+SubScriptsLevel=006
+SubScriptsVersion=03.00.00
 #
 
-RootScriptVersion=v03x00x00
-RootScriptName=__root_script_config.v$RootScriptVersion
+RootScriptVersion=v${RootScriptVersion//./x}
+RootScriptName=__root_script_config
+#RootScriptName=__root_script_config.v$RootScriptVersion
 RootScriptShortName=__root_script_config
 RootScriptDescription="Root Script Configuration Parameters"
 

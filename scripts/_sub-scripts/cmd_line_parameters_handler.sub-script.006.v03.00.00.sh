@@ -2,15 +2,20 @@
 #
 # SCRIPT Template for CLI Operations for command line parameters handling
 #
-# (C) 2017-2018 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptTemplateLevel=006
+SubScriptDate=2019-01-18
+SubScriptsLevel=006
 SubScriptVersion=03.00.00
-SubScriptRevision=001
-SubScriptDate=2018-12-17
+SubScriptRevision=004
+TemplateVersion=03.00.00
+TemplateLevel=006
 #
 
-BASHSubScriptVersion=v03x00x00
+BASHSubScriptVersion=v${SubScriptVersion//./x}
+BASHScriptTemplateVersion=v${TemplateVersion//./x}
+SubScriptsVersion=$SubScriptsLevel.v${SubScriptVersion//./x}
+
 SubScriptName=cmd_line_parameters_handler.sub-script.$ScriptTemplateLevel.v$ScriptVersion
 SubScriptShortName="cliparms.$ScriptTemplateLevel"
 SubScriptDescription="Command line parameters handler"
@@ -21,7 +26,7 @@ SubScriptDescription="Command line parameters handler"
 # =================================================================================================
 
 
-if [ x"$BASHScriptTemplateLevel" = x"$SubScriptTemplateLevel" ] ; then
+if [ x"$BASHExpectedSubScriptsVersion" = x"$SubScriptsVersion" ] ; then
     # Script and Actions Script versions match, go ahead
     echo >> $logfilepath
     echo 'Verify Actions Scripts Version - OK' >> $logfilepath
@@ -30,8 +35,8 @@ else
     # Script and Actions Script versions don't match, ALL STOP!
     echo | tee -a -i $logfilepath
     echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Calling Script template version : '$BASHScriptTemplateLevel | tee -a -i $logfilepath
-    echo 'Actions Script template version : '$SubScriptVersion | tee -a -i $logfilepath
+    echo 'Expected Subscript version : '$BASHExpectedSubScriptsVersion | tee -a -i $logfilepath
+    echo 'Current  Subscript version : '$SubScriptsVersion | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
     echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
@@ -49,8 +54,9 @@ fi
 
 
 echo >> $logfilepath
-echo 'SubscriptName:  '$SubScriptName'  Template Version: '$SubScriptTemplateLevel'  Script Version: '$SubScriptVersion' Revision:  '$SubScriptRevision >> $logfilepath
+echo 'Subscript Name:  '$SubScriptName'  Subcript Version: '$SubScriptVersion' Level:  '$SubScriptsLevel' Revision:  '$SubScriptRevision'  Template Version: '$TemplateVersion >> $logfilepath
 echo >> $logfilepath
+
 
 # -------------------------------------------------------------------------------------------------
 # Handle important basics
