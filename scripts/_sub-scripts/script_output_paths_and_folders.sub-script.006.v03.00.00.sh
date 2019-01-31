@@ -4,10 +4,10 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptDate=2019-01-18
+SubScriptDate=2019-01-19
 SubScriptsLevel=006
 SubScriptVersion=03.00.00
-SubScriptRevision=004
+SubScriptRevision=005
 TemplateVersion=03.00.00
 TemplateLevel=006
 #
@@ -330,20 +330,27 @@ FinalizeOutputAndLogPaths () {
     # Set LogFile Information
     #----------------------------------------------------------------------------------------
     
+    # MODIFIED 2019-01-19 -
+
+    export logfilepathbase=$outputpathbase
+    export logfilepathfirst=$logfilepath
+
     # Setup the log file fully qualified path based on final locations
     #
     if [ -z "$CLIparm_logpath" ]; then
         # CLI parameter for logfile not set
-        export logfilepathfinal=$outputpathbase/$BASHScriptName.$DATEDTGS.log
+        export logfilepathbase=$outputpathbase
     else
         # CLI parameter for logfile set
-        #export logfilepathfinal=$CLIparm_logpath
+        #export logfilepathbase=$CLIparm_logpath
     
         # need to expand this other path to ensure things work
         export expandedpath=$(cd $CLIparm_logpath ; pwd)
-        export logfilepathfinal=$expandedpath/$BASHScriptName.$DATEDTGS.log
+        export logfilepathbase=$expandedpath
     fi
     
+    export logfilepathfinal=$logfilepathbase/$BASHScriptName.$DATEDTGS.log
+
     # if we've been logging, move the temporary log to the final path
     #
     if [ -r $logfilepath ]; then
@@ -372,7 +379,7 @@ FinalizeOutputAndLogPaths () {
 # ShowFinalOutputAndLogPaths - repeated proceedure
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-09-29D -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ShowFinalOutputAndLogPaths () {
@@ -404,7 +411,9 @@ ShowFinalOutputAndLogPaths () {
         echo ' $changelogpathroot    : '"$changelogpathroot" | tee -a -i $logfilepath
         echo ' $outputpathroot       : '"$outputpathroot" | tee -a -i $logfilepath
         echo ' $outputpathbase       : '"$outputpathbase" | tee -a -i $logfilepath
+        echo ' $logfilepathbase      : '"$logfilepathbase" | tee -a -i $logfilepath
         echo ' $logfilepath          : '"$logfilepath" | tee -a -i $logfilepath
+        echo ' $logfilepathfirst     : '"$logfilepathfirst" | tee -a -i $logfilepath
         echo ' $logfilepathfinal     : '"$logfilepathfinal" | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
         
@@ -425,7 +434,7 @@ ShowFinalOutputAndLogPaths () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-29
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-19
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
