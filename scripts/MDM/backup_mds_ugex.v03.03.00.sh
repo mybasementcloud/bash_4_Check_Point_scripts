@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT Update GAIA REST API Installation with latest package from tftp server
+# SCRIPT for BASH to execute mds_backup to /var/log/__customer/upgrade_export/backups folder
+# using mds_backup
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2019-02-01
-ScriptVersion=03.01.00
+ScriptVersion=03.03.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=03.00.00
@@ -18,10 +19,9 @@ export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-#export BASHScriptName=update_gaia_api.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=update_gaia_rest_api
-export BASHScriptShortName=Update_GAIA_REST_API
-export BASHScriptDescription="Update GAIA REST API Installation with latest package from tftp server"
+export BASHScriptName=backup_mds_ugex_001_v$ScriptVersion
+export BASHScriptShortName=log_mds_backup_ugex
+export BASHScriptDescription="Execute mds_backup to /var/log/__customer/upgrade_export/backups folder"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -40,9 +40,9 @@ export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
-export UseJSONJQ=true
+export UseJSONJQ=false
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -52,20 +52,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./backups
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=true
+export OutputSubfolderScriptShortName=false
 
 export notthispath=/home/
 export startpathroot=.
@@ -1006,350 +1006,181 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Download and if necessary, upgrade GAIA REST API
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
 
 # -------------------------------------------------------------------------------------------------
-# local script variables
+# Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
 
-
-export sourcetftpserver=10.69.248.60
-
-export remoterootfolder=/__gaia
-export remotefilefolder=gaia_rest_api
-export remotefilename=Check_Point_gaia_api.tgz
-export fqpnremotefile=$remoterootfolder/$remotefilefolder/$remotefilename
-
-#export remotescriptfolder=gaia_rest_api
-#export remotescriptname=update_gaia_api.sh
-#export fqpnremotescript=$remoterootfolder/$remotescriptfolder/$remotescriptname
-
-export rootworkpath=/var/log/__customer/download
-export workfolder=gaia_rest_api
-export workfoldercurrent=current
-export workfoldernew=new
-
-export workfilename=$remotefilename
-export installerfilename=install_gaia_api.sh
-
-export fqpnworkfolder=$rootworkpath/$workfolder
-export fqpncurrentfolder=$fqpnworkfolder/$workfoldercurrent
-export fqpnnewfolder=$fqpnworkfolder/$workfoldernew
-
-export fqfpworkfile=$fqpnworkfolder/$workfilename
-export fqfpcurrentfile=$fqpncurrentfolder/$workfilename
-export fqfpnewfile=$fqpnnewfolder/$workfilename
-
-
-#----------------------------------------------------------------------------------------
-# Check for working folders
-#----------------------------------------------------------------------------------------
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo ' Folder path check and creation! ' >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-if [ ! -r $rootworkpath ] ; then
-    mkdir $rootworkpath >> $logfilepath
-    chmod 775 $rootworkpath
-else
-    chmod 775 $rootworkpath
-fi
-
-if [ ! -r $fqpnworkfolder ] ; then
-    mkdir $fqpnworkfolder
-    chmod 775 $fqpnworkfolder
-else
-    chmod 775 $fqpnworkfolder
-fi
-
-if [ ! -r $fqpncurrentfolder ] ; then
-    mkdir $fqpncurrentfolder
-    chmod 775 $fqpncurrentfolder
-else
-    chmod 775 $fqpncurrentfolder
-fi
-
-if [ ! -r $fqpnnewfolder ] ; then
-    mkdir $fqpnnewfolder
-    chmod 775 $fqpnnewfolder
-else
-    chmod 775 $fqpnnewfolder
-fi
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Drop into folder and make sure we can write! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Wait until the target folder is available : '$fqpnworkfolder; echo
-echo -n '!'
-until [ -r $fqpnworkfolder ]
-do
-    echo -n '.'
-done
-echo
-
-echo | tee -a -i $logfilepath
-echo 'pushd to '$fqpnworkfolder | tee -a -i $logfilepath
-pushd "$fqpnworkfolder"
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Current content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-rm  $fqpnworkfolder/* | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Post clean-up content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Get remote files! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Fetch latest $remotefilename from tftp repository on $sourcetftpserver..." | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-tftp -v -m binary $sourcetftpserver -c get $fqpnremotefile | tee -a -i $logfilepath
-#tftp -v -m binary $sourcetftpserver -c get $fqpnremotescript | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check File transfer OK! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Check that we got it." | tee -a -i $logfilepath
-if [ ! -r $workfilename ]; then
-    # Oh, oh, we didn't get the $workfilename file
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error!!! Did not obtain '$workfilename' file from tftp!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "Continueing with MDS Backup..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "This script is not meant for SMS, exiting!"
     exit 255
+    echo
 else
-    # we have the $workfilename file and can work with it
-    echo | tee -a -i $logfilepath
-    ls -alh $workfilename | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # copy the new file to the new folder
-    cp $workfilename $fqpnnewfolder >> $logfilepath
-fi
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check if this is the first run or if we need to verify downloaded file is newer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ -r $fqfpcurrentfile ]; then
-    # we have a current file to check
-    echo "We have an existing current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # md5sum current/Check_Point_gaia_dynamic_cli.tgz
-    export md5current=$(md5sum $fqfpcurrentfile | cut -d " " -f 1)
-    echo 'md5 of current : '$md5current | tee -a -i $logfilepath
-    
-    # md5sum Check_Point_gaia_dynamic_cli.tgz
-    export md5new=$(md5sum $fqfpnewfile | cut -d " " -f 1)
-    echo 'md5 of     new : '$md5new | tee -a -i $logfilepath
-    
-    if [ $md5new == $md5current ]; then 
-        echo "Files are the same" | tee -a -i $logfilepath
-        echo 'No reason to update the existing installation!' | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        echo 'returning to script starting folder' | tee -a -i $logfilepath
-        popd
-        pwd | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        echo 'Exiting...' | tee -a -i $logfilepath
-        
-        echo | tee -a -i $logfilepath
-        echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-        echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        
-        exit 255
-    else 
-        echo "Files are different, moving right along..." | tee -a -i $logfilepath
-    fi
-    echo | tee -a -i $logfilepath
-    
-else
-    # no current file, so copy new file to current
-    echo "There is no current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-    echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # copy the new file to the current folder
-    cp $workfilename $fqpncurrentfolder >> $logfilepath
-fi
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Untar the '$workfilename' and execute the installer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ -r $workfilename ]; then
-    # OK now that we are clear on doing the work, let's extract this file and make it happen
-
-    # now unzip existing scripts folder
-    echo "Extract $workfilename file..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    tar -zxvf $workfilename | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    ls -alh | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # now execute installer script in local folder
-    echo "Execute installer file $installerfilename ..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    ./$installerfilename | tee -a -i $logfilepath
-
-    cp $workfilename $fqpncurrentfolder | tee -a -i $logfilepath
-
-    echo 'Reboot to get operational!' | tee -a -i $logfilepath
-
-else
-    # Heh????
-    
-    echo | tee -a -i $logfilepath
-    echo 'Files and folders:' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    ls -alhR | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
     exit 255
 fi
 
 
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
+
+export outputfilepath=$outputpathbase/
+export outputfileprefix=mdsbu_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATE
+export outputfiletype=.txt
+
+if [ ! -r $outputfilepath ]; then
+    mkdir $outputfilepath | tee -a -i $logfilepath
+fi
+
+export command2run='mds_backup -b -l -i -s -d'
+export outputfile=$outputfileprefix'_mds_backup-blisd'$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
 echo | tee -a -i $logfilepath
-echo 'returning to script starting folder' | tee -a -i $logfilepath
-popd
+echo 'Execute command : '"$command2run"' '"$outputfilepath" | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------'
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cd "$outputfilepath" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 pwd | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
+mdsstat | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
-echo 'Files and folders:' | tee -a -i $logfilepath
+echo 'mdsstop ...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-ls -alhR "$fqpnworkfolder" | tee -a -i $logfilepath
+
+mdsstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing mds_backup to : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#    mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+#else
+#    # test mode
+#    echo 'Test Mode!' | tee -a -i $logfilepath
+#    echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+#fi
+#
+
+echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $logfilepath
+
+
+echo 'Execute > mds_backup -b -l -i -s -d '"$outputfilepath" | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+mds_backup -b -l -i -s -d "$outputfilepath" | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo '--------------------------------------------------------------------------' | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
+
+
+echo | tee -a -i $logfilepath
+echo 'Done performing mds_backup' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+ls -alh $outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstart | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'mdsstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+mdsstat | tee -a -i $logfilepath
+
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'CLI Operations Completed' | tee -a -i $logfilepath
+
+#
+# shell clean-up and log dump
+#
+
+echo | tee -a -i $logfilepath
+ls -alh $outputpathroot | tee -a -i $logfilepath
+
+cd "$outputpathroot" | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 pwd | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
 echo 'Done!' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i  | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Download and if necessary, upgrade GAIA REST API
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================
@@ -1372,7 +1203,6 @@ echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath
 echo
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

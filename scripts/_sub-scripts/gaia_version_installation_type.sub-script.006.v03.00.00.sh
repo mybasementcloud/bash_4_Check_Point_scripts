@@ -4,10 +4,10 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptDate=2019-01-18
+SubScriptDate=2019-01-31
 SubScriptsLevel=006
 SubScriptVersion=03.00.00
-SubScriptRevision=004
+SubScriptRevision=005
 TemplateVersion=03.00.00
 TemplateLevel=006
 #
@@ -62,6 +62,50 @@ echo >> $logfilepath
 # Handle important basics
 # -------------------------------------------------------------------------------------------------
 
+
+# -------------------------------------------------------------------------------------------------
+# CheckAndUnlockGaiaDB - Check and Unlock Gaia database
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CheckAndUnlockGaiaDB () {
+    #
+    # CheckAndUnlockGaiaDB - Check and Unlock Gaia database
+    #
+    
+    echo -n 'Unlock gaia database : '
+
+    export gaiadbunlocked=false
+
+    until $gaiadbunlocked ; do
+
+        export checkgaiadblocked=`clish -i -c "lock database override" | grep -i "owned"`
+        export isclishowned=`test -z $checkgaiadblocked; echo $?`
+
+        if [ $isclishowned -eq 1 ]; then 
+            echo -n '.'
+            export gaiadbunlocked=false
+        else
+            echo -n '!'
+            export gaiadbunlocked=true
+        fi
+
+    done
+
+    echo; echo
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+#CheckAndUnlockGaiaDB
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 # =================================================================================================
 # =================================================================================================

@@ -4,4 +4,3 @@ begin;
 delete from hitcount;
 end;
 \q
-
