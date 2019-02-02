@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT Template for bash scripts, level - 006
+# SCRIPT Configure script link files and copy versioned scripts to generics
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2019-02-01
-ScriptVersion=03.00.00
-ScriptRevision=003
+ScriptVersion=03.10.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=03.00.00
 SubScriptsLevel=006
@@ -16,11 +16,9 @@ SubScriptsVersion=03.00.00
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
-export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
-
-export BASHScriptName=_template_bash_scripts.$TemplateLevel.v$ScriptVersion
-export BASHScriptShortName=_template.$TemplateLevel.v$ScriptVersion
-export BASHScriptDescription="Template for bash scripts"
+export BASHScriptName="generate_script_links.v$ScriptVersion"
+export BASHScriptShortName="generate_links"
+export BASHScriptDescription="Generate Script Links"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -39,9 +37,9 @@ export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
-export UseJSONJQ=true
+export UseJSONJQ=false
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -355,7 +353,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -367,26 +365,10 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-11-20 -
+    # MODIFIED 2018-10-03 -
     
-    export configured_handler_root=$cli_script_cmdlineparm_handler_root
-    export actual_handler_root=$configured_handler_root
+    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
     
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -399,8 +381,6 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
-            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
-            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -598,7 +578,7 @@ GetScriptSourceFolder () {
 # ConfigureJQforJSON - Configure JQ variable value for JSON parsing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureJQforJSON () {
@@ -658,7 +638,7 @@ ConfigureJQforJSON () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-09-22
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -774,26 +754,8 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    # MODIFIED 2018-11-20 -
+    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
     
-    export configured_handler_root=$gaia_version_type_handler_root
-    export actual_handler_root=$configured_handler_root
-    
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -919,15 +881,6 @@ echo | tee -a -i $logfilepath
 
 
 # -------------------------------------------------------------------------------------------------
-# Script Source Folder
-# -------------------------------------------------------------------------------------------------
-
-# We need the Script's actual source folder to find subscripts
-#
-GetScriptSourceFolder
-
-
-# -------------------------------------------------------------------------------------------------
 # JQ and json related
 # -------------------------------------------------------------------------------------------------
 
@@ -1010,77 +963,504 @@ fi
 #==================================================================================================
 #==================================================================================================
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Example framework for executing bash commands and documenting those specifically
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
-
-#export targetversion=$gaiaversion
-#
-#export outputfilepath=$outputpathbase/
-#export outputfileprefix=$HOSTNAME'_'$targetversion
-#export outputfilesuffix='_'$DATEDTGS
-#export outputfiletype=.txt
-#
-#if [ ! -r $outputfilepath ] ; then
-#    mkdir $outputfilepath
-#    chmod 775 $outputfilepath
-#else
-#    chmod 775 $outputfilepath
-#fi
-#
-
-#case "$gaiaversion" in
-#    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
-#        export do_session_cleanup=true
-#        ;;
-#    *)
-#        export do_session_cleanup=false
-#        ;;
-#esac
-#
-#if [ "$do_session_cleanup" == "true" ]; then
-#
-
-echo '! doing something !' 
-
-#----------------------------------------------------------------------------------------
-# bash - ?what next?
-#----------------------------------------------------------------------------------------
-
-#export command2run=command
-#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-#export outputfilefqdn=$outputfilepath$outputfile
-#
-#echo
-#echo 'Execute '$command2run' with output to : '$outputfilefqdn
-#command > "$outputfilefqdn"
-#
-#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
-#echo 'fwacell stats -s' >> "$outputfilefqdn"
-#echo >> "$outputfilefqdn"
-#
-#fwaccel stats -s >> "$outputfilefqdn"
-#
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 #
+# Scripts link generation and setup
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
-#echo 'CLI Operations Completed'
+export workingroot=$customerworkpathroot
+export workingbase=$workingroot/scripts
+export linksbase=$workingbase/.links
+
+
+if [ ! -r $workingbase ] ; then
+    echo | tee -a -i $logfilepath
+    echo Error! | tee -a -i $logfilepath
+    echo Missing folder $workingbase | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo Exiting! | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    exit 255
+else
+    chmod 775 $workingbase | tee -a -i $logfilepath
+fi
+
+
+if [ ! -r $linksbase ] ; then
+    mkdir $linksbase | tee -a -i $logfilepath
+    chmod 775 $linksbase | tee -a -i $logfilepath
+else
+    chmod 775 $linksbase | tee -a -i $logfilepath
+fi
+
+if [ -r $workingbase/updatescripts.sh ] ; then
+    chmod 775 $workingbase/updatescripts.sh | tee -a -i $logfilepath
+    cp $workingbase/updatescripts.sh $workingroot | tee -a -i $logfilepath
+fi
+
+
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Common
+# =============================================================================
+
+
+export workingdir=Common
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_common_001=determine_gaia_version_and_installation_type.v03.03.00.sh
+file_common_002=do_script_nohup.v03.00.00.sh
+
+file_common_003=go_dump_folder_now.v03.00.00.sh
+file_common_004=go_dump_folder_now_dtg.v03.00.00.sh
+
+file_common_005=go_change_log_folder_now_dtg.v03.00.00.sh
+
+file_common_006=make_dump_folder_now.v03.00.00.sh
+file_common_007=make_dump_folder_now_dtg.v03.00.00.sh
+
+ln -sf $sourcefolder/$file_common_001 $linksfolder/gaia_version_type
+ln -sf $sourcefolder/$file_common_001 $workingroot/gaia_version_type
+
+ln -sf $sourcefolder/$file_common_002 $linksfolder/do_script_nohup
+ln -sf $sourcefolder/$file_common_002 $workingroot/do_script_nohup
+
+ln -sf $sourcefolder/$file_common_003 $linksfolder/godump
+ln -sf $sourcefolder/$file_common_003 $workingroot/godump
+ln -sf $sourcefolder/$file_common_004 $linksfolder/godtgdump
+ln -sf $sourcefolder/$file_common_004 $workingroot/godtgdump
+
+ln -sf $sourcefolder/$file_common_005 $linksfolder/goChangeLog
+ln -sf $sourcefolder/$file_common_005 $workingroot/goChangeLog
+
+ln -sf $sourcefolder/$file_common_006 $linksfolder/mkdump
+ln -sf $sourcefolder/$file_common_006 $workingroot/mkdump
+ln -sf $sourcefolder/$file_common_007 $linksfolder/mkdtgdump
+ln -sf $sourcefolder/$file_common_007 $workingroot/mkdtgdump
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Config
+# =============================================================================
+
+
+export workingdir=Config
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_config_001=config_capture.006.v03.08.00.sh
+file_config_002=show_interface_information.v03.04.00.sh
+
+ln -sf $sourcefolder/$file_config_001 $linksfolder/config_capture
+ln -sf $sourcefolder/$file_config_002 $linksfolder/interface_info
+
+ln -sf $sourcefolder/$file_config_001 $workingroot/config_capture
+ln -sf $sourcefolder/$file_config_002 $workingroot/interface_info
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GAIA
+# =============================================================================
+
+
+export workingdir=GAIA
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_GAIA_001=update_gaia_rest_api.sh
+file_GAIA_002=update_gaia_dynamic_cli.sh
+
+
+ln -sf $sourcefolder/$file_GAIA_001 $linksfolder/update_gaia_rest_api
+ln -sf $sourcefolder/$file_GAIA_002 $linksfolder/update_gaia_dynamic_cli
+
+if $IsR8XVersion ; then
+    
+    ln -sf $sourcefolder/$file_GAIA_001 $workingroot/update_gaia_rest_api
+    ln -sf $sourcefolder/$file_GAIA_002 $workingroot/update_gaia_dynamic_cli
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW
+# =============================================================================
+
+
+export workingdir=GW
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_GW_001=watch_accel_stats.v03.03.00.sh
+file_GW_002=set_informative_logging_implied_rules_on_R8x.v03.03.00.sh
+file_GW_003=reset_hit_count_with_backup.v03.03.00.sh
+file_GW_004=show_clusterXL_information.v03.04.00.sh
+file_GW_005=watch_cluster_status.v03.03.00.sh
+
+
+ln -sf $sourcefolder/$file_GW_001 $linksfolder/watch_accel_stats
+ln -sf $sourcefolder/$file_GW_002 $linksfolder/set_informative_logging_implied_rules_on_R8x
+ln -sf $sourcefolder/$file_GW_003 $linksfolder/reset_hit_count_with_backup
+ln -sf $sourcefolder/$file_GW_004 $linksfolder/cluster_info
+ln -sf $sourcefolder/$file_GW_005 $linksfolder/watch_cluster_status
+
+
+if [ "$sys_type_GW" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_GW_001 $workingroot/watch_accel_stats
+    ln -sf $sourcefolder/$file_GW_002 $workingroot/set_informative_logging_implied_rules_on_R8x
+    ln -sf $sourcefolder/$file_GW_003 $workingroot/reset_hit_count_with_backup
+    
+    if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+        # is a cluster
+        ln -sf $sourcefolder/$file_GW_004 $workingroot/cluster_info
+        ln -sf $sourcefolder/$file_GW_005 $workingroot/watch_cluster_status
+    fi
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Health_Check
+# =============================================================================
+
+
+export workingdir=Health_Check
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+
+file_healthcheck_001=healthcheck.sh
+file_healthcheck_002=run_healthcheck_to_dump_dtg.v03.03.00.sh
+file_healthcheck_003=check_status_checkpoint_services.v03.04.00.sh
+
+ln -sf $sourcefolder/$file_healthcheck_001 $linksfolder/healthcheck
+ln -sf $sourcefolder/$file_healthcheck_001 $workingroot/healthcheck
+ln -sf $sourcefolder/$file_healthcheck_002 $linksfolder/healthdump
+ln -sf $sourcefolder/$file_healthcheck_002 $workingroot/healthdump
+ln -sf $sourcefolder/$file_healthcheck_003 $linksfolder/checkpoint_service_status_check
+ln -sf $sourcefolder/$file_healthcheck_003 $workingroot/checkpoint_service_status_check
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MDM
+# =============================================================================
+
+
+export workingdir=MDM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_MDM_001=backup_mds_ugex.v03.03.00.sh
+file_MDM_002=backup_mds_w_logs_ugex.v03.03.00.sh
+
+file_MDM_003=report_mdsstat.v03.03.00.sh
+file_MDM_004=watch_mdsstat.v03.03.00.sh
+file_MDM_005=show_all_domains_in_array.v03.03.00.sh
+
+ln -sf $sourcefolder/$file_MDM_001 $linksfolder/backup_mds_ugex
+ln -sf $sourcefolder/$file_MDM_002 $linksfolder/backup_mds_w_logs_ugex
+ln -sf $sourcefolder/$file_MDM_003 $linksfolder/report_mdsstat
+ln -sf $sourcefolder/$file_MDM_004 $linksfolder/watch_mdsstat
+ln -sf $sourcefolder/$file_MDM_005 $linksfolder/show_domains_in_array
+
+if [ "$sys_type_MDS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_MDM_001 $workingroot/backup_mds_ugex
+    ln -sf $sourcefolder/$file_MDM_002 $workingroot/backup_mds_w_logs_ugex
+    ln -sf $sourcefolder/$file_MDM_003 $workingroot/report_mdsstat
+    ln -sf $sourcefolder/$file_MDM_004 $workingroot/watch_mdsstat
+    ln -sf $sourcefolder/$file_MDM_005 $workingroot/show_domains_in_array
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Patch_HotFix
+# =============================================================================
+
+
+export workingdir=Patch_HotFix
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_patch_001=fix_gaia_webui_login_dot_js.sh
+file_patch_002=fix_gaia_webui_login_dot_js_generic.sh
+
+export need_fix_webui=false
+
+if $IsR8XVersion ; then
+    export need_fix_webui=false
+else
+    export need_fix_webui=true
+fi
+
+if [ "$need_fix_webui" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_patch_001 $linksfolder/fix_gaia_webui_login_dot_js
+    ln -sf $sourcefolder/$file_patch_001 $workingroot/fix_gaia_webui_login_dot_js
+    
+    ln -sf $sourcefolder/$file_patch_002 $linksfolder/fix_gaia_webui_login_dot_js_generic
+
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Session_Cleanup
+# =============================================================================
+
+
+export workingdir=Session_Cleanup
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SESSION_001=remove_zerolocks_sessions.v03.00.00.sh
+file_SESSION_002=remove_zerolocks_web_api_sessions.v03.00.00.sh
+file_SESSION_003=show_zerolocks_sessions.v03.00.00.sh
+file_SESSION_004=show_zerolocks_web_api_sessions.v03.00.00.sh
+
+export do_session_cleanup=false
+
+if $IsR8XVersion ; then
+    export do_session_cleanup=true
+else
+    export do_session_cleanup=false
+fi
+
+if [ "$do_session_cleanup" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SESSION_001 $linksfolder/remove_zerolocks_sessions
+    ln -sf $sourcefolder/$file_SESSION_002 $linksfolder/remove_zerolocks_web_api_sessions
+    ln -sf $sourcefolder/$file_SESSION_003 $linksfolder/show_zerolocks_sessions
+    ln -sf $sourcefolder/$file_SESSION_004 $linksfolder/show_zerolocks_web_api_sessions
+
+    if [ "$sys_type_GW" == "false" ]; then
+        
+        ln -sf $sourcefolder/$file_SESSION_001 $workingroot/remove_zerolocks_sessions
+        ln -sf $sourcefolder/$file_SESSION_002 $workingroot/remove_zerolocks_web_api_sessions
+        ln -sf $sourcefolder/$file_SESSION_003 $workingroot/show_zerolocks_sessions
+        ln -sf $sourcefolder/$file_SESSION_004 $workingroot/show_zerolocks_web_api_sessions
+            
+    fi
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMEV_001=SmartEvent_Backup_R8X.v03.03.00.sh
+file_SMEV_002=SmartEvent_Restore_R8X.v03.03.0X-NR.sh
+file_SMEV_003=Reset_SmartLog_Indexing_Back_X_Days.v03.03.00.sh
+file_SMEV_004=NUKE_ALL_LOGS_AND_INDEXES.v03.03.00.sh
+
+ln -sf $sourcefolder/$file_SMEV_001 $linksfolder/SmartEvent_backup
+ln -sf $sourcefolder/$file_SMEV_002 $linksfolder/SmartEvent_restore
+ln -sf $sourcefolder/$file_SMEV_003 $linksfolder/Reset_SmartLog_Indexing
+ln -sf $sourcefolder/$file_SMEV_004 $linksfolder/SmartEvent_NUKE_Index_and_Logs
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMEV_001 $workingroot/SmartEvent_backup
+    #ln -sf $sourcefolder/$file_SMEV_002 $workingroot/SmartEvent_restore
+    #ln -sf $sourcefolder/$file_SMEV_003 $workingroot/Reset_SmartLog_Indexing
+    #ln -sf $sourcefolder/$file_SMEV_004 $workingroot/SmartEvent_NUKE_Index_and_Logs
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS
+# =============================================================================
+
+
+export workingdir=SMS
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMS_001=migrate_export_npm_ugex.v03.03.00.sh
+file_SMS_002=migrate_export_w_logs_npm_ugex.v03.03.00.sh
+
+file_SMS_007=migrate_export_epm_ugex.v03.03.00.sh
+file_SMS_008=migrate_export_w_logs_epm_ugex.v03.03.00.sh
+
+file_SMS_003=restart_mgmt.v03.03.00.sh
+file_SMS_004=report_cpwd_admin_list.v03.03.00.sh
+file_SMS_005=watch_cpwd_admin_list.v03.03.00.sh
+
+file_SMS_006=reset_hit_count_on_R80_SMS_commands.001.v00.01.00.sh
+
+ln -sf $sourcefolder/$file_SMS_001 $linksfolder/migrate_export_npm_ugex
+ln -sf $sourcefolder/$file_SMS_002 $linksfolder/migrate_export_w_logs_npm_ugex
+ln -sf $sourcefolder/$file_SMS_003 $linksfolder/restart_mgmt
+ln -sf $sourcefolder/$file_SMS_004 $linksfolder/report_cpwd_admin_list
+ln -sf $sourcefolder/$file_SMS_005 $linksfolder/watch_cpwd_admin_list
+
+ln -sf $sourcefolder/$file_SMS_006 $linksfolder/reset_hit_count_on_R80_SMS_commands
+
+ln -sf $sourcefolder/$file_SMS_004 $workingroot/report_cpwd_admin_list
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_001 $workingroot/migrate_export_npm_ugex
+    ln -sf $sourcefolder/$file_SMS_002 $workingroot/migrate_export_w_logs_npm_ugex
+    ln -sf $sourcefolder/$file_SMS_003 $workingroot/restart_mgmt
+    ln -sf $sourcefolder/$file_SMS_005 $workingroot/watch_cpwd_admin_list
+    
+    ln -sf $sourcefolder/$file_SMS_006 $workingroot/reset_hit_count_on_R80_SMS_commands
+    
+fi
+
+if [ $Check4EPM -gt 0 ]; then
+
+    ln -sf $sourcefolder/$file_SMS_007 $linksfolder/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_SMS_008 $linksfolder/migrate_export_w_logs_epm_ugex
+
+    ln -sf $sourcefolder/$file_SMS_007 $workingroot/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_SMS_008 $workingroot/migrate_export_w_logs_epm_ugex
+
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig
+# =============================================================================
+
+
+export workingdir=UserConfig
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_USERCONF_001=add_alias_commands.all.v03.04.00.sh
+file_USERCONF_002=update_alias_commands.all.v03.04.00.sh
+
+ln -sf $sourcefolder/$file_USERCONF_001 $linksfolder/add_alias_commands
+ln -sf $sourcefolder/$file_USERCONF_001 $workingroot/add_alias_commands
+
+ln -sf $sourcefolder/$file_USERCONF_002 $linksfolder/update_alias_commands
+ln -sf $sourcefolder/$file_USERCONF_002 $workingroot/update_alias_commands
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
+echo | tee -a -i $logfilepath
+echo 'List folder : '$workingroot | tee -a -i $logfilepath
+ls -alh $workingroot | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'List folder : '$workingbase | tee -a -i $logfilepath
+ls -alh $workingbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'List folder : '$linksbase | tee -a -i $logfilepath
+ls -alh $linksbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done with links generation!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+
+
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+#
 
 
 #==================================================================================================
@@ -1104,12 +1484,9 @@ echo
 echo 'List folder : '$outputpathbase
 ls -alh $outputpathbase
 echo
-
-echo
 echo 'Output location for all results is here : '$outputpathbase
 echo 'Log results documented in this log file : '$logfilepath
 echo
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

@@ -21,11 +21,11 @@ alias goexportwip='cd $$MYWORKFOLDER/cli_api_ops.wip/export_import.wip'
 export MYTFTPSERVER=10.69.248.60
 export MYTFTPFOLDER=/__gaia
 
-alias getupdatescripts='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
+alias getupdatescripts='gougex;pwd;tftp -v -m binary 10.69.248.60 -c get /__gaia/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
 
-alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/setuphost.sh;echo;chmod 775 setuphost.sh;echo;ls -alh setuphost.sh'
+alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary 10.69.248.60 -c get /__gaia/setuphost.sh;echo;chmod 775 setuphost.sh;echo;ls -alh setuphost.sh'
 
 export MYSMCFOLDER=/__smcias
-alias getfixsmcscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYSMCFOLDER/fix_smcias_interfaces.sh;echo;chmod 775 fix_smcias_interfaces.sh;echo;ls -alh fix_smcias_interfaces.sh'
+alias getfixsmcscript='cd /var/log;pwd;tftp -v -m binary 10.69.248.60 -c get /__smcias/fix_smcias_interfaces.sh;echo;chmod 775 fix_smcias_interfaces.sh;echo;ls -alh fix_smcias_interfaces.sh'
 
 

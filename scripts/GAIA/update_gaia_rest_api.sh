@@ -5,7 +5,7 @@
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2019-02-01
-ScriptVersion=03.01.00
+ScriptVersion=03.02.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=03.00.00
@@ -52,8 +52,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
-export OutputToChangeLog=false
+export OutputToDump=false
+export OutputToChangeLog=true
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
