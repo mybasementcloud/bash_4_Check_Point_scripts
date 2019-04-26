@@ -4,13 +4,13 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-RootScriptDate=2019-01-18
-RootScriptVersion=03.00.00
-RootScriptRevision=001
+ScriptDate=2019-04-21
+ScriptVersion=04.01.00
+ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=03.00.00
+TemplateVersion=04.03.00
 SubScriptsLevel=006
-SubScriptsVersion=03.00.00
+SubScriptsVersion=04.01.00
 #
 
 RootScriptVersion=v${RootScriptVersion//./x}

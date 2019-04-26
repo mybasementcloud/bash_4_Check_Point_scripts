@@ -4,17 +4,22 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-02-01
-ScriptVersion=03.03.00
+ScriptDate=2019-03-08
+ScriptVersion=04.00.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=03.00.00
+TemplateVersion=04.00.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptName="updatescripts"
 export BASHScriptShortName="updatescripts"
 export BASHScriptDescription="Update scripts from NAS storage via tftp pull, clear, and replace"
+
+export BASHScriptHelpFile="$BASHScriptName.help"
+
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
+export BASHScriptsFolder=.
 
 
 # -------------------------------------------------------------------------------------------------
