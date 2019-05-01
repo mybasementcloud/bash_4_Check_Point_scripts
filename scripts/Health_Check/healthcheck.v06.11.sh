@@ -8,7 +8,7 @@
 # AUTHOR (all versions):    Nathan Davieau (Check Point Diamond Services Tech Lead)
 # CO-AUTHOR (v0.2-v3.6):    Rosemarie Rodriguez
 # CODE CONTRIBUTORS:        Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman, Michael Bybee
-# VERSION:                  6.10
+# VERSION:                  6.11
 # SK:                       sk121447
 #====================================================================================================
 
@@ -36,7 +36,7 @@ executed_script_path=$(readlink -f $0)
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="6.10 03-20-2019"
+script_ver="6.11 04-25-2019"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -1980,6 +1980,9 @@ check_magic_mac()
     elif [[ $current_version -ge 8000 ]]; then
         magic_mac=$(cphaprob mmagic | sed "/^$/d")
         printf "$magic_mac\n" >> $full_output_log
+        
+        printf "\n\nCluster Global ID:\n" >> $full_output_log
+        cphaconf cluster_id get >> $full_output_log
     fi
 }
 
@@ -2195,6 +2198,170 @@ check_debugs()
     unset active_tderror
     unset modified_module
     unset cpm_debugs_active
+}
+
+#====================================================================================================
+#  VSX Stuff
+#====================================================================================================
+check_vsx()
+{
+    #Reset counters and start log
+    summary_error=0
+    test_output_error=0
+    vsx_error_file=/var/tmp/vsx_error
+    current_check_message="VSX\t\t\t"
+    printf '<tr class="sectionTableBorder"><td class="sectionTableBorder"><p class="paragraphSpacing"><span class="checkNameBlue"><b>VSX</b></span><br>\n' >> $html_file
+    
+    #VS specific information
+    vsx_stat=$(vsx stat $vs)
+    vsx_type=$(echo "$vsx_stat" | grep Type: | awk '{print $3}') # Gateway, Switch, System, or Router
+    vsx_policy=$(echo "$vsx_stat" | grep "Security Policy:" | awk '{print $3, $4}') #Policy name, <No Policy>, <Not Applicable>, or <Default Policy>
+    vsx_sic=$(echo "$vsx_stat" | grep "SIC Status:" | awk '{print $3, $4}') #Trust or "No Trust"
+    
+    #====================================================================================================
+    #  VS0 Checks
+    #====================================================================================================
+    if [[ $vs -eq 0 ]]; then
+        #VSX information
+        vs0_info=$(vsx stat)
+        vs_allowed=$(echo "$vs0_info" | grep "allowed by license" | awk '{print $8}')
+        vs_active=$(echo "$vs0_info" | grep 'Virtual Systems \[active' | awk '{print $6}')
+        vs_configured=$(echo "$vs0_info" | grep 'Virtual Systems \[active' | awk '{print $8}')
+        vrs_active=$(echo "$vs0_info" | grep 'Virtual Routers and Switches' | awk '{print $8}')
+        vrs_configured=$(echo "$vs0_info" | grep 'Virtual Routers and Switches' | awk '{print $10}')
+        vsx_configured=$(( vs_configured + vrs_configured ))
+        
+        #====================================================================================================
+        #  VS License Check
+        #====================================================================================================
+        printf "| VSX\t\t\t| VSX Licenses\t\t\t|" | tee -a $output_log
+        printf '<span><b>VSX Licenses - </b></span><b>' >> $html_file
+        
+        #Check the number of configured VSs vs the licensed limit
+        if [[ $vs_allowed -gt $vsx_configured ]]; then
+            check_passed
+            printf "VSX,VSX Licenses,OK,\n" >> $csv_log
+        elif [[ $vs_allowed -eq $vsx_configured ]]; then
+            check_info
+            printf "VSX,VSX Licenses,INFO,\n" >> $csv_log
+            printf "VS Licenses - The number of configured Virtual Devices has reached the licensed limit.\n" >> $logfile
+            printf "<span>The number of configured Virtual Devices has reached the licensed limit.</span><br><br>\n" >> $html_file
+        else
+            check_failed
+            printf "VSX,VS Licenses,ERROR,\n" >> $csv_log
+            printf "VS Licenses - The number of configured Virtual Devices has exceeded the licensed limit.\n" >> $logfile
+            printf "<span>The number of configured Virtual Devices has exceeded the licensed limit.</span><br><br>\n" >> $html_file
+        fi
+        
+        #====================================================================================================
+        #  VS Configured Check
+        #====================================================================================================
+        test_output_error=0
+        printf "|\t\t\t| Virtual Systems\t\t|" | tee -a $output_log
+        printf '<span><b>Virtual Systems - </b></span><b>' >> $html_file
+        
+        #Display error if the SIC state is something other than "Trust"
+        if [[ $vs_active -eq $vs_configured ]]; then
+            check_passed
+            printf "VSX,Virtual Systems,OK,\n" >> $csv_log
+        else
+            check_failed
+            printf "VSX,Virtual Systems,ERROR,\n" >> $csv_log
+            printf "Virtual Systems - The number of active Virtual Systems is less than the number configured.\n" >> $logfile
+            printf "<span>The number of active Virtual Systems is less than the number configured.</span><br><br>\n" >> $html_file
+        fi
+        
+        #====================================================================================================
+        #  Virtual Swiches and Routers Configured Check
+        #====================================================================================================
+        test_output_error=0
+        printf "|\t\t\t| Routers and Switches\t\t|" | tee -a $output_log
+        printf '<span><b>Routers and Switches - </b></span><b>' >> $html_file
+        
+        #Display error if the SIC state is something other than "Trust"
+        if [[ $vrs_active -eq $vrs_configured ]]; then
+            check_passed
+            printf "VSX,Routers and Switches,OK,\n" >> $csv_log
+        else
+            check_failed
+            printf "VSX,Routers and Switches,ERROR,\n" >> $csv_log
+            printf "Virtual Routers and Switches - The number of active Virtual Routers and Switches is less than the number configured.\n" >> $logfile
+            printf "<span>The number of active Virtual Systems is less than the number configured.</span><br><br>\n" >> $html_file
+        fi
+    fi
+    
+    #====================================================================================================
+    #  SIC Status Check
+    #====================================================================================================
+    test_output_error=0
+    if [[ $vs -eq 0 ]]; then
+        printf "|\t\t\t| SIC Status\t\t\t|" | tee -a $output_log
+    else
+        printf "| VSX\t\t\t| SIC Status\t\t\t|" | tee -a $output_log
+    fi
+    printf '<span><b>SIC Status - </b></span><b>' >> $html_file
+    
+    #Display error if the SIC state is something other than "Trust"
+    if [[ $vsx_sic == "Trust"* ]]; then
+        check_passed
+        printf "VSX,SIC Status,OK,\n" >> $csv_log
+    else
+        check_failed
+        printf "VSX,SIC Status,ERROR,\n" >> $csv_log
+        printf "SIC status -  VS $vs is $vsx_sic.\n" >> $logfile
+        printf "<span>VS $vs is $vsx_sic.</span><br><br>\n" >> $html_file
+    fi
+    
+    #====================================================================================================
+    #  Security Policy Check
+    #====================================================================================================
+    test_output_error=0
+    printf "|\t\t\t| Security Policy\t\t|" | tee -a $output_log
+    printf '<span><b>Security Policy - </b></span><b>' >> $html_file
+    
+    #Virtual System and Gateway
+    if [[ $vsx_type == "System" || $vsx_type == "Gateway" ]]; then
+        if [[ $vsx_policy == "InitialPolicy"* ]]; then
+            check_failed
+            printf "VSX,Security Policy,ERROR,\n" >> $csv_log
+            printf "Security Policy - Initial Policy detected on VS: $vs.\n" >> $logfile
+            printf "<span>Initial Policy detected on VS: $vs.</span><br><br>\n" >> $html_file
+        elif [[ $vsx_policy == "<No Policy>" ]]; then
+            check_failed
+            printf "VSX,Security Policy,ERROR,\n" >> $csv_log
+            printf "Security Policy - No Policy detected on VS: $vs.\n" >> $logfile
+            printf "<span>No Policy detected on VS: $vs.</span><br><br>\n" >> $html_file
+        else
+            check_passed
+            printf "VSX,Security Policy,OK,\n" >> $csv_log
+        fi
+    fi
+    
+    #Virtual Router
+    if [[ $vsx_type == "Router" ]]; then
+        if [[ $vsx_policy == "<Default Policy>" ]]; then
+            check_passed
+            printf "VSX,Security Policy,OK,\n" >> $csv_log
+        else
+            check_failed
+            printf "VSX,Security Policy,ERROR,\n" >> $csv_log
+            printf "Security Policy - Default policy not detected on Virtual Router VSID: $vs.\n" >> $logfile
+            printf "<span>Default policy not detected on Virtual Router VSID: $vs.</span><br><br>\n" >> $html_file
+        fi
+    fi
+    
+    #Virtual Switch
+    if [[ $vsx_type == "Switch" ]]; then
+        if [[ $vsx_policy == "<Not Applicable>" ]]; then
+            check_passed
+            printf "VSX,Security Policy,OK,\n" >> $csv_log
+        else
+            check_failed
+            printf "VSX,Security Policy,ERROR,\n" >> $csv_log
+            printf "Securit Policy - Somehow a policy has been detected on Virtual Switch VSID: $vs.\n" >> $logfile
+            printf "<span>Somehow a policy has been detected on Virtual Switch VSID: $vs.</span><br><br>\n" >> $html_file
+        fi
+    fi
 }
 
 
@@ -3563,7 +3730,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="03-20-2019"
+    script_build_date="04-25-2019"
     current_check_message="Check Point\t\t"
     
     
@@ -3597,7 +3764,7 @@ check_cp_software()
     printf "|\t\t\t| CPUSE Build Number\t\t|" | tee -a $output_log
     printf '<span><b>CPUSE Build Number - </b></span><b>' >> $html_file
     cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
-    latest_cpuse_build="1669"
+    latest_cpuse_build="1676"
     if [[ $cpuse_build_version -ge $latest_cpuse_build ]]; then
         check_passed
         printf "Check Point,CPUSE Build Number,OK,\n" >> $csv_log
@@ -4240,8 +4407,9 @@ run_local_checks()
         printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
         
         
-        #Create list of all Virtual Systems (Not VS0, Swithces, or Routers)
-        vs_list=$(vsx stat -l 2> /dev/null | grep -i -B2 "Virtual System" | grep VSID | awk '{print $2}')
+        #Create list of all Virtual Devices
+        #vs_list=$(vsx stat -l 2> /dev/null | grep -i -B2 "Virtual System" | grep VSID | awk '{print $2}')
+        vs_list=$(vsx stat -l 2> /dev/null | grep VSID | awk '{print $2}')
         
         #Loop through each VS performing checks
         printf '<br><div class="verticalYellowLine">\n<table class="sectionTable">\n' >> $html_file
@@ -4260,24 +4428,31 @@ run_local_checks()
             printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
             printf "| Category              | Title                         | Result        |\n" | tee -a $output_log
             printf "+=======================+===============================+===============+\n" | tee -a $output_log
-            check_fragments
-            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
-            check_connections
+            check_vsx
             printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
             
-            #Only collect clusterXL stats if clustering is enabled
-            if [[ $(cpconfig <<< 10 | grep cluster) == *"Enable"* ]]; then
-                printf "\n\nCluster Status:\nCluster membership is disabled\n\n" >> $full_output_log
-            else
-                check_clusterxl
+            #Run additional checks for Virtual Systems
+            if [[ $vsx_type == "System" ]]; then
+                check_fragments
                 printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+                check_connections
+                printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+                
+                #Only collect clusterXL stats if clustering is enabled
+                if [[ $(cpconfig <<< 10 | grep cluster) == *"Enable"* ]]; then
+                    printf "\n\nCluster Status:\nCluster membership is disabled\n\n" >> $full_output_log
+                else
+                    check_clusterxl
+                    printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+                fi
+                
+                check_securexl
+                printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
+                check_logging
+                printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
             fi
-            
-            check_securexl
-            printf "+-----------------------+-------------------------------+---------------+\n" | tee -a $output_log
-            check_logging
-            printf "+-----------------------+-------------------------------+---------------+\n\n" | tee -a $output_log
         done
+
         printf '</tbody></table></div>\n' >> $html_file
         
     fi

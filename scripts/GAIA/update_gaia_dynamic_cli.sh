@@ -4,13 +4,13 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-04-19
-ScriptVersion=04.01.00
+ScriptDate=2019-04-28
+ScriptVersion=04.04.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.00.00
+TemplateVersion=04.03.00
 SubScriptsLevel=006
-SubScriptsVersion=04.00.00
+SubScriptsVersion=04.01.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -183,11 +183,35 @@ fi
 # START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-04-20 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
+#
+# Standard Scripts and R8X API Scripts Command Line Parameters
+#
+# -? | --help
+# -v | --verbose
+# -P <web-ssl-port> | --port <web-ssl-port> | -P=<web-ssl-port> | --port=<web-ssl-port>
+# -r | --root
+# -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
+# -p <password> | --password <password> | -p=<password> | --password=<password>
+# -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
+# -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
+# -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
+# -l <log_path> | --log-path <log_path> | -l=<log_path> | --log-path=<log_path>'
+#
+# -o <output_path> | --output <output_path> | -o=<output_path> | --output=<output_path> 
+#
+# --NOWAIT
+#
+# --NOSTART
+# --RESTART
+#
+
 export SHOWHELP=false
+# MODIFIED 2018-09-29 -
+#export CLIparm_websslport=443
 export CLIparm_websslport=
 export CLIparm_rootuser=false
 export CLIparm_user=
@@ -206,21 +230,39 @@ export CLIparm_NOWAIT=
 if [ -z "$NOWAIT" ]; then
     # NOWAIT mode not set from shell level
     export CLIparm_NOWAIT=false
-elif $NOWAIT ; then
-    # NOWAIT mode set ON from shell level
-    export CLIparm_NOWAIT=true
-elif ! $NOWAIT ; then
+elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # NOWAIT mode set OFF from shell level
     export CLIparm_NOWAIT=false
+elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NOWAIT mode set ON from shell level
+    export CLIparm_NOWAIT=true
 else
     # NOWAIT mode set to wrong value from shell level
     export CLIparm_NOWAIT=false
 fi
 
+export CLIparm_NOSTART=false
+
+# --NOSTART
+#
+if [ -z "$NOSTART" ]; then
+    # NOSTART mode not set from shell level
+    export CLIparm_NOSTART=false
+elif [ x"`echo "$NOSTART" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+    # NOSTART mode set OFF from shell level
+    export CLIparm_NOSTART=false
+elif [ x"`echo "$NOSTART" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+    # NOSTART mode set ON from shell level
+    export CLIparm_NOSTART=true
+else
+    # NOSTART mode set to wrong value from shell level
+    export CLIparm_NOSTART=false
+fi
+
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2018-10-03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-04-20
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -1069,7 +1111,7 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30 | R80.40.M1 | R80.40.M2 | R80.40 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -1472,16 +1514,16 @@ echo | tee -a -i $logfilepath
 #==================================================================================================
 #==================================================================================================
 
-echo
-echo 'List folder : '$outputpathbase
-ls -alh $outputpathbase
-echo
 
-echo
-echo 'Output location for all results is here : '$outputpathbase
-echo 'Log results documented in this log file : '$logfilepath
-echo
-echo 'Script Completed, exiting...';echo
+echo | tee -a -i $logfilepath
+echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
+ls -alh $outputpathbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
+echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 
 #----------------------------------------------------------------------------------------
@@ -1489,5 +1531,9 @@ echo 'Script Completed, exiting...';echo
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+
+
+echo
+echo 'Script Completed, exiting...';echo
 
 
