@@ -38,9 +38,10 @@ NOTES:
 
 - Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1, R80.20 GA T101, (and later)
 - Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03.  Now updated to utilize available python scripts on Gaia instead of using clish commands that might get impaired by users in Gaia webUI
-- Updated to handle R80.20 GA and some R80.20 GoGo Gateway EA elements, pre-work for R80.30 adn R80.40 in place
+- Updated to handle R80.30 GA and some R80.30 GoGo Gateway EA/R80.40 EA elements
 - Added sample updatescripts script to pull latest package of scripts (scripts.tgz) from a tftp server and expand them, after removing the existing script links and deleting the old folder
 - Added --NOSTART CLI parameter to where cpstart or mdsstart was executed in scripts, to not execute the restart of Check Point services
+- if $MYTFTPSERVER is set to IPv4 Address of a TFTP server, config_capture, healthdump, interface_info, and check_point_service_status_check will tftp their archived results to a folder defined in _root_script_config.sh.  If the value is not set, then only an archive is created at the root of the working folder.
 
 
 Reference Check Point Secure Knowledge (SK) articles:
