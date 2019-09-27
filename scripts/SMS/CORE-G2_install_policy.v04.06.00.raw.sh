@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT Install Policy for CORE-G2
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -14,14 +14,14 @@ TemplateVersion=04.05.00
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 
-export BASHScriptName=fix_gaia_webui_login_dot_js.v$ScriptVersion
-export BASHScriptShortName=fix_gaia_webui_login_dot_js.v$ScriptVersion
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptName=CORE-G2_install_policy.$TemplateLevel.v$ScriptVersion
+export BASHScriptShortName=CORE-G2_install_policy.v$ScriptVersion
+export BASHScriptDescription="Install Policy for CORE-G2"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=SMS
 
 
 # -------------------------------------------------------------------------------------------------
@@ -46,111 +46,127 @@ echo
     
 
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# JQ and json related
-# -------------------------------------------------------------------------------------------------
-
-# points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
-    
-# -------------------------------------------------------------------------------------------------
-# END:  Basic Configuration
-# -------------------------------------------------------------------------------------------------
+# Other variable configuration
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# START: Root Script Configuration
-# -------------------------------------------------------------------------------------------------
-
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
-export rootscriptconfigfile=__root_script_config.sh
+WAITTIME=20
 
 
 # -------------------------------------------------------------------------------------------------
-# localrootscriptconfiguration - Local Root Script Configuration setup
+# CheckAndUnlockGaiaDB - Check and Unlock Gaia database
 # -------------------------------------------------------------------------------------------------
 
-localrootscriptconfiguration () {
+# MODIFIED 2019-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CheckAndUnlockGaiaDB () {
     #
-    # Local Root Script Configuration setup
+    # CheckAndUnlockGaiaDB - Check and Unlock Gaia database
     #
+    
+    echo -n 'Unlock gaia database : '
 
-    # WAITTIME in seconds for read -t commands
-    export WAITTIME=60
+    export gaiadbunlocked=false
+
+    until $gaiadbunlocked ; do
+
+        export checkgaiadblocked=`clish -i -c "lock database override" | grep -i "owned"`
+        export isclishowned=`test -z $checkgaiadblocked; echo $?`
+
+        if [ $isclishowned -eq 1 ]; then 
+            echo -n '.'
+            export gaiadbunlocked=false
+        else
+            echo -n '!'
+            export gaiadbunlocked=true
+        fi
+
+    done
+
+    echo; echo
     
-    export customerpathroot=/var/log/__customer
-    export customerworkpathroot=$customerpathroot/upgrade_export
-    export outputpathroot=$customerworkpathroot
-    export dumppathroot=$customerworkpathroot/dump
-    export changelogpathroot=$customerworkpathroot/Change_Log
-    
-    echo
     return 0
 }
 
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+#CheckAndUnlockGaiaDB
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-if [ -r "$scriptspathroot/$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder for scripts
-    # So let's call that script to configure what we need
 
-    . $scriptspathroot/$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "../$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder above the executiong script
-    # So let's call that script to configure what we need
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Start of Script Operations
+# -------------------------------------------------------------------------------------------------
 
-    . ../$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder with the executiong script
-    # So let's call that script to configure what we need
 
-    . $rootscriptconfigfile "$@"
-    errorreturn=$?
-else
-    # Did not the Root Script Configuration File
-    # So let's call local configuration
+# -------------------------------------------------------------------------------------------------
+# local scripts variables configuration
+# -------------------------------------------------------------------------------------------------
 
-    localrootscriptconfiguration "$@"
-    errorreturn=$?
+
+targetfolder=/var/log/__customer/upgrade_export
+
+
+# -------------------------------------------------------------------------------------------------
+# logfile configuration
+# -------------------------------------------------------------------------------------------------
+
+
+# setup initial log file for output logging
+export logfilefolder=$targetfolder/dump/$DATEDTGS.$BASHScriptShortName
+export logfilepath=$logfilefolder/$BASHScriptName.$DATEDTGS.log
+
+if [ ! -w $logfilefolder ]; then
+    mkdir -pv $logfilefolder
 fi
 
+touch $logfilepath
+
 
 # -------------------------------------------------------------------------------------------------
-# END:  Root Script Configuration
+# Script intro
+# -------------------------------------------------------------------------------------------------
+
+
+echo | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
+
+
+mgmt_cli -r true install-policy policy-package "G2-Standard" access true threat-prevention false targets.1 "beasleysmcias01" -f json | tee -a -i $logfilepath
+
+mgmt_cli -r true install-policy policy-package "G2-Standard" access true threat-prevention true targets.1 "beasleysmcias01" -f json | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# Closing operations and log file information
+# -------------------------------------------------------------------------------------------------
+
+
+echo | tee -a -i $logfilepath
+echo 'Log File : '$logfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# End of script Operations
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-
-export outputpathbase=$changelogpathroot/$DATEDTGS
-
-if [ ! -r $changelogpathroot ]; then
-    mkdir -pv $changelogpathroot
-fi
-if [ ! -r $outputpathbase ]; then
-    mkdir -pv $outputpathbase
-fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
-
-echo 'Created folder :  '$outputpathbase
 echo
-ls -al $outputpathbase
-echo
+echo 'Script Completed, exiting...';echo
 
 
-# -------------------------------------------------------------------------------------------------
-# End of script
-# -------------------------------------------------------------------------------------------------
-
-echo 'Done!'
-echo

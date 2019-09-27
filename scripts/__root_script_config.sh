@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-04-21
-ScriptVersion=04.01.00
-ScriptRevision=000
+ScriptDate=2019-09-26
+ScriptVersion=04.07.00
+ScriptRevision=005
 TemplateLevel=006
-TemplateVersion=04.03.00
+TemplateVersion=04.05.00
 SubScriptsLevel=006
 SubScriptsVersion=04.01.00
 #
@@ -74,6 +74,10 @@ export dumppathroot=$customerworkpathroot/dump
 export changelogpathroot=$customerworkpathroot/Change_Log
 
 
+export tftptargetfolder_root=/_GAIA_CONFIG
+export tftptargetfolder_configcapture=$tftptargetfolder_root/host_data
+export tftptragetforder_healthcheck=$tftptargetfolder_root/healthchecks
+export tftptragetforder_interfaceinfo=$tftptargetfolder_root/host_interface_info
 
 # =============================================================================
 # =============================================================================

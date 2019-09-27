@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Update GAIA Dynamic CLI Installation with latest package from tftp server
+# SCRIPT Update GAIA REST API Installation with latest package from tftp server
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -18,10 +18,10 @@ export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-#export BASHScriptName=update_gaia_dynamic_cli.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=update_gaia_dynamic_cli
-export BASHScriptShortName=Update_GAIA_Dynamic_CLI
-export BASHScriptDescription="Update GAIA Dynamic CLI Installation with latest package from tftp server"
+#export BASHScriptName=update_gaia_api.$TemplateLevel.v$ScriptVersion
+export BASHScriptName=update_gaia_rest_api
+export BASHScriptShortName=Update_GAIA_REST_API
+export BASHScriptDescription="Update GAIA REST API Installation with latest package from tftp server"
 
 export BASHScriptHelpFile="$BASHScriptName.help"
 
@@ -1153,7 +1153,7 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Download and if necessary, upgrade GAIA Dynamic CLI
+# START :  Download and if necessary, upgrade GAIA REST API
 #
 #==================================================================================================
 #==================================================================================================
@@ -1172,21 +1172,21 @@ fi
 
 
 export remoterootfolder=/__gaia
-export remotefilefolder=gaia_dynamic_cli
-export remotefilename=Check_Point_gaia_dynamic_cli.tgz
+export remotefilefolder=gaia_rest_api
+export remotefilename=Check_Point_gaia_api.tgz
 export fqpnremotefile=$remoterootfolder/$remotefilefolder/$remotefilename
 
-#export remotescriptfolder=gaia_dynamic_cli
-#export remotescriptname=update_gaia_dynamic_cli.sh
+#export remotescriptfolder=gaia_rest_api
+#export remotescriptname=update_gaia_api.sh
 #export fqpnremotescript=$remoterootfolder/$remotescriptfolder/$remotescriptname
 
 export rootworkpath=/var/log/__customer/download
-export workfolder=gaia_dynamic_cli
+export workfolder=gaia_rest_api
 export workfoldercurrent=current
 export workfoldernew=new
 
 export workfilename=$remotefilename
-export installerfilename=install_dynamic_cli.sh
+export installerfilename=install_gaia_api.sh
 
 export fqpnworkfolder=$rootworkpath/$workfolder
 export fqpncurrentfolder=$fqpnworkfolder/$workfoldercurrent
@@ -1360,13 +1360,13 @@ echo '--------------------------------------------------------------------------
 echo | tee -a -i $logfilepath
 
 # check installation of Dynamic CLI
-rpm -q os_dynamic_cli &> /dev/null
+rpm -q gaia_api &> /dev/null
 if [ $? -ne 0 ]; then
-    # Dynamic CLI is not currently installed
-    echo "Dynamic CLI is not currently installed!" | tee -a -i $logfilepath
+    # Gaia REST API is not currently installed
+    echo "Gaia REST API is not currenlty installed!" | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
 
-    # Not sure of current file, so copy new file to current
+    # overwrite the current file with the work file
     echo "Overwrite the current file : $fqfpcurrentfile with $workfilename" | tee -a -i $logfilepath
     echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
@@ -1418,8 +1418,6 @@ else
         cp $workfilename $fqpncurrentfolder >> $logfilepath
     fi
 fi
-
-
 
 echo | tee -a -i $logfilepath
 echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
@@ -1492,10 +1490,6 @@ popd
 pwd | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo | tee -a -i $logfilepath
-clish -c "show commands" >> $logfilepath
-echo | tee -a -i $logfilepath
-
 echo
 read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
 echo
@@ -1505,6 +1499,11 @@ echo 'Files and folders:' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 ls -alhR "$fqpnworkfolder" | tee -a -i $logfilepath
 pwd | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Check Gaia REST API Status' | tee -a -i $logfilepath
+gaia_api status | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
@@ -1523,7 +1522,7 @@ echo | tee -a -i $logfilepath
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Download and if necessary, upgrade GAIA Dynamic CLI
+# END :  Download and if necessary, upgrade GAIA REST API
 #
 #==================================================================================================
 #==================================================================================================

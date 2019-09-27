@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-03-08
-ScriptVersion=04.00.00
+ScriptDate=2019-08-24
+ScriptVersion=04.05.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.00.00
+TemplateVersion=04.05.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -33,7 +33,9 @@ dos2unix Session_Cleanup/*.sh
 dos2unix Session_Cleanup/common/*.sh
 dos2unix SmartEvent/*.sh
 dos2unix SMS/*.sh
+dos2unix SMS/*.help
 dos2unix UserConfig/*.sh
+dos2unix UserConfig.CORE_G2.NPM/*.sh
 
 # =============================================================================
 # =============================================================================
