@@ -4,21 +4,30 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptDate=2019-05-12
-SubScriptsLevel=006
+SubScriptDate=2019-09-28
 SubScriptVersion=04.01.00
-SubScriptRevision=002
-TemplateVersion=04.03.00
+SubScriptRevision=005
+SubScriptsLevel=006
+TemplateVersion=04.11.00
 TemplateLevel=006
 #
 
-BASHSubScriptVersion=v${SubScriptVersion//./x}
 BASHScriptTemplateVersion=v${TemplateVersion//./x}
+BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+BASHSubScriptVersion=v${SubScriptVersion//./x}
 SubScriptsVersion=$SubScriptsLevel.v${SubScriptVersion//./x}
 
-SubScriptName=cmd_line_parameters_handler.sub-script.$SubScriptsLevel.v$SubScriptVersion
+SubScriptFileNameRoot=cmd_line_parameters_handler
 SubScriptShortName="cliparms.$SubScriptsLevel"
 SubScriptDescription="Command line parameters handler"
+
+#SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+
+SubScriptHelpFileName="$SubScriptFileNameRoot.help"
+SubScriptHelpFilePath="help.v$SubScriptVersion"
+SubScriptHelpFile="$SubScriptHelpFilePath/$SubScriptHelpFileName"
 
 
 # =================================================================================================

@@ -4,21 +4,30 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptDate=2019-05-12
-SubScriptsLevel=006
+SubScriptDate=2019-09-28
 SubScriptVersion=04.01.00
-SubScriptRevision=002
-TemplateVersion=04.03.00
+SubScriptRevision=005
+SubScriptsLevel=006
+TemplateVersion=04.11.00
 TemplateLevel=006
 #
 
-BASHSubScriptVersion=v${SubScriptVersion//./x}
 BASHScriptTemplateVersion=v${TemplateVersion//./x}
+BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+BASHSubScriptVersion=v${SubScriptVersion//./x}
 SubScriptsVersion=$SubScriptsLevel.v${SubScriptVersion//./x}
 
-SubScriptName=script_output_paths_and_folders.sub-script.$SubScriptsLevel.v$SubScriptVersion
-SubScriptShortName="script_output_paths_and_folders.$SubScriptsLevel"
+SubScriptFileNameRoot=script_output_paths_and_folders
+SubScriptShortName="$SubScriptFileNameRoot.$SubScriptsLevel"
 SubScriptDescription="Configure script output paths and folders"
+
+#SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+
+SubScriptHelpFileName="$SubScriptFileNameRoot.help"
+SubScriptHelpFilePath="help.v$SubScriptVersion"
+SubScriptHelpFile="$SubScriptHelpFilePath/$SubScriptHelpFileName"
 
 
 # =================================================================================================
@@ -49,7 +58,7 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START action script:  Determine Gaia version and Installation type
+# START sub script:  Configure script output paths and folders
 # =================================================================================================
 
 

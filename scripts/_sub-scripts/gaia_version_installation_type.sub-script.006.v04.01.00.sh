@@ -4,21 +4,30 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-SubScriptDate=2019-08-07
-SubScriptsLevel=006
+SubScriptDate=2019-09-28
 SubScriptVersion=04.01.00
-SubScriptRevision=003
-TemplateVersion=04.03.00
+SubScriptRevision=005
+SubScriptsLevel=006
+TemplateVersion=04.11.00
 TemplateLevel=006
 #
 
-BASHSubScriptVersion=v${SubScriptVersion//./x}
 BASHScriptTemplateVersion=v${TemplateVersion//./x}
+BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+BASHSubScriptVersion=v${SubScriptVersion//./x}
 SubScriptsVersion=$SubScriptsLevel.v${SubScriptVersion//./x}
 
-SubScriptName=gaia_version_installation_type.sub-script.$SubScriptsLevel.v$SubScriptVersion
+SubScriptFileNameRoot=gaia_version_installation_type
 SubScriptShortName="gaia_version_type.$SubScriptsLevel"
 SubScriptDescription="Determine Gaia version and Installation type"
+
+#SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+SubScriptName=$SubScriptFileNameRoot.sub-script.$SubScriptsLevel.v$SubScriptVersion
+
+SubScriptHelpFileName="$SubScriptFileNameRoot.help"
+SubScriptHelpFilePath="help.v$SubScriptVersion"
+SubScriptHelpFile="$SubScriptHelpFilePath/$SubScriptHelpFileName"
 
 
 # =================================================================================================

@@ -68,7 +68,7 @@ GOTO :TOUCHDIR
 
 REM ----------------------------------------------------------------
 :SECOND
-SET TARGETDIR=%CURDIR%\_code_snippets
+SET TARGETDIR=%CURDIR%\help.*
 SET NEXTOP=:THIRD
 GOTO :TOUCHDIR
 
