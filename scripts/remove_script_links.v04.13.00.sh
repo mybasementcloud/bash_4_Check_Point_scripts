@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-11-09
+ScriptVersion=04.13.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -1189,6 +1189,7 @@ export linksfolder=$linksbase/$workingdir
 
 rm $workingroot/config_capture | tee -a -i $logfilepath
 rm $workingroot/interface_info | tee -a -i $logfilepath
+rm $workingroot/EPM_config_check | tee -a -i $logfilepath
 
 
 # =============================================================================
@@ -1323,18 +1324,17 @@ export workingdir=SMS
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
 
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
-
 rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
 rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
-
 rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
 rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
+
+rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
+
+rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
+rm $workingroot/restart_mgmt | tee -a -i $logfilepath
+rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
+
 
 
 # =============================================================================

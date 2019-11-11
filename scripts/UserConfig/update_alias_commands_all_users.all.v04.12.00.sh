@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT update content of alias_commands.add.all.sh to .bashrc file
+# SCRIPT update content of alias_commands.add.all.sh to all /home folders that have the file
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -18,11 +18,11 @@ export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHScriptFileNameRoot=update_alias_commands.all
+export BASHScriptFileNameRoot=update_alias_commands_all_users.all
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
-export BASHScriptShortName="update_alias_commands"
-export BASHScriptDescription="Update content of alias_commands.add.all.sh to .bashrc files"
+export BASHScriptShortName="update_alias_commands_all_users"
+export BASHScriptDescription="Update content of alias_commands.add.all.sh to all /home folders that have the file"
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
@@ -1062,7 +1062,8 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptDescription | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1194,28 +1195,122 @@ export alliasAddFilefqdn=$scriptspathroot/$BASHScriptsFolder/$alliasAddFile
 #export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
 #export dotbashrcmodfilefqdn=$scriptspathroot/$BASHScriptsFolder/$dotbashrcmodfile
 
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
 
 if [ ! -r $alliasAddFilefqdn ] ; then
     echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
     echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
     exit 255
 else
-    echo 'Found '"$alliasAddFilefqdn"' file :  '$alliasAddFilefqdn
+    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
     echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
     cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
     echo | tee -a "$outputfilefqdn"
 fi
 
 echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Updating alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+dos2unix $alliasAddFilefqdn >> "$outputfilefqdn"
+
+
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
+
+
+export file2find=$alliasAddFile
+export findrootfolder=/home
 
 echo | tee -a "$outputfilefqdn"
 echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Updating alias commands from $alliasAddFilefqdn to user's $HOME folder" | tee -a "$outputfilefqdn"
+echo "Populate array of Files" | tee -a "$outputfilefqdn"
 echo | tee -a "$outputfilefqdn"
 
-dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-cp $alliasAddFilefqdn $HOME/ | tee -a "$outputfilefqdn"
+FILEARRAY=()
+
+GETFINDFILES=`find $findrootfolder -name $file2find`
+
+arraylength=0
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo 'Files :  ' | tee -a "$outputfilefqdn"
+    	echo | tee -a "$outputfilefqdn"
+    fi
+
+    #FILEARRAY+=("$line")
+    FILEARRAY+=("$line")
+	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
+	
+	arraylength=${#FILEARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETFINDFILES"
+
+if [ $arraylength -eq 0 ]; then
+	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
+    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Array of Found Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+parmnum=0
+for j in "${FILEARRAY[@]}"
+do
+    #echo "$j : ${j//\'/}"
+    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
+    parmnum=`expr $parmnum + 1`
+done
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+for i in "${FILEARRAY[@]}"
+do
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Current $i file" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Copy $alliasAddFilefqdn to $i" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    
+    cp $alliasAddFilefqdn $i | tee -a "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Updated $i file" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+   
+done
+
 
 echo | tee -a "$outputfilefqdn"
 echo '===============================================================================' | tee -a "$outputfilefqdn"

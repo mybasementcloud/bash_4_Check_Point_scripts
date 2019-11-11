@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -38,19 +38,25 @@ export BASHScriptsFolder=.
 
 touch *.sh
 touch --reference=__root_script_config.sh *.version
+touch --reference=__root_script_config.sh *.help
+touch --reference=__root_script_config.sh Code_Snipets/*.sh
+touch --reference=__root_script_config.sh help/*.help
 touch --reference=__root_script_config.sh _sub-scripts/*.sh
 touch --reference=__root_script_config.sh _sub-scripts/help*/*.help
 touch --reference=__root_script_config.sh _template/*.sh
 touch --reference=__root_script_config.sh _template/Code_Snipets/*.sh
+touch --reference=__root_script_config.sh _template/help/*.sh
 touch --reference=__root_script_config.sh Common/*.sh
 touch --reference=__root_script_config.sh Common/help*/*.help
 touch --reference=__root_script_config.sh Config/*.sh
 touch --reference=__root_script_config.sh Config/help*/*.help
+touch --reference=__root_script_config.sh GAIA/*.sh
+touch --reference=__root_script_config.sh GAIA/help*/*.help
 touch --reference=__root_script_config.sh GW/*.sh
 touch --reference=__root_script_config.sh GW/help*/*.help
 touch --reference=__root_script_config.sh Health_Check/check_status_checkpoint_services.*.sh
 touch --reference=__root_script_config.sh Health_Check/run_healthcheck_to_dump_dtg.*.sh
-touch --reference=__root_script_config.sh SMS/help*/*.help
+touch --reference=__root_script_config.sh Health_Check/help*/*.help
 touch --reference=__root_script_config.sh MDM/*.sh
 touch --reference=__root_script_config.sh MDM/help*/*.help
 touch --reference=__root_script_config.sh Patch_HotFix/*.sh

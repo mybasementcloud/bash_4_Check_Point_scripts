@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT update content of alias_commands.add.all.sh to all /home folders that have the file
+# SCRIPT Collect and show interface related information for all interfaces
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-11-09
+ScriptVersion=04.13.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -15,21 +15,25 @@ SubScriptsVersion=04.01.00
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
-export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHScriptFileNameRoot=update_alias_commands_all_users.all
+export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
+
+export BASHScriptFileNameRoot=generate_script_links
+export BASHScriptFileNameRoot=show_interface_information
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
-export BASHScriptShortName="update_alias_commands_all_users"
-export BASHScriptDescription="Update content of alias_commands.add.all.sh to all /home folders that have the file"
+export BASHScriptShortName="interface_info"
+export BASHScriptDescription="Collect and show interface related information for all interfaces"
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=UserConfig
+export BASHScriptsFolder=Config
 
 
 # -------------------------------------------------------------------------------------------------
@@ -75,20 +79,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./host_interface_info
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=true
+export OutputSubfolderScriptShortName=false
 
 export notthispath=/home/
 export startpathroot=.
@@ -98,8 +102,8 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=false
-export KeepGaiaVersionResultsFile=false
+export ShowGaiaVersionResults=true
+export KeepGaiaVersionResultsFile=true
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1062,8 +1066,7 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
-echo $BASHScriptDescription | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1157,7 +1160,7 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Update alias commands all
+# START :  Collect and Capture Interface(s) Configuration and Information data
 #
 #==================================================================================================
 #==================================================================================================
@@ -1182,181 +1185,934 @@ else
 fi
 
 
+#==================================================================================================
+# -------------------------------------------------------------------------------------------------
+# START :  Operational Procedures
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CopyFileAndDump2FQDNOutputfile - Copy identified file at path to output file path and also dump to output file
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CopyFileAndDump2FQDNOutputfile () {
+    #
+    # Copy identified file at path to output file path and also dump to output file
+    #
+
+    export outputfile=$outputfileprefix'_file_'$outputfilenameaddon$file2copy$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+
+    if [ ! -r $file2copypath ] ; then
+        echo | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+        echo 'NO File Found at Path! :  ' | tee -a -i $outputfilefqfn
+        echo ' - File : '$file2copy | tee -a -i $outputfilefqfn
+        echo ' - Path : '"$file2copypath" | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    else
+        echo | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+        echo 'Found File at Path :  ' | tee -a -i $outputfilefqfn
+        echo ' - File : '$file2copy | tee -a -i $outputfilefqfn
+        echo ' - Path : '"$file2copypath" | tee -a -i $outputfilefqfn
+        echo 'Copy File at Path to Target : ' | tee -a -i $outputfilefqfn
+        echo ' - File at Path : '"$file2copypath" | tee -a -i $outputfilefqfn
+        echo ' - to Target    : '"$outputfilepath" | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+        echo >> $outputfilefqfn
+        cp "$file2copypath" "$outputfilepath" >> $outputfilefqfn
+     
+        echo >> $outputfilefqfn
+        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
+        echo 'Dump contents of Source File to Logging File :' | tee -a -i $outputfilefqfn
+        echo ' - Source File  : '"$file2copypath" | tee -a -i $outputfilefqfn
+        echo ' - Logging File : '$outputfilefqfn | tee -a -i $outputfilefqfn
+        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
+        echo >> $outputfilefqfn
+        cat "$file2copypath" >> $outputfilefqfn
+        echo >> $outputfilefqfn
+        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
+        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    fi
+    echo | tee -a -i $outputfilefqfn
+
+    echo
+    return 0
+}
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# CopyFileAndDump2FQDNOutputfile
+
+# -------------------------------------------------------------------------------------------------
+# FindFilesAndCollectIntoArchive - Document identified file locations to output file path and also collect into archive
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+FindFilesAndCollectIntoArchive () {
+    #
+    # Document identified file locations to output file path and also collect into archive
+    #
+
+    export file2findpath="/"
+    export file2findname=${file2find/\*/(star)}
+    export command2run=find
+    export outputfile=$outputfileprefix'_'$command2run'_'$file2findname$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> $outputfilefqfn
+    
+    find / -name "$file2find" 2> /dev/nul >> "$outputfilefqfn"
+    
+    export archivefile='archive_'$file2findname$outputfilesuffix'.tgz'
+    export archivefqfn=$outputfilepath$archivefile
+    
+    echo >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Archive all found Files to Target Archive' | tee -a -i $outputfilefqfn
+    echo ' - Found Files    : '$file2find | tee -a -i $outputfilefqfn
+    echo ' - Target Archive : '$archivefqfn | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> $outputfilefqfn
+    
+    tar czvf $archivefqfn --exclude=$customerworkpathroot* $(find / -name "$file2find" 2> /dev/nul) >> $outputfilefqfn
+
+    echo >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo | tee -a -i $outputfilefqfn
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#FindFilesAndCollectIntoArchive
+
+
+# -------------------------------------------------------------------------------------------------
+# FindFilesAndCollectIntoArchiveAllVariants - Document identified file locations to output file path and also collect into archive all variants
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+FindFilesAndCollectIntoArchiveAllVariants () {
+    #
+    # Document identified file locations to output file path and also collect into archive all variants
+    #
+
+    export file2findpath="/"
+    export file2findname=${file2find/\*/(star)}
+    export command2run=find
+    export outputfile=$outputfileprefix'_'$command2run'_'$file2findname'_all_variants'$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Find file : '$file2find'* and document locations' | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> $outputfilefqfn
+    
+    find / -name "$file2find*" 2> /dev/nul >> "$outputfilefqfn"
+    
+    export archivefile='archive_'$file2findname'_all_variants'$outputfilesuffix'.tgz'
+    export archivefqfn=$outputfilepath$archivefile
+    
+    echo >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Archive all found Files* to Target Archive' | tee -a -i $outputfilefqfn
+    echo ' - Found Files    : '$file2find'*' | tee -a -i $outputfilefqfn
+    echo ' - Target Archive : '$archivefqfn | tee -a -i $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> $outputfilefqfn
+    
+    tar czvf $archivefqfn --exclude=$customerworkpathroot* $(find / -name "$file2find*" 2> /dev/nul) >> $outputfilefqfn
+
+    echo >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo | tee -a -i $outputfilefqfn
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#FindFilesAndCollectIntoArchiveAllVariants
+
+# -------------------------------------------------------------------------------------------------
+# CopyFiles2CaptureFolder - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CopyFiles2CaptureFolder () {
+    #
+    # repeated procedure description
+    #
+    
+    export targetpath=$outputfilepath$command2run/
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Copy files from Source to Target' | tee -a -i "$outputfilefqfn"
+    echo ' - Source : '$sourcepath | tee -a -i "$outputfilefqfn"
+    echo ' - Target : '$targetpath | tee -a -i "$outputfilefqfn"
+    echo ' - Log to : '"$outputfilefqfn" | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> "$outputfilefqfn"
+    
+    mkdir -pv $targetpath >>"$outputfilefqfn"
+
+    echo >> "$outputfilefqfn"
+    
+    cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqfn"
+
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo | tee -a -i "$outputfilefqfn"
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#CopyFiles2CaptureFolder
+
+
+# -------------------------------------------------------------------------------------------------
+# DoCommandAndDocument - Execute command and document results to dedicated file
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+DoCommandAndDocument () {
+    #
+    # repeated procedure description
+    #
+
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+    echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+    echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+    echo ' - Command with Parms # '"$@" | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    
+    "$@" >> "$outputfilefqfn"
+    
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo | tee -a -i "$outputfilefqfn"
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#DoCommandAndDocument
+
+
+# -------------------------------------------------------------------------------------------------
+# END :  Operational Procedures
+# -------------------------------------------------------------------------------------------------
+#==================================================================================================
+
+
 #----------------------------------------------------------------------------------------
-# Execute modification of the .bashrc file for the user in $HOME
+# bash - Gaia Version information 
 #----------------------------------------------------------------------------------------
 
-export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
+export command2run=Gaia_version
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
 
-export alliasAddFile=alias_commands.add.all.sh
-export alliasAddFilefqdn=$scriptspathroot/$BASHScriptsFolder/$alliasAddFile
+# This was already collected earlier and saved in a dedicated file
 
-#export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
-#export dotbashrcmodfilefqdn=$scriptspathroot/$BASHScriptsFolder/$dotbashrcmodfile
+cp $gaiaversionoutputfile $outputfilefqfn | tee -a -i $logfilepath
+rm $gaiaversionoutputfile | tee -a -i $logfilepath
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
 
-if [ ! -r $alliasAddFilefqdn ] ; then
-    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
-    echo 'Exiting!' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    exit 255
-else
-    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
+#----------------------------------------------------------------------------------------
+# bash - gather arp details
+#----------------------------------------------------------------------------------------
+
+export command2run=arp
+
+DoCommandAndDocument arp -vn
+DoCommandAndDocument arp -av
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather route details
+#----------------------------------------------------------------------------------------
+
+export command2run=route
+
+DoCommandAndDocument route -vn
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/routed*.conf and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/routed*.conf
+export file2copy=routed.conf
+export file2copypath="/etc/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2copy=routed0.conf
+export file2copypath="/etc/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2find=routed*.conf
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - generate device and system information via dmidecode
+#----------------------------------------------------------------------------------------
+
+export command2run=dmidecode
+
+DoCommandAndDocument dmidecode
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /var/log/dmesg and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /var/log/dmesg
+export file2copy=dmesg
+export file2copypath="/var/log/$file2copy"
+
+dmesg > $file2copypath
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+
+#----------------------------------------------------------------------------------------
+# bash - generate hardware informatation via lshw only if not old kernel
+#----------------------------------------------------------------------------------------
+
+export command2run=lshw
+
+if [ $isitoldkernel -ne 1 ] ; then
+
+    DoCommandAndDocument lshw
+
 fi
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Updating alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
 
-dos2unix $alliasAddFilefqdn >> "$outputfilefqdn"
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/modprobe.conf and copy if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/modprobe.conf
+export file2copy=modprobe.conf
+export file2copypath="/etc/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2find=modprobe.conf
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details - lspci
+#----------------------------------------------------------------------------------------
+
+export command2run=lspci
+
+DoCommandAndDocument lspci -n -v
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details
+#----------------------------------------------------------------------------------------
+
+export command2run=ifconfig
+
+DoCommandAndDocument ifconfig
 
 
 # -------------------------------------------------------------------------------------------------
-# script plumbing 1
 # -------------------------------------------------------------------------------------------------
 
+# -------------------------------------------------------------------------------------------------
+# InterfacesDoCommandAndDocument - For Interfaces execute command and document results to dedicated file
+# -------------------------------------------------------------------------------------------------
 
-export file2find=$alliasAddFile
-export findrootfolder=/home
+# MODIFIED 2019-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Populate array of Files" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+InterfacesDoCommandAndDocument () {
+    #
+    # For Interfaces execute command and document results to dedicated file
+    #
 
-FILEARRAY=()
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
+    echo 'Execute : '"$@" >> "$interfaceoutputfilefqfn"
+    echo >> "$interfaceoutputfilefqfn"
+    
+    "$@" >> "$interfaceoutputfilefqfn"
+    
+    echo >> "$interfaceoutputfilefqfn"
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
+    
+    return 0
+}
 
-GETFINDFILES=`find $findrootfolder -name $file2find`
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#InterfacesDoCommandAndDocument
+
+
+#----------------------------------------------------------------------------------------
+# bash - Collect Interface Information per interface
+#----------------------------------------------------------------------------------------
+
+export command2run=interfaces_details
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+export dmesgfilefqfn=$outputfilepath'dmesg'
+if [ ! -r $dmesgfilefqfn ] ; then
+    echo | tee -a -i $outputfilefqfn
+    echo 'No dmesg file at :  '$dmesgfilefqfn | tee -a -i $outputfilefqfn
+    echo 'Generating dmesg file!' | tee -a -i $outputfilefqfn
+    echo | tee -a -i $outputfilefqfn
+    dmesg > $dmesgfilefqfn
+else
+    echo | tee -a -i $outputfilefqfn
+    echo 'found dmesg file at :  '$dmesgfilefqfn | tee -a -i $outputfilefqfn
+    echo | tee -a -i $outputfilefqfn
+fi
+echo | tee -a -i $outputfilefqfn
+
+echo > $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
+echo 'Execute Commands with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+echo ' - Execute Commands   : '$command2run | tee -a -i "$outputfilefqfn"
+echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+echo | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'clish -i -c "show interfaces"' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+CheckAndUnlockGaiaDB
+
+clish -i -c "show interfaces" | tee -a -i $outputfilefqfn
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+IFARRAY=()
+
+GETINTERFACES="`clish -i -c "show interfaces"`"
+
+echo | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo 'Build array of interfaces : ' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
 
 arraylength=0
 while read -r line; do
 
     if [ $arraylength -eq 0 ]; then
-    	echo 'Files :  ' | tee -a "$outputfilefqdn"
-    	echo | tee -a "$outputfilefqdn"
+    	echo -n 'Interfaces :  ' | tee -a -i $outputfilefqfn
+    else
+    	echo -n ', ' | tee -a -i $outputfilefqfn
     fi
 
-    #FILEARRAY+=("$line")
-    FILEARRAY+=("$line")
-	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
+    #IFARRAY+=("$line")
+    if [ "$line" == 'lo' ]; then
+        echo -n 'Not adding '$line | tee -a -i $outputfilefqfn
+    else 
+        IFARRAY+=("$line")
+    	echo -n $line | tee -a -i $outputfilefqfn
+    fi
 	
-	arraylength=${#FILEARRAY[@]}
+	arraylength=${#IFARRAY[@]}
 	arrayelement=$((arraylength-1))
 	
-done <<< "$GETFINDFILES"
+done <<< "$GETINTERFACES"
 
-if [ $arraylength -eq 0 ]; then
-	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
-    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
-    exit 255
-fi
+echo | tee -a -i $outputfilefqfn
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+echo | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Array of Found Files" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+echo 'Identified Interfaces in array for detail data collection :' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
 
-parmnum=0
-for j in "${FILEARRAY[@]}"
+for j in "${IFARRAY[@]}"
 do
-    #echo "$j : ${j//\'/}"
-    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
-    parmnum=`expr $parmnum + 1`
+    #echo "$j, ${j//\'/}"  | tee -a -i $outputfilefqfn
+    echo $j | tee -a -i $outputfilefqfn
 done
+echo | tee -a -i $outputfilefqfn
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+echo | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
 
-for i in "${FILEARRAY[@]}"
+export ifshortoutputfile=$outputfileprefix'_'$command2run'_short'$outputfilesuffix$outputfiletype
+export ifshortoutputfilefqfn=$outputfilepath$ifshortoutputfile
+
+touch $ifshortoutputfilefqfn
+echo | tee -a -i $ifshortoutputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $ifshortoutputfilefqfn
+
+for i in "${IFARRAY[@]}"
 do
+
+    export currentinterface=$i
     
-    echo >> "$outputfilefqdn"
-    echo '===============================================================================' >> "$outputfilefqdn"
-    echo "Current $i file" >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
+    #------------------------------------------------------------------------------------------------------------------
+    # Short Information
+    #------------------------------------------------------------------------------------------------------------------
+
+    echo 'Interface : '$i | tee -a -i $ifshortoutputfilefqfn
+    ifconfig $i | grep -i HWaddr | tee -a -i $ifshortoutputfilefqfn
+    ethtool -i $i | grep -i bus | tee -a -i $ifshortoutputfilefqfn
+    echo '----------------------------------------------------------------------------------------' | tee -a -i $ifshortoutputfilefqfn
+
+    #------------------------------------------------------------------------------------------------------------------
+    # Detailed Information
+    #------------------------------------------------------------------------------------------------------------------
+
+    export interfaceoutputfile=$outputfileprefix'_'$command2run'_'$i$outputfilesuffix$outputfiletype
+    export interfaceoutputfilefqfn=$outputfilepath$interfaceoutputfile
     
-    cat $i >> "$outputfilefqdn"
+    echo 'Executing commands for interface : '$currentinterface' with output to file : '$interfaceoutputfilefqfn | tee -a -i $outputfilefqfn
+    echo | tee -a -i $outputfilefqfn
     
-    echo >> "$outputfilefqdn"
-    echo '===============================================================================' >> "$outputfilefqdn"
-    echo "Copy $alliasAddFilefqdn to $i" | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
+    echo >> $interfaceoutputfilefqfn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
+    echo 'Execute clish -i -c "show interface '$i'"' >> $interfaceoutputfilefqfn
+    echo >> $interfaceoutputfilefqfn
+
+    clish -i -c "show interface $i" >> $interfaceoutputfilefqfn
+
+    echo >> $interfaceoutputfilefqfn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
+
+    InterfacesDoCommandAndDocument ifconfig $i
+    InterfacesDoCommandAndDocument ethtool $i
+    InterfacesDoCommandAndDocument ethtool -i $i
+    InterfacesDoCommandAndDocument ethtool -g $i
+    InterfacesDoCommandAndDocument ethtool -k $i
+    InterfacesDoCommandAndDocument ethtool -S $i
+
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
+    echo 'Execute grep of dmesg for '$i >> $interfaceoutputfilefqfn
+    echo >> $interfaceoutputfilefqfn
+
+    cat $dmesgfilefqfn | grep -i $i >> $interfaceoutputfilefqfn
+
+    echo >> $interfaceoutputfilefqfn
+    echo '----------------------------------------------------------------------------------------' >> $interfaceoutputfilefqfn
     
-    cp $alliasAddFilefqdn $i | tee -a "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '===============================================================================' >> "$outputfilefqdn"
-    echo "Updated $i file" >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cat $i >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '===============================================================================' >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
+    cat $interfaceoutputfilefqfn >> $outputfilefqfn
+    echo >> $outputfilefqfn
+
+    echo >> $outputfilefqfn
+    echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> $outputfilefqfn
+
    
 done
 
+echo | tee -a -i $outputfilefqfn
+echo '----------------------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+echo | tee -a -i $outputfilefqfn
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
 
-cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+#----------------------------------------------------------------------------------------
+# bash - collect /etc/sysconfig/network and backup if it exists
+#----------------------------------------------------------------------------------------
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Current $HOME folder" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+# /etc/sysconfig/network
+export file2copy=network
+export file2copypath="/etc/sysconfig/$file2copy"
 
-ls -alh $HOME/ | tee -a "$outputfilefqdn"
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
-echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
-echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+export file2find=modprobe.conf
 
-. $HOME/$alliasAddFile
 
-echo | tee -a "$outputfilefqdn"
-echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/networking
+#----------------------------------------------------------------------------------------
 
-alias | tee -a "$outputfilefqdn"
+# /etc/sysconfig/networking
 
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-pwd | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+export command2run=etc_sysconfig_networking
+export sourcepath=/etc/sysconfig/networking
+
+CopyFiles2CaptureFolder
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface details from /etc/sysconfig/network-scripts
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/network-scripts
+
+export command2run=etc_sysconfig_networking_scripts
+export sourcepath=/etc/sysconfig/network-scripts
+
+CopyFiles2CaptureFolder
+
+#----------------------------------------------------------------------------------------
+# bash - gather interface name rules
+#----------------------------------------------------------------------------------------
+
+export command2run=interfaces_naming_rules
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+export file2copy=00-OS-XX.rules
+export file2copypath="/etc/udev/rules.d/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2find=$file2copy
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+export file2copy=00-ANACONDA.rules
+export file2copypath="/etc/sysconfig/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2find=$file2copy
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+
+#----------------------------------------------------------------------------------------
+# bash - ?what next?
+#----------------------------------------------------------------------------------------
+
+#export command2run=command
+#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+#export outputfilefqfn=$outputfilepath$outputfile
+
+#echo | tee -a -i $outputfilefqfn
+#echo 'Execute '$command2run' with output to : '$outputfilefqfn | tee -a -i $outputfilefqfn
+#command | tee -a -i $outputfilefqfn
+
+#echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+#echo | tee -a -i $outputfilefqfn
+#echo 'fwacell stats -s' | tee -a -i $outputfilefqfn
+#echo | tee -a -i $outputfilefqfn
+#
+#fwaccel stats -s | tee -a -i $outputfilefqfn
+#
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# clish operations - might have issues if user is in Gaia webUI
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+
+export command2run=clish_commands
+export clishoutputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export clishoutputfilefqfn=$outputfilepath$clishoutputfile
+
+echo | tee -a $outputfilefqfn
+echo 'Execute clish opertations with common log in : '$clishoutputfilefqfn | tee -a $outputfilefqfn
+echo | tee -a $outputfilefqfn
+
+
+#----------------------------------------------------------------------------------------
+# clish - save configuration to file
+#----------------------------------------------------------------------------------------
+
+export command2run=clish_config
+export configfile=$command2run'_'$outputfileprefix$outputfilesuffix
+export configfilefqfn=$outputfilepath$configfile
+export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo | tee -a $outputfilefqfn
+echo 'Execute '$command2run' with output to : '$configfilefqfn | tee -a $outputfilefqfn
+echo | tee -a $outputfilefqfn
+
+CheckAndUnlockGaiaDB
+
+clish -i -s -c "save configuration $configfile" >> $outputfilefqfn
+
+cp "$configfile" "$configfilefqfn" >> $outputfilefqfn
+cp "$configfile" "$configfilefqfn.txt" >> $outputfilefqfn
+
+cat $outputfilefqfn >> $clishoutputfilefqfn
+
+#----------------------------------------------------------------------------------------
+# clish and bash - Gather version information from all possible methods
+#----------------------------------------------------------------------------------------
+
+export command2run=versions
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo | tee -a $clishoutputfilefqfn
+echo 'Execute Command with output to Output Path : ' | tee -a -i $clishoutputfilefqfn
+echo ' - Execute Command    : '$command2run | tee -a -i $clishoutputfilefqfn
+echo ' - Output Path        : '$outputfilefqfn | tee -a -i $clishoutputfilefqfn
+echo | tee -a $clishoutputfilefqfn
+
+echo >> "$outputfilefqfn"
+echo 'Execute Command with output to Output Path : ' >> "$outputfilefqfn"
+echo ' - Execute Command    : '$command2run >> "$outputfilefqfn"
+echo ' - Output Path        : '$outputfilefqfn >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+touch $outputfilefqfn
+echo 'Versions:' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo 'uname for kernel version : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+uname -a >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo 'clish : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+CheckAndUnlockGaiaDB
+
+clish -i -c "show version all" >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+clish -i -c "show version os build" >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo 'cpinfo -y all : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+cpinfo -y all >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo 'fwm ver : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+fwm ver >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo 'fw ver : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+fw ver >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo 'cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar : ' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+
+if $IsR8XVersion; then
+    # installed_jumbo_take only exists in R7X
+    echo >> "$outputfilefqfn"
+else
+    echo >> "$outputfilefqfn"
+    echo 'installed_jumbo_take : ' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    installed_jumbo_take >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+fi
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+cat $outputfilefqfn >> $clishoutputfilefqfn
+
+echo | tee -a $clishoutputfilefqfn
+echo 'opertations clish with common log in completed!' | tee -a $clishoutputfilefqfn
+echo | tee -a $clishoutputfilefqfn
+
+
+#----------------------------------------------------------------------------------------
+# clish and bash - Gather ClusterXL information from all possible methods if it is a cluster
+#----------------------------------------------------------------------------------------
+
+export command2run=ClusterXL
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo
+echo 'ClusterXL information - if relevant'
+echo
+
+if [ "$sys_type_GW" == "true" ]; then
+    
+    echo 'A Gateway so maybe ClusterXL'
+    
+    if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+        # is a cluster
+        echo 'A cluster member.'
+        echo
+    
+        touch $outputfilefqfn
+    
+        DoCommandAndDocument cphaprob state
+        DoCommandAndDocument cphaprob mmagic
+        DoCommandAndDocument cphaprob -a if
+        DoCommandAndDocument cphaprob -ia list
+        DoCommandAndDocument cphaprob -l list
+        DoCommandAndDocument cphaprob syncstat
+        DoCommandAndDocument cpstat ha -f all
+        
+        echo | tee -a -i "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+        echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+        echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo 'Sync Status : fw ctl pstat | grep -A50 Sync:' | tee -a -i "$outputfilefqfn"
+        echo >> "$outputfilefqfn"
+    
+        fw ctl pstat | grep -A50 Sync: >> "$outputfilefqfn"
+    
+        echo >> "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo | tee -a -i "$outputfilefqfn"
+        
+        echo | tee -a -i "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+        echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+        echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo 'clish -c "show routed cluster-state detailed"' >> "$outputfilefqfn"
+        echo >> "$outputfilefqfn"
+    
+        CheckAndUnlockGaiaDB
+    
+        clish -c "show routed cluster-state detailed" >> "$outputfilefqfn"
+        
+        echo >> "$outputfilefqfn"
+        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+        echo | tee -a -i "$outputfilefqfn"
+    else
+        # is not a cluster
+        echo 'Not a cluster member.'
+        echo
+    fi
+else
+
+    echo 'Not a Gateway so no ClusterXL'
+
+fi
+
+
+cat $outputfilefqfn >> $clishoutputfilefqfn
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# End of clish operations - might have issues if user is in Gaia webUI
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Update alias commands all
+# END :  Collect and Capture Interface(s) Configuration and Information data
 #
 #==================================================================================================
 #==================================================================================================
@@ -1376,20 +2132,226 @@ echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
 ls -alh $outputpathbase | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+echo >> $logfilepath
+echo 'Output location for all results is here : '$outputpathbase >> $logfilepath
+echo 'Log results documented in this log file : '$logfilepath >> $logfilepath
+echo >> $logfilepath
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Archive results for easy transport
+#
+#==================================================================================================
+#==================================================================================================
+
+
+export expandedpath=$(cd $OtherOutputFolder ; pwd)
+export archivepathbase=$expandedpath
+export archivefiletype=.tgz
+export archivefilename=$HOSTNAME'_'$targetversion_$BASHScriptName.$DATEDTGS$archivefiletype
+export archivefqfn=$archivepathbase/$archivefilename
+
+if $OutputSubfolderScriptName ; then
+    # Add script name to the Subfolder name
+    export archivestartfolder=$DATEDTGS.$BASHScriptName
+elif $OutputSubfolderScriptShortName ; then
+    # Add short script name to the Subfolder name
+    export archivestartfolder=$DATEDTGS.$BASHScriptShortName
+else
+    export archivestartfolder=$DATEDTGS
+fi
+
 echo | tee -a -i $logfilepath
-echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------'
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Archive of operation results' | tee -a -i $logfilepath
+echo ' - from '$archivepathbase/$archivestartfolder | tee -a -i $logfilepath
+echo ' - to : '$archivefqfn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+#tar czvf $archivefqfn --directory=$archivepathbase $outputpathbase $DATEDTGS
+tar czvf $archivefqfn --directory=$archivepathbase $archivestartfolder
+
+echo
+echo '----------------------------------------------------------------------------'
+echo '----------------------------------------------------------------------------'
+echo
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Push Archived results to tftp server
+#
+#==================================================================================================
+#==================================================================================================
+
+export archivetftptargetfolder=$tftptragetforder_interfaceinfo
+export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
+
+if $EXPORTRESULTSTOTFPT ; then
+    
+    if [ ! -z $MYTFTPSERVER1 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER1
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER1 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER1 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER2 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER2
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER2 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER2 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER3 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER3
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER3 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER3 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+
+else
+    
+    echo
+    echo '----------------------------------------------------------------------------'
+    echo '----------------------------------------------------------------------------'
+    echo 'tftp server results export not enabled!'
+    echo '----------------------------------------------------------------------------'
+    echo '----------------------------------------------------------------------------'
+    echo
+    
+fi
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Final information to the executing script
+#
+#==================================================================================================
+#==================================================================================================
+
+
+echo
+echo 'Output location for all results is here : '$outputpathbase
+echo 'Log results documented in this log file : '$logfilepath
+echo 'Archive of operation is here            : '$archivefqfn
+echo
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
-
-echo
-echo 'Script Completed, exiting...';echo
 
 

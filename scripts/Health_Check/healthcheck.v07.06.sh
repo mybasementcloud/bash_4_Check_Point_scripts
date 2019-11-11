@@ -9,7 +9,7 @@
 # CO-AUTHOR (v0.2-v3.6):    Rosemarie Rodriguez
 # CODE CONTRIBUTORS:        Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman, Michael Bybee
 #                           Brian Sterne, Yevgeniy Yeryomin
-# VERSION:                  7.01
+# VERSION:                  7.06
 # SK:                       sk121447
 #====================================================================================================
 
@@ -43,7 +43,7 @@ executed_script_path=$(readlink -f $0)
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="7.01 09-12-2019"
+script_ver="7.06 10-22-2019"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -68,24 +68,25 @@ text_reset=$(tput sgr0)
 #  Determine System Version
 #====================================================================================================
 if [[ -e /etc/cp-release ]]; then
-    current_version=$(cat /etc/cp-release | sed 's/\.//')
-    if [[ $(echo $current_version | grep -ow R8030) ]]; then
+    cp_version=$(cat /etc/cp-release | egrep -ow 'R[0-9\.]+')
+    cp_underscore_version=$(echo $cp_version | sed 's/\./_/')
+    if [[ $(echo $cp_underscore_version | grep -ow R80_30) ]]; then
         current_version="8030"
-    elif [[ $(echo $current_version | grep -ow R8020) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R80_20) ]]; then
         current_version="8020"
-    elif [[ $(echo $current_version | grep -ow R8010) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R80_10) ]]; then
         current_version="8010"
-    elif [[ $(echo $current_version | grep -ow R80) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R80) ]]; then
         current_version="8000"
-    elif [[ $(echo $current_version | grep -ow R7730) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R77_30) ]]; then
         current_version="7730"
-    elif [[ $(echo $current_version | grep -ow R7720) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R77_20) ]]; then
         current_version="7720"
-    elif [[ $(echo $current_version | grep -ow R7710) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R77_10) ]]; then
         current_version="7710"
-    elif [[ $(echo $current_version | grep -ow R77) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep -ow R77) ]]; then
         current_version="7700"
-    elif [[ $(echo $current_version | grep R76) ]]; then
+    elif [[ $(echo $cp_underscore_version | grep R76) ]]; then
         current_version="7600"
     else
         yesno_loop=1
@@ -1446,7 +1447,7 @@ check_known_issues()
         grep -A5000 ^/var/log/messages $cpinfo_file | grep -B5000 /var/log/dmesg | grep -v /var/log | grep -v '\-\-\-' >> $messages_tmp_file 2> /dev/null
     else
         messages_tmp_file="/var/tmp/messages_check.tmp"
-        cat /var/log/messages* /var/log/dmesg >> $messages_tmp_file 2> /dev/null
+        cat /var/log/messages* /var/log/dmesg  $FWDIR/log/cloud_proxy.elg >> $messages_tmp_file 2> /dev/null
     fi
 
     printf "| Known Issues\t\t| Issues found in logs\t\t|" | tee -a $output_log
@@ -2128,6 +2129,22 @@ check_known_issues()
         printf "<span>\"allocate_port_impl: could not find a free port\" message detected.<br>For more information, refer to sk103656.</span><br><br>\n" >> $html_file
     fi
 
+    #Check Failed to parse response from AWS
+    if [[ $(grep -i 'Failed to parse response from AWS' $messages_tmp_file) ]]; then
+        check_failed
+        printf "Known Issues,Failed to parse response from AWS,WARNING,sk112855\n" >> $csv_log
+        printf "\"Failed to parse response from AWS\" message detected.\n" >> $logfile
+        printf "This issue can be resolved by updating the following configurations:\n" >> $logfile
+        printf "##### Global scanner config #####\n" >> $logfile
+        printf "global.scannerInterval=120 <---- Updated this value --> 360\n" >> $logfile
+        printf "This parameter is relevant for scanners, which work in \"polling\" mode without notifications.\n" >> $logfile
+        printf "##### AWS scanner config #####\n" >> $logfile
+        printf "aws.connectTimeoutInMilliseconds=60000 <----- updated this value --> 120000\n" >> $logfile
+        printf "Specifies the maximum timeout when establishing a connection with a Amazon Web Services (AWS) Data Center.\n" >> $logfile
+        printf "For more information, refer to sk112855.\n" >> $logfile
+        printf "<span>\"Failed to parse response from AWS\" message detected.<br>This issue can be resolved by updating the following configurations:<br>##### Global scanner config #####<br>global.scannerInterval=120 <---- Updated this value --> 360<br>This parameter is relevant for scanners, which work in \"polling\" mode without notifications.<br>##### AWS scanner config #####<br>aws.connectTimeoutInMilliseconds=60000 <----- updated this value --> 120000<br>Specifies the maximum timeout when establishing a connection with a Amazon Web Services (AWS) Data Center.<br>For more information, refer to sk112855.</span><br><br>\n" >> $html_file
+    fi
+
     #Log check as OK if no messages are found
     if [[ $test_output_error -eq 0 ]]; then
         check_passed
@@ -2170,7 +2187,7 @@ check_known_issues()
     #  FTW after Jumbo Check
     #====================================================================================================
     test_output_error=0
-    jumbo_install_date=$(grep installed_on /config/active | grep Bundle | grep -v bundle | tail -n1 | tr -d '\\' | awk '{print $3, $4, $5, $6}')
+    jumbo_install_date=$(grep installed_on /config/active | grep Bundle | grep -v bundle | grep JUMBO | egrep "$cp_version|$cp_underscore_version" | tr -d '\\' | sort | tail -n1 | awk '{print $3, $4, $5, $6}')
     if [[ -n $jumbo_install_date && $sys_type != "SP" ]]; then
         ftw_completed_date=$(ls --full-time -al /etc/.wizard_accepted | awk '{print $6, $7}')
         jumbo_install_epoch=$(date -d "$jumbo_install_date" +%s)
@@ -4171,7 +4188,7 @@ check_cp_software()
     #Reset counters and start log
     summary_error=0
     test_output_error=0
-    script_build_date="09-12-2019"
+    script_build_date="10-22-2019"
     current_check_message="Check Point\t\t"
 
 
@@ -4182,7 +4199,7 @@ check_cp_software()
     printf '<tr class="sectionTableBorder"><td class="sectionTableBorder"><p class="paragraphSpacing"><span class="checkNameBlue"><b>Check Point</b></span><br>\n' >> $html_file
     printf '<span><b>CPInfo Build Number - </b></span><b>' >> $html_file
     cpinfo_build_version=$(cpvinfo /opt/CPinfo-10/bin/cpinfo | grep Build | awk '{print $4}')
-    latest_cpinfo_build="914000191"
+    latest_cpinfo_build="914000196"
     printf "\n\ncpinfo build:\n$cpinfo_build_version\n"  >> $full_output_log
     if [[ $cpinfo_build_version -ge $latest_cpinfo_build ]]; then
         check_passed
@@ -4205,7 +4222,7 @@ check_cp_software()
     printf "|\t\t\t| CPUSE Build Number\t\t|" | tee -a $output_log
     printf '<span><b>CPUSE Build Number - </b></span><b>' >> $html_file
     cpuse_build_version=$(cpvinfo $DADIR/bin/DAService | grep Build | awk '{print $4}')
-    latest_cpuse_build="1751"
+    latest_cpuse_build="1786"
     if [[ $cpuse_build_version -ge $latest_cpuse_build ]]; then
         check_passed
         printf "Check Point,CPUSE Build Number,OK,\n" >> $csv_log
@@ -4251,9 +4268,9 @@ check_cp_software()
     printf '<span><b>Jumbo Version - </b></span><b>' >> $html_file
 
     #Find the jumbo version per CP release
-    installed_jumbo_version=$(grep ":installed_on " /config/active | grep Bundle | grep -v bundle | tail -n1 | egrep -o 'T[0-9]{1,3}' | tr -d "T")
+    installed_jumbo_version=$(grep ":installed_on " /config/active | grep Bundle | grep -v bundle | grep JUMBO | egrep "$cp_version|$cp_underscore_version" | egrep -o 'T[0-9]{1,3}' | tr -d "T" | sort -n | tail -n1)
     if [[ $current_version -eq "7730" ]]; then
-        r7730_ga_jumbo="345"
+        r7730_ga_jumbo="351"
         latest_ga_jumbo=$r7730_ga_jumbo
         jumbo_sk="sk106162"
     elif [[ $current_version -eq "8010" ]]; then
@@ -4261,11 +4278,11 @@ check_cp_software()
         latest_ga_jumbo=$r8010_ga_jumbo
         jumbo_sk="sk116380"
     elif [[ $current_version -eq "8020" ]]; then
-        r8020_ga_jumbo="91"
+        r8020_ga_jumbo="103"
         latest_ga_jumbo=$r8020_ga_jumbo
         jumbo_sk="sk137592"
     elif [[ $current_version -eq "8030" ]]; then
-        r8030_ga_jumbo="19"
+        r8030_ga_jumbo="50"
         latest_ga_jumbo=$r8030_ga_jumbo
         jumbo_sk="sk153152"
     else

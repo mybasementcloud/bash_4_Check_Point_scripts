@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -37,23 +37,36 @@ export BASHScriptsFolder=.
 # =============================================================================
 
 dos2unix *.sh
+dos2unix *.help
 dos2unix *.version
 dos2unix _sub-scripts/*.sh
+dos2unix _sub-scripts/help/*.help
 dos2unix _template/*.sh
 dos2unix _template/Code_Snipets/*.sh
+dos2unix _template/help/*.help
 dos2unix Common/*.sh
+dos2unix Common/help/*.help
 dos2unix Config/*.sh
+dos2unix Config/help/*.help
+dos2unix GAIA/*.sh
+dos2unix GAIA/help/*.help
 dos2unix GW/*.sh
+dos2unix GW/help/*.help
 dos2unix Health_Check/*.sh
+dos2unix Health_Check/help/*.help
 dos2unix MDM/*.sh
+dos2unix MDM/help/*.help
 dos2unix Patch_HotFix/*.sh
 dos2unix Session_Cleanup/*.sh
 dos2unix Session_Cleanup/common/*.sh
 dos2unix SmartEvent/*.sh
+dos2unix SmartEvent/help/*.help
 dos2unix SMS/*.sh
 dos2unix SMS/*.help
 dos2unix UserConfig/*.sh
+dos2unix UserConfig/help/*.help
 dos2unix UserConfig.CORE_G2.NPM/*.sh
+dos2unix UserConfig.CORE_G2.NPM/help/*.help
 
 # =============================================================================
 # =============================================================================

@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-06
+ScriptVersion=04.12.01
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -69,11 +69,18 @@ WAITTIME=20
 # -------------------------------------------------------------------------------------------------
 
 
-if [ -n $MYTFTPSERVER ]; then
+if [ ! -z $MYTFTPSERVER1 ]; then
+    export targettftpserver=$MYTFTPSERVER1
+elif [ ! -z $MYTFTPSERVER2 ]; then
+    export targettftpserver=$MYTFTPSERVER2
+elif [ ! -z $MYTFTPSERVER3 ]; then
+    export targettftpserver=$MYTFTPSERVER3
+elif [ ! -z $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER
 else
     export targettftpserver=192.168.1.1
 fi
+
 
 export remotescriptsfolder=/__gaia
 

@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -74,6 +74,21 @@ export dumppathroot=$customerworkpathroot/dump
 export changelogpathroot=$customerworkpathroot/Change_Log
 
 
+#
+# Set EXPORTRESULTSTOTFPT to:
+#   true    to export results from operation to one of the following defined target folders on the identified TFTP servers
+#   false   to skip export of results to identified TFTP servers
+#
+# This section expects definition of the following external variables.  These are usually part of the user profile setup in the $HOME folder
+#  MYTFTPSERVER     default TFTP/FTP server to use for TFTP/FTP operations, usually set to one of the following
+#  MYTFTPSERVER1    first TFTP/FTP server to use for TFTP/FTP operations
+#  MYTFTPSERVER2    second TFTP/FTP server to use for TFTP/FTP operations
+#  MYTFTPSERVER3    third TFTP/FTP server to use for TFTP/FTP operations
+#
+#  MYTFTPSERVER* values are assumed to be an IPv4 Address (0.0.0.0 to 255.255.255.255) that represents a valid TFTP/FTP target host.
+#  Setting one of the MYTFTPSERVER* to blank ignores that host.  Future scripts may include checks to see if the host actually has a reachable TFTP/FTP server
+#
+export EXPORTRESULTSTOTFPT=true
 export tftptargetfolder_root=/_GAIA_CONFIG
 export tftptargetfolder_configcapture=$tftptargetfolder_root/host_data
 export tftptragetforder_healthcheck=$tftptargetfolder_root/healthchecks

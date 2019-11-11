@@ -1,13 +1,13 @@
 #
-# Version :  v04.11.00.00 SAMPLE
-# Date    :  2019-09-28
+# Version :  v04.12.00.00 SAMPLE
+# Date    :  2019-10-05
 #
 alias DTGDATE='date +%Y-%m-%d-%H%M%Z'
 alias DTGSDATE='date +%Y-%m-%d-%H%M%S%Z'
 
 alias list='ls -alh'
 
-# 2019-09-28
+# 2019-10-05
 
 export MYWORKFOLDER=/var/log/__customer
 
@@ -46,9 +46,23 @@ alias goapiwipexport='cd $MYWORKFOLDER/cli_api_ops.wip/export_import.wip;echo Cu
 alias versionsdump='echo;echo;uname -a;echo;echo;clish -c "show version all";echo;echo;cpinfo -y all;echo;echo'
 alias configdump='echo;gougex;pwd;echo;echo;./config_capture;echo;echo;./healthdump;echo;echo'
 
-# 2019-09-28
+# 2019-10-05
 
-export MYTFTPSERVER=192.168.1.1
+#
+# This section expects definition of the following external variables.  These are usually part of the user profile setup in the $HOME folder
+#  MYTFTPSERVER     default TFTP/FTP server to use for TFTP/FTP operations, usually set to one of the following
+#  MYTFTPSERVER1    first TFTP/FTP server to use for TFTP/FTP operations
+#  MYTFTPSERVER2    second TFTP/FTP server to use for TFTP/FTP operations
+#  MYTFTPSERVER3    third TFTP/FTP server to use for TFTP/FTP operations
+#
+#  MYTFTPSERVER* values are assumed to be an IPv4 Address (0.0.0.0 to 255.255.255.255) that represents a valid TFTP/FTP target host.
+#  Setting one of the MYTFTPSERVER* to blank ignores that host.  Future scripts may include checks to see if the host actually has a reachable TFTP/FTP server
+#
+
+export MYTFTPSERVER1=192.168.1.1
+export MYTFTPSERVER2=192.168.1.2
+export MYTFTPSERVER3=
+export MYTFTPSERVER=$MYTFTPSERVER1
 export MYTFTPFOLDER=/__gaia
 
 alias getupdatescripts='gougex;pwd;tftp -v -m binary 192.168.1.1 -c get /__gaia/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'

@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -1390,35 +1390,144 @@ echo
 export archivetftptargetfolder=$tftptargetfolder_configcapture
 export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
 
-if [ -n $MYTFTPSERVER ]; then
+if $EXPORTRESULTSTOTFPT ; then
     
-    echo
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo 'Push archive file : '$archivefqfn
-    echo ' - to tftp server : '$MYTFTPSERVER
-    echo ' - target path    : '$archivetftpfilefqfn
-    echo '----------------------------------------------------------------------------'
-    echo
+    if [ -n $MYTFTPSERVER1 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER1
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER1 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER1 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
     
-    tftp -v -m binary $MYTFTPSERVER -c put $archivefqfn $archivetftpfilefqfn
+    if [ -n $MYTFTPSERVER2 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER2
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER2 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER2 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
     
-    echo
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo
+    if [ -n $MYTFTPSERVER3 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER3
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER3 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER3 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
     
+    if [ -n $MYTFTPSERVER ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+
 else
     
     echo
     echo '----------------------------------------------------------------------------'
     echo '----------------------------------------------------------------------------'
-    echo 'tftp server value $MYTFTPSERVER not set!  Not executing push to tftp server!'
+    echo 'tftp server results export not enabled!'
     echo '----------------------------------------------------------------------------'
     echo '----------------------------------------------------------------------------'
     echo
     
 fi
+
 
 #==================================================================================================
 #==================================================================================================

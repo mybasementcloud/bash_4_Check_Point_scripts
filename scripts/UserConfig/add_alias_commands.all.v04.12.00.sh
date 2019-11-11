@@ -1,14 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to generate a dump folder based on the current time and date
-# run healthcheck script, and dump result files into the dtg folder
-# Based on sk121447 - How to perform an automated health check of a Gaia based system 
-# Link: https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447
+# SCRIPT add content of alias_commands.add.all.sh to .bashrc file
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-10-05
+ScriptVersion=04.12.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -18,24 +15,21 @@ SubScriptsVersion=04.01.00
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHSubScriptVersion=v${SubScriptsVersion//./x}
-export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
-export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
-
-export BASHScriptFileNameRoot=run_healthcheck_to_dump_dtg
+export BASHScriptFileNameRoot=add_alias_commands.all
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
-export BASHScriptShortName="healthcheck"
-export BASHScriptDescription="Run healthcheck.sh and move to dump Date Time Group folder"
+export BASHScriptShortName="add_alias_commands"
+export BASHScriptDescription="Add content of alias_commands.add.all.sh to .bashrc files"
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=Health_Check
+export BASHScriptsFolder=UserConfig
 
 
 # -------------------------------------------------------------------------------------------------
@@ -81,20 +75,20 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
+export OutputToDump=true
 export OutputToChangeLog=false
-export OutputToOther=true
+export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=./healthchecks
+export OtherOutputFolder=Specify_The_Folder_Here
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptShortName=true
 
 export notthispath=/home/
 export startpathroot=.
@@ -103,7 +97,7 @@ export localdotpath=`echo $PWD`
 export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
-export UseGaiaVersionAndInstallation=false
+export UseGaiaVersionAndInstallation=true
 export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
@@ -1162,50 +1156,162 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START :  Add alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
+
 #----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Example framework for executing bash commands and documenting those specifically
-#
-#----------------------------------------------------------------------------------------
+# Configure specific parameters
 #----------------------------------------------------------------------------------------
 
+export targetversion=$gaiaversion
 
-./healthcheck
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
 
-# logfile=/var/log/$(hostname)-health_check-$(date +%Y%m%d%H%M).txt
-# full_output_log=/var/log/$(hostname)-health_check_full-$(date +%Y%m%d%H%M).log
-# csv_log=/var/log/$(hostname)-health_check-summary-$(date +%Y%m%d%H%M).csv
-#
-#export hclogfilebase=/var/log/$(hostname)-health_check-*
-#
-# Modified in healthcheck.sh v 05.04
-# logfile=/var/log/$(hostname)_health-check_$(date +%Y%m%d%H%M).txt
-# full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).log
-# csv_log=/var/log/$(hostname)_health-check_summary_$(date +%Y%m%d%H%M).csv
-#
-export hclogfilebase=/var/log/$(hostname)_health-check_*
-
-echo | tee -a -i $logfilepath
-echo 'Moving healthcheck log files to '$outputpathbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-mv $hclogfilebase $outputpathbase | tee -a -i $logfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+fi
 
 
 #----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
 #----------------------------------------------------------------------------------------
+
+export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export alliasAddFile=alias_commands.add.all.sh
+export alliasAddFilefqdn=$scriptspathroot/$BASHScriptsFolder/$alliasAddFile
+
+export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
+export dotbashrcmodfilefqdn=$scriptspathroot/$BASHScriptsFolder/$dotbashrcmodfile
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
+
+if [ ! -r $dotbashrcmodfilefqdn ] ; then
+    echo 'Missing '"$dotbashrcmodfilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found '"$dotbashrcmodfilefqdn"' file :  '$alliasAddFilefqdn
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Adding alias commands from $alliasAddFilefqdn to user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+dos2unix $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
+
+cp $alliasAddFilefqdn $HOME/ | tee -a "$outputfilefqdn"
+cp $dotbashrcmodfilefqdn $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo "Adding alias commands from $alliasAddFilefqdn to user's $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo "Original $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+#cat $dotbashrcmodfilefqdn >> $HOME/.bashrc | tee -a "$outputfilefqdn"
+#echo | tee -a "$outputfilefqdn"
 #
+
+export checkaddalliasappended=`grep "$alliasAddFile" "$HOME/.bashrc"`
+export checkifaddalliasappended=`test -z "$checkaddalliasappended"; echo $?`
+
+if [ $checkifaddalliasappended -eq 1 ] ; then
+    # $alliasAddFile is already appended
+    echo "No need to append $dotbashrcmodfilefqdn to $HOME/.bashrc, already there." | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+else
+    # $alliasAddFile is NOT appended, so append the file
+    echo "Append $dotbashrcmodfilefqdn to $HOME/.bashrc" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    
+    cat $dotbashrcmodfilefqdn >> $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+    echo | tee -a "$outputfilefqdn"
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo "Updated $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END :  Add alias commands all
 #
 #==================================================================================================
 #==================================================================================================
@@ -1225,117 +1331,20 @@ echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
 ls -alh $outputpathbase | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo >> $logfilepath
-echo 'Output location for all results is here : '$outputpathbase >> $logfilepath
-echo 'Log results documented in this log file : '$logfilepath >> $logfilepath
-echo >> $logfilepath
-
-
-#==================================================================================================
-#==================================================================================================
-#
-# Archive results for easy transport
-#
-#==================================================================================================
-#==================================================================================================
-
-
-export expandedpath=$(cd $OtherOutputFolder ; pwd)
-export archivepathbase=$expandedpath
-export archivefiletype=.tgz
-export archivefilename=$HOSTNAME'_'$targetversion_$BASHScriptName.$DATEDTGS$archivefiletype
-export archivefqfn=$archivepathbase/$archivefilename
-
-if $OutputSubfolderScriptName ; then
-    # Add script name to the Subfolder name
-    export archivestartfolder=$DATEDTGS.$BASHScriptName
-elif $OutputSubfolderScriptShortName ; then
-    # Add short script name to the Subfolder name
-    export archivestartfolder=$DATEDTGS.$BASHScriptShortName
-else
-    export archivestartfolder=$DATEDTGS
-fi
-
 echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------'
-echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Archive of operation results' | tee -a -i $logfilepath
-echo ' - from '$archivepathbase/$archivestartfolder | tee -a -i $logfilepath
-echo ' - to : '$archivefqfn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
+echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-#tar czvf $archivefqfn --directory=$archivepathbase $outputpathbase $DATEDTGS
-tar czvf $archivefqfn --directory=$archivepathbase $archivestartfolder
-
-echo
-echo '----------------------------------------------------------------------------'
-echo '----------------------------------------------------------------------------'
-echo
-
-
-#==================================================================================================
-#==================================================================================================
-#
-# Push Archived results to tftp server
-#
-#==================================================================================================
-#==================================================================================================
-
-export archivetftptargetfolder=$tftptragetforder_healthcheck
-export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
-
-if [ -n $MYTFTPSERVER ]; then
-    
-    echo
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo 'Push archive file : '$archivefqfn
-    echo ' - to tftp server : '$MYTFTPSERVER
-    echo ' - target path    : '$archivetftpfilefqfn
-    echo '----------------------------------------------------------------------------'
-    echo
-    
-    tftp -v -m binary $MYTFTPSERVER -c put $archivefqfn $archivetftpfilefqfn
-    
-    echo
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo
-    
-else
-    
-    echo
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo 'tftp server value $MYTFTPSERVER not set!  Not executing push to tftp server!'
-    echo '----------------------------------------------------------------------------'
-    echo '----------------------------------------------------------------------------'
-    echo
-    
-fi
-
-#==================================================================================================
-#==================================================================================================
-#
-# Final information to the executing script
-#
-#==================================================================================================
-#==================================================================================================
-
-
-echo
-echo 'Output location for all results is here : '$outputpathbase
-echo 'Log results documented in this log file : '$logfilepath
-echo 'Archive of operation is here            : '$archivefqfn
-echo
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+
+
+echo
+echo 'Script Completed, exiting...';echo
 
 

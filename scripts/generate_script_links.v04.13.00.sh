@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-09-28
-ScriptVersion=04.11.00
+ScriptDate=2019-11-09
+ScriptVersion=04.13.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -1229,14 +1229,24 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_config_001=config_capture.v04.11.00.sh
-file_config_002=show_interface_information.v04.11.00.sh
+file_config_001=config_capture.v04.13.00.sh
+file_config_002=show_interface_information.v04.13.00.sh
+
+file_config_003=EPM_config_check.v04.12.00.sh
 
 ln -sf $sourcefolder/$file_config_001 $linksfolder/config_capture
 ln -sf $sourcefolder/$file_config_002 $linksfolder/interface_info
 
 ln -sf $sourcefolder/$file_config_001 $workingroot/config_capture
 ln -sf $sourcefolder/$file_config_002 $workingroot/interface_info
+
+if [ $Check4EPM -gt 0 ]; then
+
+    ln -sf $sourcefolder/$file_config_003 $linksfolder/EPM_config_check
+
+    ln -sf $sourcefolder/$file_config_003 $workingroot/EPM_config_check
+
+fi
 
 
 # =============================================================================
@@ -1332,8 +1342,8 @@ fi
 
 
 file_healthcheck_001=healthcheck.sh
-file_healthcheck_002=run_healthcheck_to_dump_dtg.v04.11.00.sh
-file_healthcheck_003=check_status_checkpoint_services.v04.11.00.sh
+file_healthcheck_002=run_healthcheck_to_dump_dtg.v04.12.01.sh
+file_healthcheck_003=check_status_checkpoint_services.v04.12.01.sh
 
 ln -sf $sourcefolder/$file_healthcheck_001 $linksfolder/healthcheck
 ln -sf $sourcefolder/$file_healthcheck_001 $workingroot/healthcheck
@@ -1522,52 +1532,54 @@ fi
 
 file_SMS_001=migrate_export_npm_ugex.v04.11.00.sh
 file_SMS_002=migrate_export_w_logs_npm_ugex.v04.11.00.sh
+file_SMS_003=migrate_export_epm_ugex.v04.11.00.sh
+file_SMS_004=migrate_export_w_logs_epm_ugex.v04.11.00.sh
 
-file_SMS_007=migrate_export_epm_ugex.v04.11.00.sh
-file_SMS_008=migrate_export_w_logs_epm_ugex.v04.11.00.sh
+file_SMS_005=report_cpwd_admin_list.v04.11.00.sh
 
-file_SMS_009=EPM_config_check.v04.11.00.sh
-
-file_SMS_003=restart_mgmt.v04.11.00.sh
-file_SMS_004=report_cpwd_admin_list.v04.11.00.sh
-file_SMS_005=watch_cpwd_admin_list.v04.11.00.sh
-
-file_SMS_006=reset_hit_count_on_R80_SMS_commands.001.v00.01.00.sh
-
-file_SMS_010=fix_api_memory.v04.11.00.sh
+file_SMS_006=watch_cpwd_admin_list.v04.11.00.sh
+file_SMS_007=restart_mgmt.v04.11.00.sh
+file_SMS_008=reset_hit_count_on_R80_SMS_commands.001.v00.01.00.sh
+file_SMS_009=fix_api_memory.v04.11.00.sh
 
 ln -sf $sourcefolder/$file_SMS_001 $linksfolder/migrate_export_npm_ugex
 ln -sf $sourcefolder/$file_SMS_002 $linksfolder/migrate_export_w_logs_npm_ugex
-ln -sf $sourcefolder/$file_SMS_003 $linksfolder/restart_mgmt
-ln -sf $sourcefolder/$file_SMS_004 $linksfolder/report_cpwd_admin_list
-ln -sf $sourcefolder/$file_SMS_005 $linksfolder/watch_cpwd_admin_list
 
-ln -sf $sourcefolder/$file_SMS_006 $linksfolder/reset_hit_count_on_R80_SMS_commands
-ln -sf $sourcefolder/$file_SMS_010 $linksfolder/fix_api_memory
+if [ $Check4EPM -gt 0 ]; then
 
-ln -sf $sourcefolder/$file_SMS_004 $workingroot/report_cpwd_admin_list
+    ln -sf $sourcefolder/$file_SMS_003 $linksfolder/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_SMS_004 $linksfolder/migrate_export_w_logs_epm_ugex
+
+fi
 
 if [ "$sys_type_SMS" == "true" ]; then
     
     ln -sf $sourcefolder/$file_SMS_001 $workingroot/migrate_export_npm_ugex
     ln -sf $sourcefolder/$file_SMS_002 $workingroot/migrate_export_w_logs_npm_ugex
-    ln -sf $sourcefolder/$file_SMS_003 $workingroot/restart_mgmt
-    ln -sf $sourcefolder/$file_SMS_005 $workingroot/watch_cpwd_admin_list
+
+    if [ $Check4EPM -gt 0 ]; then
     
-    ln -sf $sourcefolder/$file_SMS_006 $workingroot/reset_hit_count_on_R80_SMS_commands
+        ln -sf $sourcefolder/$file_SMS_003 $workingroot/migrate_export_epm_ugex
+        ln -sf $sourcefolder/$file_SMS_004 $workingroot/migrate_export_w_logs_epm_ugex
     
+    fi
+
 fi
 
-if [ $Check4EPM -gt 0 ]; then
+ln -sf $sourcefolder/$file_SMS_005 $linksfolder/report_cpwd_admin_list
+ln -sf $sourcefolder/$file_SMS_005 $workingroot/report_cpwd_admin_list
 
-    ln -sf $sourcefolder/$file_SMS_007 $linksfolder/migrate_export_epm_ugex
-    ln -sf $sourcefolder/$file_SMS_008 $linksfolder/migrate_export_w_logs_epm_ugex
-    ln -sf $sourcefolder/$file_SMS_009 $linksfolder/EPM_config_check
+ln -sf $sourcefolder/$file_SMS_006 $linksfolder/watch_cpwd_admin_list
+ln -sf $sourcefolder/$file_SMS_007 $linksfolder/restart_mgmt
+ln -sf $sourcefolder/$file_SMS_008 $linksfolder/reset_hit_count_on_R80_SMS_commands
+ln -sf $sourcefolder/$file_SMS_009 $linksfolder/fix_api_memory
 
-    ln -sf $sourcefolder/$file_SMS_007 $workingroot/migrate_export_epm_ugex
-    ln -sf $sourcefolder/$file_SMS_008 $workingroot/migrate_export_w_logs_epm_ugex
-    ln -sf $sourcefolder/$file_SMS_009 $workingroot/EPM_config_check
-
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_006 $workingroot/watch_cpwd_admin_list
+    ln -sf $sourcefolder/$file_SMS_007 $workingroot/restart_mgmt
+    ln -sf $sourcefolder/$file_SMS_008 $workingroot/reset_hit_count_on_R80_SMS_commands
+    
 fi
 
 
@@ -1587,10 +1599,10 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_USERCONF_001=add_alias_commands.all.v04.11.00.sh
-file_USERCONF_002=add_alias_commands_all_users.all.v04.11.00.sh
-file_USERCONF_003=update_alias_commands.all.v04.11.00.sh
-file_USERCONF_004=update_alias_commands_all_users.all.v04.11.00.sh
+file_USERCONF_001=add_alias_commands.all.v04.12.00.sh
+file_USERCONF_002=add_alias_commands_all_users.all.v04.12.00.sh
+file_USERCONF_003=update_alias_commands.all.v04.12.00.sh
+file_USERCONF_004=update_alias_commands_all_users.all.v04.12.00.sh
 
 ln -sf $sourcefolder/$file_USERCONF_001 $linksfolder/alias_commands_add_user
 ln -sf $sourcefolder/$file_USERCONF_001 $workingroot/alias_commands_add_user
@@ -1621,10 +1633,10 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_USERCONF_005=add_alias_commands.CORE_G2.NPM.v04.11.00.sh
-file_USERCONF_006=add_alias_commands_all_users.CORE_G2.NPM.v04.11.00.sh
-file_USERCONF_007=update_alias_commands.CORE_G2.NPM.v04.11.00.sh
-file_USERCONF_008=update_alias_commands_all_users.CORE_G2.NPM.v04.11.00.sh
+file_USERCONF_005=add_alias_commands.CORE_G2.NPM.v04.12.00.sh
+file_USERCONF_006=add_alias_commands_all_users.CORE_G2.NPM.v04.12.00.sh
+file_USERCONF_007=update_alias_commands.CORE_G2.NPM.v04.12.00.sh
+file_USERCONF_008=update_alias_commands_all_users.CORE_G2.NPM.v04.12.00.sh
 
 ln -sf $sourcefolder/$file_USERCONF_005 $linksfolder/alias_commands_CORE_G2_NPM_add_user
 ln -sf $sourcefolder/$file_USERCONF_006 $linksfolder/alias_commands_CORE_G2_NPM_add_all_users
