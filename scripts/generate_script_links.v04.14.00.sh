@@ -4,8 +4,8 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-09
-ScriptVersion=04.13.00
+ScriptDate=2019-11-12
+ScriptVersion=04.14.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -1229,10 +1229,9 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_config_001=config_capture.v04.13.00.sh
-file_config_002=show_interface_information.v04.13.00.sh
-
-file_config_003=EPM_config_check.v04.12.00.sh
+file_config_001=config_capture.v04.14.00.sh
+file_config_002=show_interface_information.v04.14.00.sh
+file_config_003=EPM_config_check.v04.14.00.sh
 
 ln -sf $sourcefolder/$file_config_001 $linksfolder/config_capture
 ln -sf $sourcefolder/$file_config_002 $linksfolder/interface_info

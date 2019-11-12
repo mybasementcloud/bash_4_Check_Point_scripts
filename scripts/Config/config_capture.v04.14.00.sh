@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT Collect and show interface related information for all interfaces
+# SCRIPT capture configuration values for bash and clish
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-09
-ScriptVersion=04.13.00
+ScriptDate=2019-11-12
+ScriptVersion=04.14.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.11.00
@@ -22,11 +22,11 @@ export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=generate_script_links
-export BASHScriptFileNameRoot=show_interface_information
+export BASHScriptFileNameRoot=config_capture
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
-export BASHScriptShortName="interface_info"
-export BASHScriptDescription="Collect and show interface related information for all interfaces"
+export BASHScriptShortName="config_capture"
+export BASHScriptDescription="Configuration Capture for bash and clish"
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
@@ -85,7 +85,7 @@ export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=./host_interface_info
+export OtherOutputFolder=./host_data
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
@@ -1160,7 +1160,7 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Collect and Capture Interface(s) Configuration and Information data
+# START :  Collect and Capture Configuration and Information data
 #
 #==================================================================================================
 #==================================================================================================
@@ -1244,6 +1244,7 @@ CopyFileAndDump2FQDNOutputfile () {
     echo
     return 0
 }
+
 #
 # \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
 
@@ -1470,6 +1471,249 @@ export outputfilefqfn=$outputfilepath$outputfile
 
 cp $gaiaversionoutputfile $outputfilefqfn | tee -a -i $logfilepath
 rm $gaiaversionoutputfile | tee -a -i $logfilepath
+
+
+#----------------------------------------------------------------------------------------
+# bash - backup user's home folder
+#----------------------------------------------------------------------------------------
+
+export homebackuproot=$startpathroot
+
+export expandedpath=$(cd $homebackuproot ; pwd)
+export homebackuproot=$expandedpath
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+
+if [ $isitthispath -eq 1 ] ; then
+    #Oh, Oh, we're in the home directory executing, not good!!!
+    #Configure homebackuproot for $alternatepathroot folder since we can't run in /home/
+    export homebackuproot=$alternatepathroot
+else
+    #OK use the current folder and create host_data sub-folder
+    export homebackuproot=$startpathroot
+fi
+
+if [ ! -r $homebackuproot ] ; then
+    #not where we're expecting to be, since $homebackuproot is missing here
+    #maybe this hasn't been run here yet.
+    #OK, so make the expected folder and set permissions we need
+    mkdir -pv $homebackuproot
+    chmod 775 $homebackuproot
+else
+    #set permissions we need
+    chmod 775 $homebackuproot
+fi
+
+export expandedpath=$(cd $homebackuproot ; pwd)
+export homebackuproot=${expandedpath}
+export homebackuppath="$homebackuproot/home.backup"
+
+if [ ! -r $homebackuppath ] ; then
+    mkdir -pv $homebackuppath
+    chmod 775 $homebackuppath
+else
+    chmod 775 $homebackuppath
+fi
+
+export command2run=backup-home
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+touch "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo 'Execute '$command2run' to '$outputhomepath' with output to : '$outputfilefqfn >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo "Current path : " >> "$outputfilefqfn"
+pwd >> "$outputfilefqfn"
+
+echo "Copy /home folder to $outputhomepath" >> "$outputfilefqfn"
+cp -a -v "/home/" "$outputhomepath" >> "$outputfilefqfn"
+
+echo
+echo 'Execute '$command2run' to '$homebackuppath' with output to : '$outputfilefqfn
+echo >> "$outputfilefqfn"
+
+pushd /home
+
+echo >> "$outputfilefqfn"
+echo "Current path : " >> "$outputfilefqfn"
+pwd >> "$outputfilefqfn"
+
+echo "Copy /home folder contents to $homebackuppath" >> "$outputfilefqfn"
+cp -a -v "." "$homebackuppath" >> "$outputfilefqfn"
+
+popd
+
+echo >> "$outputfilefqfn"
+echo "Current path : " >> "$outputfilefqfn"
+pwd >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo "Current path : " >> "$outputfilefqfn"
+pwd >> "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather licensing information
+#----------------------------------------------------------------------------------------
+
+export command2run=cplic_print
+
+DoCommandAndDocument cplic print -x
+
+#
+#export command2run=cplic_db_print
+#
+#DoCommandAndDocument cplic db_print -all
+#
+
+
+#----------------------------------------------------------------------------------------
+# bash - memory
+#----------------------------------------------------------------------------------------
+
+export command2run=memory
+
+DoCommandAndDocument free -m -t
+
+
+#----------------------------------------------------------------------------------------
+# bash and clish - disk space and operational space for backups, upgrades, snapshots
+#----------------------------------------------------------------------------------------
+
+export command2run=disk_space
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+DoCommandAndDocument df -hT
+DoCommandAndDocument mount
+DoCommandAndDocument parted -l
+
+CheckAndUnlockGaiaDB
+
+echo | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'clish -i -c "show snapshots"' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+clish -i -c "show snapshots" >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+DoCommandAndDocument vgdisplay -C
+DoCommandAndDocument vgdisplay -v
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather rpm package information
+#----------------------------------------------------------------------------------------
+
+export command2run=rpm-query-all
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'rpm -qa | sort' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+rpm -qa | sort -f >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
+# bash - gather SmartLog User Settings details information
+#----------------------------------------------------------------------------------------
+
+export command2run=SmartLog_User_Settings
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo | tee -a -i "$outputfilefqfn"
+
+SmartLogUserSettingFolder=
+
+case "$gaiaversion" in
+    R77 | R77.10 | R77.20 | R77.30 )
+        SmartLogUserSettingFolder=/opt/CPSmartLog-R77/data/users_settings
+        ;;
+    R80 | R80.10 )
+        SmartLogUserSettingFolder=/opt/CPSmartLog-R80/data/users_settings
+        ;;
+    R80.20.M1 | R80.20.M2 | R80.20.M3 | R80.20 )
+        SmartLogUserSettingFolder=/opt/CPSmartLog-R80.20/data/users_settings
+        ;;
+    R80.30.M1 | R80.30.M2 | R80.30.M3 | R80.30 ) 
+        SmartLogUserSettingFolder=/opt/CPSmartLog-R80.30/data/users_settings
+        ;;
+    *)
+        SmartLogUserSettingFolder=
+        ;;
+esac
+
+export sourcepath=$SmartLogUserSettingFolder
+export targetpath=$outputfilepath$command2run/
+
+echo | tee -a -i "$outputfilefqfn"
+if [ -z $SmartLogUserSettingFolder ] ; then
+    # Missing SmartLogUserSettingsFolder value not set so skip
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo 'Missing SmartLogUserSettingsFolder value not set so skip!' | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+elif [ ! -r $SmartLogUserSettingFolder ] ; then
+    # Not able to read SmartLogUserSettingsFolder so skip
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo 'Not able to read SmartLogUserSettingsFolder so skip' | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+else
+    # able to read SmartLogUserSettingsFolder so collect
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
+    echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
+    echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+
+    echo 'ls -alhR '$SmartLogUserSettingFolder >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    ls -alhR $SmartLogUserSettingFolder >> "$outputfilefqfn"
+    
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo 'Copy files from Source to Target' | tee -a -i "$outputfilefqfn"
+    echo ' - Source : '$sourcepath | tee -a -i "$outputfilefqfn"
+    echo ' - Target : '$targetpath | tee -a -i "$outputfilefqfn"
+    echo ' - Log to : '"$outputfilefqfn" | tee -a -i "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
+    echo >> "$outputfilefqfn"
+    
+    mkdir -pv $targetpath >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    
+    cp -a -v $sourcepath $targetpath >> "$outputfilefqfn"
+
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+    
+fi
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
 
 
 #----------------------------------------------------------------------------------------
@@ -1854,9 +2098,725 @@ FindFilesAndCollectIntoArchiveAllVariants
 
 
 #----------------------------------------------------------------------------------------
+# bash - collect /etc/sysconfig/hwconf and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# /etc/sysconfig/hwconf
+export file2copy=hwconf
+export file2copypath="/etc/sysconfig/$file2copy"
+
+export outputfilenameaddon=
+CopyFileAndDump2FQDNOutputfile    
+
+export file2find=$file2copy
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# Special files to collect and backup (at some time)
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+#    smartlog_settings.conf
+#
+#    user.def - sk98239 (Location of 'user.def' file on Management Server
+#
+#    table.def - sk98339 (Location of 'table.def' files on Management Server)
+#
+#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
+#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
+#
+#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
+#
+#    base.def - sk95147 (Modifying definitions of packet inspection on Security Gateway for different protocols - 'base.def' file)
+#
+#    vpn_table.def - sk92332 (Customizing the VPN configuration for Check Point Security Gateway - 'vpn_table.def' file)
+#
+#    rtsp.def - sk35945 (RTSP traffic is dropped when SecureXL is enabled)
+#
+#    ftp.def - sk61781 (FTP packet is dropped - Attack Information: The packet was modified due to a potential Bounce Attack Evasion Attempt (Telnet Options))
+#
+#    DCE RPC files - sk42402 (Legitimate DCE-RPC (MS DCOM) bind packets dropped by IPS)
+#
+
+# tar czvf user.def.$(date +%Y%m%d-%H%M%S).tgz $(find / -name user.def 2> /dev/nul)
+# tar czvf user.def.$(date +%Y%m%d-%H%M%S).tgz $(find / -name user.def 2> /dev/nul)
+#
+
+#----------------------------------------------------------------------------------------
+# bash - collect $SMARTLOGDIR/conf/smartlog_settings.conf and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# $SMARTLOGDIR/conf/smartlog_settings.conf
+export file2copy=smartlog_settings.conf
+export file2copypath="$SMARTLOGDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+#CopyFileAndDump2FQDNOutputfile    
+
+if [[ $sys_type_MDS = 'true' ]] ; then
+    
+    # HANDLE MDS and Domains
+
+    # HANDLE MDS
+    export outputfilenameaddon=MDS_
+
+	CopyFileAndDump2FQDNOutputfile    
+
+    # HANDLE MDS Domains
+
+else
+    # System is not MDS, so no need to cycle through domains
+    
+	CopyFileAndDump2FQDNOutputfile    
+fi
+
+export file2find=$file2copy
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - identify user.def files - sk98239
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/user.def
+export file2find=user.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - identify table.def files - sk98339
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/lib/table.def
+export file2find=table.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - identify crypt.def files - sk98241 and sk108600
+#----------------------------------------------------------------------------------------
+
+#
+#    crypt.def - sk98241 (Location of 'crypt.def' files on Security Management Server)
+#    crypt.def - sk108600 (VPN Site-to-Site with 3rd party)
+#
+
+export file2find=crypt.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+#----------------------------------------------------------------------------------------
+# bash - identify implied_rules.def files - sk92281
+#----------------------------------------------------------------------------------------
+
+#
+#    implied_rules.def - sk92281 (Creating customized implied rules for Check Point Security Gateway - 'implied_rules.def' file)
+#
+
+export file2find=implied_rules.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# base.def - sk95147 (Modifying definitions of packet inspection on Security Gateway for different protocols - 'base.def' file)
+#----------------------------------------------------------------------------------------
+
+# 
+export file2find=base.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# vpn_table.def - sk92332 (Customizing the VPN configuration for Check Point Security Gateway - 'vpn_table.def' file)
+#----------------------------------------------------------------------------------------
+
+# 
+export file2find=vpn_table.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# rtsp.def - sk35945 (RTSP traffic is dropped when SecureXL is enabled)
+#----------------------------------------------------------------------------------------
+
+# 
+export file2find=rtsp.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# ftp.def - sk61781 (FTP packet is dropped - Attack Information: The packet was modified due to a potential Bounce Attack Evasion Attempt (Telnet Options))
+#----------------------------------------------------------------------------------------
+
+# 
+export file2find=ftp.def
+
+FindFilesAndCollectIntoArchiveAllVariants
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini and backup if it exists
+#----------------------------------------------------------------------------------------
+
+# /opt/CPUserCheckPortal/phpincs/conf/TPAPI.ini
+export file2copy=TPAPI.ini
+export file2copypath="/opt/CPUserCheckPortal/phpincs/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# files to collect sk160392 - List of Check Point Configuration Files on a Security Gateway that need to be re-configured after performing a clean installation on a Security Gateway 
+#----------------------------------------------------------------------------------------
+
+# Note: Some of these might not exist by default and may need to be created manually.
+# 
+# Note: Some of these might not be relevant, depending on whether these existed on the Security Gateway previously.
+# 
+# 
+#     $FWDIR/boot/modules/fwkern.conf 
+#     $FWDIR/boot/modules/vpnkern.conf 
+#     $PPKDIR/boot/modules/simkern.conf 
+#     $PPKDIR/boot/modules/sim_aff.conf 
+#     $FWDIR/conf/fwaffinity.conf 
+#     $FWDIR/conf/fwauthd.conf 
+#     $FWDIR/conf/local.arp 
+#     $FWDIR/conf/discntd.if 
+#     $FWDIR/conf/cpha_bond_ls_config.conf 
+#     $FWDIR/conf/resctrl 
+#     $FWDIR/conf/vsaffinity_exception.conf 
+#     $FWDIR/database/qos_policy.C
+# 
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/boot/modules/fwkern.conf and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/boot/modules/fwkern.conf
+export file2copy=fwkern.conf
+export file2copypath="$FWDIR/boot/modules/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/boot/modules/vpnkern.conf and backup if it exists  - SK101219 and sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/boot/modules/vpnkern.conf
+export file2copy=vpnkern.conf
+export file2copypath="$FWDIR/boot/modules/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $PPKDIR/boot/modules/simkern.conf and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $PPKDIR/boot/modules/simkern.conf
+export file2copy=simkern.conf
+export file2copypath="$PPKDIR/boot/modules/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $PPKDIR/boot/modules/simkern.conf and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $PPKDIR/boot/modules/sim_aff.conf
+export file2copy=sim_aff.conf
+export file2copypath="$PPKDIR/boot/modules/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/fwaffinity.conf and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/fwaffinity.conf
+export file2copy=fwaffinity.conf
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/fwauthd.conf and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/fwauthd.conf
+export file2copy=fwauthd.conf
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/local.arp and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/local.arp
+export file2copy=local.arp
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/discntd.if and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/discntd.if
+export file2copy=discntd.if
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/cpha_bond_ls_config.conf  and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/cpha_bond_ls_config.conf
+export file2copy=cpha_bond_ls_config.conf
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/resctrl  and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/resctrl
+export file2copy=resctrl
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/conf/vsaffinity_exception.conf  and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/conf/vsaffinity_exception.conf
+export file2copy=vsaffinity_exception.conf
+export file2copypath="$FWDIR/conf/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - collect $FWDIR/database/qos_policy.C  and backup if it exists - sk160392
+#----------------------------------------------------------------------------------------
+
+# $FWDIR/database/qos_policy.C
+export file2copy=qos_policy.C
+export file2copypath="$FWDIR/database/$file2copy"
+
+export outputfilenameaddon=
+
+CopyFileAndDump2FQDNOutputfile
+
+if [ ! -r $file2copypath ] ; then
+    cp "$file2copypath" .
+fi
+
+
+#----------------------------------------------------------------------------------------
+# files to collect sk160392 - List of Check Point Configuration Files on a Security Gateway that need to be re-configured after performing a clean installation on a Security Gateway 
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+
+#----------------------------------------------------------------------------------------
+# bash - GW - status of SecureXL
+#----------------------------------------------------------------------------------------
+
+if [ $Check4GW -eq 1 ]; then
+    
+    export command2run=fwaccel-statistics
+
+    DoCommandAndDocument fwaccel stat
+    DoCommandAndDocument fwaccel stats
+    DoCommandAndDocument fwaccel stats -s
+    DoCommandAndDocument fwaccel stats -p
+    DoCommandAndDocument fwaccel templates
+    DoCommandAndDocument fwaccel templates -S
+    DoCommandAndDocument fwaccel ranges -l
+    DoCommandAndDocument fwaccel ranges
+
+fi
+
+
+#----------------------------------------------------------------------------------------
+# bash - Management Systems Information
+#----------------------------------------------------------------------------------------
+
+if [[ $sys_type_MDS = 'true' ]] ; then
+
+    export command2run=cpwd_admin
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo
+    echo 'Execute '$command2run' with output to : '$outputfilefqfn
+    
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqfn"
+    echo | tee -a -i "$outputfilefqfn"
+    
+    if $IsR8XVersion; then
+        # cpm_status.sh only exists in R8X
+        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqfn"
+        echo | tee -a -i "$outputfilefqfn"
+    else
+        echo | tee -a -i "$outputfilefqfn"
+    fi
+
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    echo 'mdsstat' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    
+    export COLUMNS=128
+    mdsstat >> "$outputfilefqfn"
+
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    echo 'cpwd_admin list' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    
+    cpwd_admin list >> "$outputfilefqfn"
+
+elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
+
+    export command2run=cpwd_admin
+    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+    export outputfilefqfn=$outputfilepath$outputfile
+    
+    echo >> "$outputfilefqfn"
+    echo 'Execute Command with output to Output Path : ' >> "$outputfilefqfn"
+    echo ' - Execute Command    : '$command2run >> "$outputfilefqfn"
+    echo ' - Output Path        : '$outputfilefqfn >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    command >> "$outputfilefqfn"
+    
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqfn"
+    echo | tee -a -i "$outputfilefqfn"
+    
+    if $IsR8XVersion; then
+        # cpm_status.sh only exists in R8X
+        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqfn"
+        echo | tee -a -i "$outputfilefqfn"
+    else
+        echo | tee -a -i "$outputfilefqfn"
+    fi
+
+    echo >> "$outputfilefqfn"
+    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    echo 'cpwd_admin list' >> "$outputfilefqfn"
+    echo >> "$outputfilefqfn"
+    
+    cpwd_admin list >> "$outputfilefqfn"
+
+fi
+
+echo | tee -a -i "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 #
 
+
+#----------------------------------------------------------------------------------------
+# API Information
+#----------------------------------------------------------------------------------------
+
+if $IsR8XVersion; then
+    # api currently only exists in R8X
+    echo 'Check if we have API and Gaia REST API and report...'
+
+    if [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ||  [[ $sys_type_MDS = 'true' ]]; then
+        # Management API is possible only on management server
+
+        export command2run=api_status
+    
+        DoCommandAndDocument api status
+    fi
+
+    rpm -q gaia_api &> /dev/null
+    if [ $? -eq 0 ]; then
+        # Gaia REST API installed
+        export command2run=gaia_api_status
+    
+        DoCommandAndDocument gaia_api status
+    fi
+
+else
+    # api currently only exists in R8X
+    echo 'No API or Gaia REST API in this version...'
+fi
+echo
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
+# bash - GW - status of Identity Awareness
+#----------------------------------------------------------------------------------------
+
+if [ $Check4GW -eq 1 ]; then
+    
+    echo 'Check Status of Identity Awareness'
+    echo
+
+    export command2run=identity_awareness_details
+
+    DoCommandAndDocument pdp status show
+    DoCommandAndDocument pep show pdp all
+    DoCommandAndDocument pdp auth kerberos_encryption get
+    
+fi
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
+# bash - process listing
+#----------------------------------------------------------------------------------------
+
+export command2run=ps_process_status
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqfn
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'ps -AFM -- process listing' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+ps -AFM >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
+# bash - Port utilization and potential overlaps
+#----------------------------------------------------------------------------------------
+
+export command2run=netstat
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqfn
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap -- Ports used' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
+# bash - Port utilization and potential overlaps - Endpoint Management (EPM)
+#----------------------------------------------------------------------------------------
+
+export command2run=netstat_for_EPM
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqfn
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 8080 -- Endpoint Port use of 8080' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 8080 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 8009 -- Endpoint Port use of 8009' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 8009 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 8005 -- Endpoint Port use of 8005' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 8005 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 80 -- Endpoint Port use of 80' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 80 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 443 -- Endpoint Port use of 443' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 443 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo 'netstat -nap | grep 4434 -- Endpoint Port use of 4434' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+netstat -nap | grep 4434 >> "$outputfilefqfn"
+
+echo >> "$outputfilefqfn"
+
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
+echo | tee -a -i "$outputfilefqfn"
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
 #----------------------------------------------------------------------------------------
 # bash - ?what next?
@@ -1866,16 +2826,16 @@ FindFilesAndCollectIntoArchiveAllVariants
 #export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 #export outputfilefqfn=$outputfilepath$outputfile
 
-#echo | tee -a -i $outputfilefqfn
-#echo 'Execute '$command2run' with output to : '$outputfilefqfn | tee -a -i $outputfilefqfn
-#command | tee -a -i $outputfilefqfn
+#echo
+#echo 'Execute '$command2run' with output to : '$outputfilefqfn
+#$command2run > "$outputfilefqfn"
 
-#echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-#echo | tee -a -i $outputfilefqfn
-#echo 'fwacell stats -s' | tee -a -i $outputfilefqfn
-#echo | tee -a -i $outputfilefqfn
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+#echo >> "$outputfilefqfn"
+#echo 'fwacell stats -s' >> "$outputfilefqfn"
+#echo >> "$outputfilefqfn"
 #
-#fwaccel stats -s | tee -a -i $outputfilefqfn
+#fwaccel stats -s >> "$outputfilefqfn"
 #
 
 
@@ -1922,6 +2882,49 @@ cp "$configfile" "$configfilefqfn" >> $outputfilefqfn
 cp "$configfile" "$configfilefqfn.txt" >> $outputfilefqfn
 
 cat $outputfilefqfn >> $clishoutputfilefqfn
+
+#----------------------------------------------------------------------------------------
+# clish - show assets
+#----------------------------------------------------------------------------------------
+
+export command2run=clish_assets
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo | tee -a $clishoutputfilefqfn
+echo 'Execute Command with output to Output Path : ' | tee -a -i $clishoutputfilefqfn
+echo ' - Execute Command    : '$command2run | tee -a -i $clishoutputfilefqfn
+echo ' - Output Path        : '$outputfilefqfn | tee -a -i $clishoutputfilefqfn
+echo | tee -a $clishoutputfilefqfn
+
+echo >> "$outputfilefqfn"
+echo 'Execute Command with output to Output Path : ' >> "$outputfilefqfn"
+echo ' - Execute Command    : '$command2run >> "$outputfilefqfn"
+echo ' - Output Path        : '$outputfilefqfn >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo 'clish show asset all :' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+CheckAndUnlockGaiaDB
+
+clish -i -c "show asset all" >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+echo 'clish show asset system :' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+CheckAndUnlockGaiaDB
+
+clish -i -c "show asset system" >> "$outputfilefqfn"
+echo >> "$outputfilefqfn"
+
+cat $outputfilefqfn >> $clishoutputfilefqfn
+
 
 #----------------------------------------------------------------------------------------
 # clish and bash - Gather version information from all possible methods
@@ -2112,7 +3115,7 @@ cat $outputfilefqfn >> $clishoutputfilefqfn
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Collect and Capture Interface(s) Configuration and Information data
+# END :  Collect and Capture Configuration and Information data
 #
 #==================================================================================================
 #==================================================================================================
@@ -2130,6 +3133,11 @@ cat $outputfilefqfn >> $clishoutputfilefqfn
 echo | tee -a -i $logfilepath
 echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
 ls -alh $outputpathbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'List files : '$outputpathbase'/fw*' | tee -a -i $logfilepath
+ls -alh $outputpathroot/fw* | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo >> $logfilepath
@@ -2191,7 +3199,7 @@ echo
 #==================================================================================================
 #==================================================================================================
 
-export archivetftptargetfolder=$tftptragetforder_interfaceinfo
+export archivetftptargetfolder=$tftptargetfolder_configcapture
 export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
 
 if $EXPORTRESULTSTOTFPT ; then
@@ -2353,5 +3361,9 @@ echo
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+
+
+echo
+echo 'Script Completed, exiting...';echo
 
 
