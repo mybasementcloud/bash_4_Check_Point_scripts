@@ -1,6 +1,6 @@
 #
-# Version :  v04.12.00.00 SAMPLE
-# Date    :  2019-10-05
+# Version :  v04.15.00.00 SAMPLE
+# Date    :  2019-11-21
 #
 alias DTGDATE='date +%Y-%m-%d-%H%M%Z'
 alias DTGSDATE='date +%Y-%m-%d-%H%M%S%Z'
@@ -46,7 +46,12 @@ alias goapiwipexport='cd $MYWORKFOLDER/cli_api_ops.wip/export_import.wip;echo Cu
 alias versionsdump='echo;echo;uname -a;echo;echo;clish -c "show version all";echo;echo;cpinfo -y all;echo;echo'
 alias configdump='echo;gougex;pwd;echo;echo;./config_capture;echo;echo;./healthdump;echo;echo'
 
-# 2019-10-05
+# 2019-11-21
+
+alias braindump='echo;gougex;pwd;echo;echo;./config_capture;echo;echo;./healthdump;echo;echo;./interface_info;echo;echo;./check_point_service_status_check;echo;echo'
+alias checkFTW='echo; echo "Check if FTW completed!  TRUE if .wizard_accepted found"; echo; ls -alh /etc/.wizard_accepted; echo; tail -n 10 /var/log/ftw_install.log; echo'
+
+# 2019-11-21 Updated
 
 #
 # This section expects definition of the following external variables.  These are usually part of the user profile setup in the $HOME folder
@@ -64,6 +69,8 @@ export MYTFTPSERVER2=192.168.1.2
 export MYTFTPSERVER3=
 export MYTFTPSERVER=$MYTFTPSERVER1
 export MYTFTPFOLDER=/__gaia
+
+alias showmytftpservers='echo -e "MYTFTPSERVERs: \n MYTFTPSERVER  = $MYTFTPSERVER \n MYTFTPSERVER1 = $MYTFTPSERVER1 \n MYTFTPSERVER2 = $MYTFTPSERVER2 \n MYTFTPSERVER3 = $MYTFTPSERVER3" ;echo'
 
 alias getupdatescripts='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
 

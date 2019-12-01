@@ -4,16 +4,22 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-10-06
-ScriptVersion=04.12.01
-ScriptRevision=000
+ScriptDate=2019-11-22
+ScriptVersion=04.15.00
+ScriptRevision=001
 TemplateLevel=006
-TemplateVersion=04.11.00
+TemplateVersion=04.15.00
+SubScriptsLevel=NA
+SubScriptsVersion=NA
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=updatescripts
 export BASHScriptShortName="updatescripts"
@@ -28,6 +34,8 @@ export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
 export BASHScriptsFolder=.
+
+export BASHScripttftptargetfolder="_template"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -69,11 +77,11 @@ WAITTIME=20
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -z $MYTFTPSERVER1 ]; then
+if [ ! -z $MYTFTPSERVER1 ] && [ $MYTFTPSERVER1 != $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER1
-elif [ ! -z $MYTFTPSERVER2 ]; then
+elif [ ! -z $MYTFTPSERVER2 ] && [ $MYTFTPSERVER2 != $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER2
-elif [ ! -z $MYTFTPSERVER3 ]; then
+elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER3
 elif [ ! -z $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER
@@ -251,8 +259,31 @@ else
         echo | tee -a -i $logfilepath
     fi
 
+    if [ ! -r "$HOME/alias_commands_for_dot_bashrc.sh" ]; then
+        #
+        # $HOME folder for user(s) has updates for standard alias configurations and root variables
+        #
+
+        export aliasupdatefile=`ls ./$targetscriptsfolder/UserConfig/add_alias_commands_all_users.all.*`
+        echo "Add Alias to users $HOME folders... $aliasupdatefile" | tee -a -i $logfilepath
+    
+    else
+        #
+        # $HOME folder for user(s) has updates for standard alias configurations and root variables
+        #
+
+        export aliasupdatefile=`ls ./$targetscriptsfolder/UserConfig/update_alias_commands_all_users.all.*`
+        echo "Update Alias in users $HOME folders... $aliasupdatefile" | tee -a -i $logfilepath
+
+    fi
+
+    echo | tee -a -i $logfilepath
+    . $aliasupdatefile | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
     echo 'Done!' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
+
 fi
 
 

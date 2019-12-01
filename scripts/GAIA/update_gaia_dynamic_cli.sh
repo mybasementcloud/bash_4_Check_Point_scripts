@@ -4,13 +4,13 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-10-06
-ScriptVersion=04.12.01
+ScriptDate=2019-11-22
+ScriptVersion=04.15.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.11.00
+TemplateVersion=04.15.00
 SubScriptsLevel=006
-SubScriptsVersion=04.01.00
+SubScriptsVersion=04.02.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -22,11 +22,11 @@ export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=update_gaia_dynamic_cli
-#export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-#export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
 export BASHScriptShortName=Update_GAIA_Dynamic_CLI
 export BASHScriptDescription="Update GAIA Dynamic CLI Installation with latest package from tftp server"
+
+#export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
+export BASHScriptName=$BASHScriptFileNameRoot
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
@@ -34,6 +34,8 @@ export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
 export BASHScriptsFolder=GAIA
+
+export BASHScripttftptargetfolder="_template"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -190,7 +192,7 @@ fi
 # START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-04-20 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -214,6 +216,8 @@ fi
 #
 # --NOSTART
 # --RESTART
+#
+# --NOHUP
 #
 
 export SHOWHELP=false
@@ -266,10 +270,12 @@ else
     export CLIparm_NOSTART=false
 fi
 
+export CLIparm_NOHUP=false
+
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-04-20
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -1171,16 +1177,16 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -z $MYTFTPSERVER1 ]; then
+if [ ! -z $MYTFTPSERVER1 ] && [ $MYTFTPSERVER1 != $MYTFTPSERVER ]; then
     export sourcetftpserver=$MYTFTPSERVER1
-elif [ ! -z $MYTFTPSERVER2 ]; then
+elif [ ! -z $MYTFTPSERVER2 ] && [ $MYTFTPSERVER2 != $MYTFTPSERVER ]; then
     export sourcetftpserver=$MYTFTPSERVER2
-elif [ ! -z $MYTFTPSERVER3 ]; then
+elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
     export sourcetftpserver=$MYTFTPSERVER3
 elif [ ! -z $MYTFTPSERVER ]; then
     export sourcetftpserver=$MYTFTPSERVER
 else
-    export sourcetftpserver=10.69.248.60
+    export sourcetftpserver=192.169.1.1
 fi
 
 

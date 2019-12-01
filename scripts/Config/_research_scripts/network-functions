@@ -1,0 +1,449 @@
+# -*-Shell-script-*-
+#
+# This file is not a stand-alone shell script; it provides functions 
+# to network scripts that source it.
+
+# Set up a default search path.
+PATH="/sbin:/usr/sbin:/bin:/usr/bin"
+export PATH
+
+[ -z "$__sed_discard_ignored_files" ] && . /etc/init.d/functions
+
+get_hwaddr ()
+{
+    if [ -f /sys/class/net/${1}/address ]; then
+	awk '{ print toupper($0) }' < /sys/class/net/${1}/address
+    elif [ -d "/sys/class/net/${1}" ]; then
+	LC_ALL= LANG= ip -o link show ${1} 2>/dev/null | \
+      	    awk '{ print toupper(gensub(/.*link\/[^ ]* ([[:alnum:]:]*).*/,
+					"\\1", 1)); }'
+    fi
+}
+
+get_config_by_hwaddr ()
+{
+    LANG=C grep -il "^[[:space:]]*HWADDR=${1}\([[:space:]#]\|$\)" /etc/sysconfig/network-scripts/ifcfg-* \
+	| LC_ALL=C sed -e "$__sed_discard_ignored_files"
+}
+
+get_config_by_subchannel ()
+{
+    LANG=C grep -il "^[[:space:]]*SUBCHANNELS=${1}\([[:space:]#]\|$\|,\)" /etc/sysconfig/network-scripts/ifcfg-* \
+	| LC_ALL=C sed -e "$__sed_discard_ignored_files"
+}
+
+get_device_by_hwaddr ()
+{
+    LANG=C ip -o link | grep -v link/ieee802.11 | awk -F ': ' -vIGNORECASE=1 "/$1/ { print \$2 }"
+}
+
+need_config ()
+{
+    local nconfig
+
+    CONFIG="ifcfg-${1}"
+    [ -f "${CONFIG}" ] && return
+    CONFIG="${1}"
+    [ -f "${CONFIG}" ] && return
+    local addr=`get_hwaddr ${1}`
+    if [ -n "$addr" ]; then
+      nconfig=`get_config_by_hwaddr ${addr}`
+      if [ -n "$nconfig" ] ; then
+        CONFIG=${nconfig##*/}
+	[ -f "${CONFIG}" ] && return
+      fi
+    fi
+    nconfig=$(LANG=C grep -l "^[[:space:]]*DEVICE=${1}\([[:space:]#]\|$\)" \
+	/etc/sysconfig/network-scripts/ifcfg-* \
+	| LC_ALL=C sed -e "$__sed_discard_ignored_files")
+    if [ -n "$nconfig" -a -f "$nconfig" ]; then
+      CONFIG=${nconfig##*/}
+      return
+    fi
+}
+
+source_config ()
+{
+    DEVNAME=`basename $CONFIG | sed 's/^ifcfg-//g'`
+    if echo ${CONFIG##*/} | grep -q '[^g]-' ; then
+	PARENTCONFIG=`echo $CONFIG | sed 's/-[^-]*$//g'`
+	PARENTDEVNAME=${PARENTCONFIG##*/ifcfg-}
+	[ -f $PARENTCONFIG ] || {
+	    echo $"Missing config file $PARENTCONFIG." >&2
+	    exit 1
+	}
+	. $PARENTCONFIG
+	[ -r "keys-$PARENTDEVNAME" ] && . keys-$PARENTDEVNAME
+    fi
+    . $CONFIG
+    [ -r "keys-$DEVNAME" ] && . keys-$DEVNAME
+	if [ "${IPADDR}" = "0.0.0.0" ]; then
+	   unset IPADDR
+	   unset NETMASK
+      	   unset PREFIX
+      	   unset BROADCAST
+	   unset NETWORK
+	fi
+
+    case "$TYPE" in
+    	Ethernet)
+		DEVICETYPE="eth"
+		;;
+	CIPE)
+		DEVICETYPE="cipcb"
+		;;
+	IPSEC)
+		DEVICETYPE="ipsec"
+		;;
+	Modem)
+		DEVICETYPE="ppp"
+		;;
+	xDSL)
+		DEVICETYPE="ppp"
+		;;
+	ISDN)
+		DEVICETYPE="ippp"
+		;;
+	Wireless)
+		DEVICETYPE="eth"
+		;;
+	"Token Ring")
+		DEVICETYPE="eth"
+		;;
+	CTC)
+		DEVICETYPE="ctc"
+		;;
+	IUCV)
+		DEVICETYPE="iucv"
+		;;
+	GRE | IPIP)
+		DEVICETYPE="tunnel"
+		;;
+    esac
+    [ -z "$DEVICETYPE" ] && DEVICETYPE=`echo ${DEVICE} | sed "s/[0-9]*$//"`
+    [ -z "$REALDEVICE" -a -n "$PARENTDEVICE" ] && REALDEVICE=$PARENTDEVICE
+    [ -z "$REALDEVICE" ] && REALDEVICE=${DEVICE%%:*}
+    if [ "${DEVICE}" != "${REALDEVICE}" ]; then
+        ISALIAS=yes
+    else
+	ISALIAS=no
+    fi
+    if [ -n "$HWADDR" ]; then
+        HWADDR=`echo $HWADDR | awk '{ print toupper($0) }'`
+    fi
+    if [ -n "$MACADDR" ]; then
+        MACADDR=`echo $MACADDR | awk '{ print toupper($0) }'`
+    fi
+}
+
+
+
+expand_config ()
+{
+    if [ -z "${NETMASK}" ]; then
+	eval `/bin/ipcalc --netmask ${IPADDR}`
+    fi
+
+    if [ -z "${PREFIX}" ]; then
+	eval `/bin/ipcalc --prefix ${IPADDR} ${NETMASK}`
+    fi
+
+    if [ -z "${BROADCAST}" ]; then
+	eval `/bin/ipcalc --broadcast ${IPADDR} ${NETMASK}`
+    fi
+
+    if [ -z "${NETWORK}" ]; then
+	eval `/bin/ipcalc --network ${IPADDR} ${NETMASK}`
+    fi
+}
+
+toggle_value ()
+{
+    if [ "$2" = "yes"  -o "$2" = "YES" ] ; then
+	echo "$1 on"
+    elif [ "$2" = "no"  -o "$2" = "NO" ] ; then
+	echo "$1 off"
+    else
+	echo ''
+    fi
+}
+ 
+do_netreport ()
+{
+  # Notify programs that have requested notification
+  ( cd /var/run/netreport || exit
+    for i in * ; do
+      if [ -f $i ]; then
+        OWNER=`ls -l $i | awk '{ print $3 }'`
+	
+        if [ "`id -u`" = "0" ]; then
+	  su -s /bin/bash $OWNER -c "kill -SIGIO $i >/dev/null 2>&1 || rm -f $i >/dev/null 2>&1" > /dev/null 2>&1
+	else
+	  kill -SIGIO $i >/dev/null 2>&1 || rm -f $i >/dev/null 2>&1
+	fi
+      fi
+    done
+  )
+}
+
+# rename_device() - Rename a network device to something else
+# $1 - desired name
+# $2 - hardware address to name (no longer used)
+# $3 - '/' separated list of devices that are already in use
+#      (for general calls, use the current device you're trying to
+#       change to $1)
+
+rename_device()
+{
+    local target=${3##*/}
+
+    /sbin/ip link set "$target" name "$1" 2>/dev/null || {
+      local hw2=`get_hwaddr ${1}`
+      local nconfig=`get_config_by_hwaddr ${hw2}`
+      local curdev=`get_device_by_hwaddr ${hw2}`
+      local dev=
+      [ -z "${hw2}" ] && return
+      if [ -n "$nconfig"  ]; then
+         dev=$(. $nconfig ; echo $DEVICE)
+	 oldifs=$IFS
+	 IFS=/
+         for device in $3 ; do
+	    [ "$dev" = "$device" ] && unset dev
+         done
+	 IFS=$oldifs
+      fi 
+      [ -z "$dev" ] && dev=dev$RANDOM
+      
+      rename_device $dev $hw2 "$3/$curdev"
+      /sbin/ip link set "$target" name $1 2>/dev/null
+    }
+}
+
+# Sets $alias to the device module if $? != 0
+is_available ()
+{
+    LC_ALL= LANG= ip -o link | grep -q $1
+    [ "$?" = "1" ] || return 0
+
+    alias=$(modprobe -c | awk \
+'BEGIN { alias = ""; }
+$1 == "alias" && $2 == "'"$1"'" { alias = $3; }
+$1 == "install" { install[$2] = $3; }
+END {
+    cmd = install[alias];
+    print alias;
+    if (alias == "" || alias == "off" || cmd == "/bin/true" || cmd == ":")
+        exit 1;
+    exit 0;
+}')
+    [ $? -eq 0 ] || return 2
+
+    modprobe $1 > /dev/null 2>&1 || {
+      return 1
+    }
+    if [ -n "$HWADDR" ]; then
+       local curdev=`get_device_by_hwaddr "$HWADDR"`
+       if [ -z "$curdev" ]; then
+          return 1
+       fi
+       rename_device "$1" "$HWADDR" "$curdev"
+    fi
+
+    if [ ${alias} == "bonding" ]; then
+	install_bonding_driver $1
+    fi
+
+    LC_ALL= LANG= ip -o link | grep -q $1
+    return $?
+}
+
+need_hostname ()
+{
+    CHECK_HOSTNAME=`hostname`
+    if [ "$CHECK_HOSTNAME" = "(none)" -o "$CHECK_HOSTNAME" = "localhost" -o \
+	"$CHECK_HOSTNAME" = "localhost.localdomain" ]; then
+	return 0
+    else
+	return 1
+    fi
+}
+
+set_hostname ()
+{
+    hostname $1
+    if ! grep search /etc/resolv.conf >/dev/null 2>&1; then
+	domain=`echo $1 | sed 's/^[^\.]*\.//'`
+	if [ -n "$domain" ]; then
+		rsctmp=`mktemp /tmp/XXXXXX`;
+		cat /etc/resolv.conf > $rsctmp
+		echo "search $domain" >> $rsctmp
+		change_resolv_conf $rsctmp
+		/bin/rm -f $rsctmp
+	fi	
+    fi
+}
+
+check_device_down ()
+{
+    if echo $1 | grep -q ':' ; then
+     if LC_ALL=C ifconfig -a 2>/dev/null | grep -q $1 ; then
+	  return 1
+     else
+	  return 0
+     fi
+    else 
+     if LC_ALL=C ip -o link 2>/dev/null | grep -q "$1[:@].*,UP" ; then
+	return 1
+     else
+	return 0
+     fi
+    fi
+}
+
+check_mii_tool ()
+{
+   [ -x /sbin/mii-tool ] || return 2
+   output=`LC_ALL=C mii-tool $1 2>&1`
+   echo $output | LC_ALL=C grep -q "link ok" && return 1
+   echo $output | LC_ALL=C grep -q "no link" && return 0 || return 2
+}
+
+check_ethtool ()
+{
+   [ -x /sbin/ethtool ] || return 2
+   output=`LC_ALL=C ethtool $1 2>&1`
+   echo $output | LC_ALL=C grep -q "Link detected: yes" && return 1
+   echo $output | LC_ALL=C grep -q "Link detected: no" && return 0 || return 2
+}
+
+
+check_link_down ()
+{
+    if [ -x /sbin/mii-tool -o -x /sbin/ethtool ]; then
+        if ! LC_ALL=C ip link show dev $1 2>/dev/null| grep -q UP ; then
+	   ip link set dev $1 up >/dev/null 2>&1
+	fi
+	timeout=0
+	delay=10
+	[ -n "$LINKDELAY" ] && delay=$(($LINKDELAY * 2))
+	while [ $timeout -le $delay ]; do
+	    check_mii_tool $1
+	    m=$?
+	    check_ethtool $1
+	    e=$?
+	    if [ $m -eq 1 ] || [ $e -eq 1 ] ; then
+		return 1
+	    fi
+	    if [ $m -eq 2 ] && [ $e -eq 2 ] ; then
+		return 1
+	    fi
+	    usleep 500000
+	    timeout=$((timeout+1))
+	done
+	return 0
+    fi
+    return 1
+}
+
+check_default_route ()
+{
+    LC_ALL=C ip route list match 0/0 | grep -q default
+}
+
+find_gateway_dev ()
+{
+    . /etc/sysconfig/network
+    if [ -n "${GATEWAY}" -a "${GATEWAY}" != "none" ] ; then
+	dev=$(LC_ALL=C /sbin/ip route get to "${GATEWAY}" 2>/dev/null | \
+	    sed -n 's/.* dev \([[:alnum:]]*\) .*/\1/p')
+	if [ -n "$dev" ]; then
+	    GATEWAYDEV="$dev"
+        fi
+    fi
+}
+
+# After the device $1 goes away, restore the standard default route; typically
+# used for ppp with DEFROUTE temporarily replacing the "standard" default
+# route.
+# FIXME: This function doesn't support some newer features (GATEWAY in ifcfg,
+# $WINDOW, $METRIC)
+add_default_route ()
+{
+    . /etc/sysconfig/network
+    check_default_route && return 0
+    find_gateway_dev
+    if [ "$GATEWAYDEV" != "" -a -n "${GATEWAY}" -a \
+ 		"${GATEWAY}" != "none" ]; then
+        if ! check_device_down $1; then
+            if [ "$GATEWAY" = "0.0.0.0" ]; then
+                /sbin/ip route add default dev ${GATEWAYDEV}
+            else
+                /sbin/ip route add default via ${GATEWAY}
+            fi
+        fi
+    elif [ -f /etc/default-routes ]; then
+	while read spec; do
+	    /sbin/ip route add $spec
+	done < /etc/default-routes
+	rm -f /etc/default-routes
+    fi
+}
+
+is_wireless_device ()
+{
+    [ -x /sbin/iwconfig ] || return 1
+    LC_ALL=C iwconfig $1 2>&1 | grep -q "no wireless extensions" || return 0
+    return 1
+}
+
+install_bonding_driver ()
+{
+   ethtool -i $1 2>/dev/null | grep -q "driver: bonding" && return 0
+   [ ! -f /sys/class/net/bonding_masters ] && ( modprobe bonding || return 1 )
+   echo "+$1" > /sys/class/net/bonding_masters
+   return 0
+}
+
+is_bonding_device ()
+{
+   [ -f "/sys/class/net/$1/bonding/slaves" ]
+}
+
+# Invoke this when /etc/resolv.conf has changed:
+change_resolv_conf ()
+{
+    s=`/bin/grep '^[\ \	]*option' /etc/resolv.conf 2>/dev/null`;
+    if [ "x$s" != "x" ]; then
+       s="$s"$'\n';
+    fi;
+    if [ $# -gt 1 ]; then
+       let n_args=$#;
+       while [ $n_args -gt 0 ]; 
+	 do 
+	    if [[ "$s" = *$1* ]]; then
+	       shift;
+	       let n_args=n_args-1;
+               continue;
+            fi;
+	    s="$s$1";
+            shift; 
+	    if [ $# -gt 0 ]; then
+		s="$s"$'\n';
+	    fi;
+	    let n_args=n_args-1; 
+         done;       
+    elif [ $# -eq 1 ]; then
+       if [ "x$s" != "x" ]; then
+	  s="$s"`/bin/grep -vF "$s" $1`;
+       else
+	  s=`cat $1`;
+       fi;
+    fi;
+    (echo "$s" > /etc/resolv.conf;) >/dev/null 2>&1;
+    r=$?
+    if [ $r -eq 0 ]; then
+	logger -p local7.notice -t "NET" -i "$0 : updated /etc/resolv.conf";
+	[ -e /var/lock/subsys/nscd ] && /usr/sbin/nscd -i hosts; # invalidate cache
+    fi;
+    return $r;
+}

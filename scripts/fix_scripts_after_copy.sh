@@ -4,16 +4,22 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-10-05
-ScriptVersion=04.12.00
+ScriptDate=2019-11-22
+ScriptVersion=04.15.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.11.00
+TemplateVersion=04.15.00
+SubScriptsLevel=NA
+SubScriptsVersion=NA
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=fix_scripts_after_copy
 export BASHScriptShortName=$BASHScriptFileNameRoot
@@ -28,6 +34,8 @@ export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
 export BASHScriptsFolder=.
+
+export BASHScripttftptargetfolder="_template"
 
 
 

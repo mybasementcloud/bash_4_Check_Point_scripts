@@ -46,6 +46,8 @@ REM Touch Directory
 REM ----------------------------------------------------------------
 :TOUCHDIR
 
+ECHO Check if "%TARGETDIR%" exists...
+IF NOT EXIST "%TARGETDIR%" GOTO  %NEXTOP%
 ECHO Touch "%TARGETDIR%"
 CD /D "%TARGETDIR%"
 REM FOR %%I IN (*.CMD) DO "%PATHTOUCH%" "%%I" >> "%TEMP%\TouchDir.log"
@@ -68,12 +70,18 @@ GOTO :TOUCHDIR
 
 REM ----------------------------------------------------------------
 :SECOND
-SET TARGETDIR=%CURDIR%\help.*
+SET TARGETDIR=%CURDIR%\Code_Snipets
 SET NEXTOP=:THIRD
 GOTO :TOUCHDIR
 
 REM ----------------------------------------------------------------
 :THIRD
+SET TARGETDIR=%CURDIR%\help.*
+SET NEXTOP=:FOURTH
+GOTO :TOUCHDIR
+
+REM ----------------------------------------------------------------
+:FOURTH
 
 REM ----------------------------------------------------------------
 goto :DONE
