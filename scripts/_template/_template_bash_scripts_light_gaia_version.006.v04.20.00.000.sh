@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -21,9 +21,9 @@ export BASHSubScriptVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=_template_bash_scripts_light_version
-export BASHScriptShortName=_template_light_version.$TemplateLevel.v$ScriptVersion
-export BASHScriptDescription="Template Light for bash scripts"
+export BASHScriptFileNameRoot=_template_bash_scripts_light_with_version
+export BASHScriptShortName=_template_light_with_version.$TemplateLevel.v$ScriptVersion
+export BASHScriptDescription="Template Light for bash scripts with Version Info"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
@@ -32,7 +32,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
 export BASHScriptsFolder=_template
 
 export BASHScripttftptargetfolder="_template"

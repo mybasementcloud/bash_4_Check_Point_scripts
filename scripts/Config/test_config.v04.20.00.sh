@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT Endpoint Management (EPM) configuration values check for bash and clish
+# SCRIPT test stuff for config
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
-ScriptRevision=001
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
+ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=006
 SubScriptsVersion=04.02.00
 #
@@ -21,9 +21,9 @@ export BASHSubScriptVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=EPM_config_check
-export BASHScriptShortName="EPM_config_check"
-export BASHScriptDescription="Endpoint Management (EPM) configuration values check for bash and clish"
+export BASHScriptFileNameRoot=test_config
+export BASHScriptShortName=test_for_config
+export BASHScriptDescription="test stuff for config"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -32,10 +32,10 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=SMS
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+export BASHScriptsFolder=Config
 
-export BASHScripttftptargetfolder="host_data"
+export BASHScripttftptargetfolder="_template"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
 export ShowGaiaVersionResults=true
-export KeepGaiaVersionResultsFile=true
+export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1166,673 +1166,51 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Collect and Capture Configuration and Information data
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Example framework for executing bash commands and documenting those specifically
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------
 # Configure specific parameters
 #----------------------------------------------------------------------------------------
 
-export targetversion=$gaiaversion
-
-export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
-
-if [ ! -r $outputfilepath ] ; then
-    mkdir -pv $outputfilepath | tee -a -i $logfilepath
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
-else
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
-fi
-
-
-#==================================================================================================
-# -------------------------------------------------------------------------------------------------
-# START :  Operational Procedures
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# CopyFileAndDump2FQDNOutputfile - Copy identified file at path to output file path and also dump to output file
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#export targetversion=$gaiaversion
+#
+#export outputfilepath=$outputpathbase/
+#export outputfileprefix=$HOSTNAME'_'$targetversion
+#export outputfilesuffix='_'$DATEDTGS
+#export outputfiletype=.txt
+#
+#if [ ! -r $outputfilepath ] ; then
+#    mkdir -pv $outputfilepath
+#    chmod 775 $outputfilepath
+#else
+#    chmod 775 $outputfilepath
+#fi
 #
 
-CopyFileAndDump2FQDNOutputfile () {
-    #
-    # Copy identified file at path to output file path and also dump to output file
-    #
-
-    export outputfile=$outputfileprefix'_file_'$outputfilenameaddon$file2copy$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-
-    if [ ! -r $file2copypath ] ; then
-        echo | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-        echo 'NO File Found at Path! :  ' | tee -a -i $outputfilefqfn
-        echo ' - File : '$file2copy | tee -a -i $outputfilefqfn
-        echo ' - Path : '"$file2copypath" | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    else
-        echo | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-        echo 'Found File at Path :  ' | tee -a -i $outputfilefqfn
-        echo ' - File : '$file2copy | tee -a -i $outputfilefqfn
-        echo ' - Path : '"$file2copypath" | tee -a -i $outputfilefqfn
-        echo 'Copy File at Path to Target : ' | tee -a -i $outputfilefqfn
-        echo ' - File at Path : '"$file2copypath" | tee -a -i $outputfilefqfn
-        echo ' - to Target    : '"$outputfilepath" | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-        echo >> $outputfilefqfn
-        cp "$file2copypath" "$outputfilepath" >> $outputfilefqfn
-     
-        echo >> $outputfilefqfn
-        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
-        echo 'Dump contents of Source File to Logging File :' | tee -a -i $outputfilefqfn
-        echo ' - Source File  : '"$file2copypath" | tee -a -i $outputfilefqfn
-        echo ' - Logging File : '$outputfilefqfn | tee -a -i $outputfilefqfn
-        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
-        echo >> $outputfilefqfn
-        cat "$file2copypath" >> $outputfilefqfn
-        echo >> $outputfilefqfn
-        echo '----------------------------------------------------------------------------' >> $outputfilefqfn
-        echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    fi
-    echo | tee -a -i $outputfilefqfn
-
-    echo
-    return 0
-}
+#case "$gaiaversion" in
+#    R80 | R80.10 | R80.20.M1 | R80.20 ) 
+#        export do_session_cleanup=true
+#        ;;
+#    *)
+#        export do_session_cleanup=false
+#        ;;
+#esac
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# CopyFileAndDump2FQDNOutputfile
-
-# -------------------------------------------------------------------------------------------------
-# FindFilesAndCollectIntoArchive - Document identified file locations to output file path and also collect into archive
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#if [ "$do_session_cleanup" == "true" ]; then
 #
 
-FindFilesAndCollectIntoArchive () {
-    #
-    # Document identified file locations to output file path and also collect into archive
-    #
-
-    export file2findpath="/"
-    export file2findname=${file2find/\*/(star)}
-    export command2run=find
-    export outputfile=$outputfileprefix'_'$command2run'_'$file2findname$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo 'Find file : '$file2find' and document locations' | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo >> $outputfilefqfn
-    
-    find / -name "$file2find" 2> /dev/nul >> "$outputfilefqfn"
-    
-    export archivefile='archive_'$file2findname$outputfilesuffix'.tgz'
-    export archivefqfn=$outputfilepath$archivefile
-    
-    echo >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo 'Archive all found Files to Target Archive' | tee -a -i $outputfilefqfn
-    echo ' - Found Files    : '$file2find | tee -a -i $outputfilefqfn
-    echo ' - Target Archive : '$archivefqfn | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo >> $outputfilefqfn
-    
-    tar czvf $archivefqfn --exclude=$customerworkpathroot* $(find / -name "$file2find" 2> /dev/nul) >> $outputfilefqfn
-
-    echo >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo | tee -a -i $outputfilefqfn
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#FindFilesAndCollectIntoArchive
-
-
-# -------------------------------------------------------------------------------------------------
-# FindFilesAndCollectIntoArchiveAllVariants - Document identified file locations to output file path and also collect into archive all variants
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-FindFilesAndCollectIntoArchiveAllVariants () {
-    #
-    # Document identified file locations to output file path and also collect into archive all variants
-    #
-
-    export file2findpath="/"
-    export file2findname=${file2find/\*/(star)}
-    export command2run=find
-    export outputfile=$outputfileprefix'_'$command2run'_'$file2findname'_all_variants'$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo 'Find file : '$file2find'* and document locations' | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo >> $outputfilefqfn
-    
-    find / -name "$file2find*" 2> /dev/nul >> "$outputfilefqfn"
-    
-    export archivefile='archive_'$file2findname'_all_variants'$outputfilesuffix'.tgz'
-    export archivefqfn=$outputfilepath$archivefile
-    
-    echo >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo 'Archive all found Files* to Target Archive' | tee -a -i $outputfilefqfn
-    echo ' - Found Files    : '$file2find'*' | tee -a -i $outputfilefqfn
-    echo ' - Target Archive : '$archivefqfn | tee -a -i $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo >> $outputfilefqfn
-    
-    tar czvf $archivefqfn --exclude=$customerworkpathroot* $(find / -name "$file2find*" 2> /dev/nul) >> $outputfilefqfn
-
-    echo >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' >> $outputfilefqfn
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo | tee -a -i $outputfilefqfn
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#FindFilesAndCollectIntoArchiveAllVariants
-
-# -------------------------------------------------------------------------------------------------
-# CopyFiles2CaptureFolder - repeated proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-CopyFiles2CaptureFolder () {
-    #
-    # repeated procedure description
-    #
-    
-    export targetpath=$outputfilepath$command2run/
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo | tee -a -i "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo 'Copy files from Source to Target' | tee -a -i "$outputfilefqfn"
-    echo ' - Source : '$sourcepath | tee -a -i "$outputfilefqfn"
-    echo ' - Target : '$targetpath | tee -a -i "$outputfilefqfn"
-    echo ' - Log to : '"$outputfilefqfn" | tee -a -i "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo >> "$outputfilefqfn"
-    
-    mkdir -pv $targetpath >>"$outputfilefqfn"
-
-    echo >> "$outputfilefqfn"
-    
-    cp -a -v $sourcepath $targetpath | tee -a -i "$outputfilefqfn"
-
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i $outputfilefqfn
-    echo | tee -a -i "$outputfilefqfn"
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#CopyFiles2CaptureFolder
-
-
-# -------------------------------------------------------------------------------------------------
-# DoCommandAndDocument - Execute command and document results to dedicated file
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-DoCommandAndDocument () {
-    #
-    # repeated procedure description
-    #
-
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo | tee -a -i "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-    echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
-    echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
-    echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
-    echo ' - Command with Parms # '"$@" | tee -a -i "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    
-    "$@" >> "$outputfilefqfn"
-    
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-    echo | tee -a -i "$outputfilefqfn"
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#DoCommandAndDocument
-
-
-# -------------------------------------------------------------------------------------------------
-# END :  Operational Procedures
-# -------------------------------------------------------------------------------------------------
-#==================================================================================================
-
-
-#----------------------------------------------------------------------------------------
-# bash - Gaia Version information 
-#----------------------------------------------------------------------------------------
-
-export command2run=Gaia_version
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-# This was already collected earlier and saved in a dedicated file
-
-cp $gaiaversionoutputfile $outputfilefqfn | tee -a -i $logfilepath
-rm $gaiaversionoutputfile | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-# bash - First Time Wizard (FTW) execution Completed
-#----------------------------------------------------------------------------------------
-
-export command2run=FTW_Completed
-
-DoCommandAndDocument ls -la /etc/.wizard_accepted
-DoCommandAndDocument tail -n 10 /var/log/ftw_install.log
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather licensing information
-#----------------------------------------------------------------------------------------
-
-export command2run=cplic_print
-
-DoCommandAndDocument cplic print -x
-
-#
-#export command2run=cplic_db_print
-#
-#DoCommandAndDocument cplic db_print -all
-#
-
-
-#----------------------------------------------------------------------------------------
-# bash - memory
-#----------------------------------------------------------------------------------------
-
-export command2run=memory
-
-DoCommandAndDocument free -m -t
-
-
-#----------------------------------------------------------------------------------------
-# bash and clish - disk space and operational space for backups, upgrades, snapshots
-#----------------------------------------------------------------------------------------
-
-export command2run=disk_space
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-DoCommandAndDocument df -h
-DoCommandAndDocument fdisk -l
-DoCommandAndDocument mount
-DoCommandAndDocument parted -l
-
-CheckAndUnlockGaiaDB
-
-echo | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
-echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
-echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'clish -i -c "show snapshots"' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-clish -i -c "show snapshots" >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo | tee -a -i "$outputfilefqfn"
-
-DoCommandAndDocument vgdisplay -C
-DoCommandAndDocument vgdisplay -v
-
-
-#----------------------------------------------------------------------------------------
-# bash - gather rpm package information
-#----------------------------------------------------------------------------------------
-
-export command2run=rpm-query-all
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'Execute Command with output to Output Path : ' | tee -a -i "$outputfilefqfn"
-echo ' - Execute Command    : '$command2run | tee -a -i "$outputfilefqfn"
-echo ' - Output Path        : '$outputfilefqfn | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'rpm -qa | sort' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-rpm -qa | sort -f >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo | tee -a -i "$outputfilefqfn"
-
-
-#----------------------------------------------------------------------------------------
-# bash - Management Systems Information
-#----------------------------------------------------------------------------------------
-
-if [[ $sys_type_MDS = 'true' ]] ; then
-
-    export command2run=cpwd_admin
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo
-    echo 'Execute '$command2run' with output to : '$outputfilefqfn
-    
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    echo '$FWDIR_PATH/scripts/cpm_status.sh' >> "$outputfilefqfn"
-    echo | tee -a -i "$outputfilefqfn"
-    
-    if $IsR8XVersion; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqfn"
-        echo | tee -a -i "$outputfilefqfn"
-    else
-        echo | tee -a -i "$outputfilefqfn"
-    fi
-
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    echo 'mdsstat' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    
-    export COLUMNS=128
-    mdsstat >> "$outputfilefqfn"
-
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    echo 'cpwd_admin list' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    
-    cpwd_admin list >> "$outputfilefqfn"
-
-elif [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ; then
-
-    export command2run=cpwd_admin
-    export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-    export outputfilefqfn=$outputfilepath$outputfile
-    
-    echo >> "$outputfilefqfn"
-    echo 'Execute Command with output to Output Path : ' >> "$outputfilefqfn"
-    echo ' - Execute Command    : '$command2run >> "$outputfilefqfn"
-    echo ' - Output Path        : '$outputfilefqfn >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    command >> "$outputfilefqfn"
-    
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    echo '$MDS_FWDIR/scripts/cpm_status.sh' >> "$outputfilefqfn"
-    echo | tee -a -i "$outputfilefqfn"
-    
-    if $IsR8XVersion; then
-        # cpm_status.sh only exists in R8X
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i "$outputfilefqfn"
-        echo | tee -a -i "$outputfilefqfn"
-    else
-        echo | tee -a -i "$outputfilefqfn"
-    fi
-
-    echo >> "$outputfilefqfn"
-    echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    echo 'cpwd_admin list' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    
-    cpwd_admin list >> "$outputfilefqfn"
-
-fi
-
-echo | tee -a -i "$outputfilefqfn"
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-
-#----------------------------------------------------------------------------------------
-# API Information
-#----------------------------------------------------------------------------------------
-
-if $IsR8XVersion; then
-    # api currently only exists in R8X
-    echo 'Check if we have API and Gaia REST API and report...'
-
-    if [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ||  [[ $sys_type_MDS = 'true' ]]; then
-        # Management API is possible only on management server
-
-        export command2run=api_status
-    
-        DoCommandAndDocument api status
-    fi
-
-    rpm -q gaia_api &> /dev/null
-    if [ $? -eq 0 ]; then
-        # Gaia REST API installed
-        export command2run=gaia_api_status
-    
-        DoCommandAndDocument gaia_api status
-    fi
-
-else
-    # api currently only exists in R8X
-    echo 'No API or Gaia REST API in this version...'
-fi
-echo
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-#----------------------------------------------------------------------------------------
-# bash - process listing
-#----------------------------------------------------------------------------------------
-
-export command2run=ps_process_status
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqfn
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'ps -AFM -- process listing' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-ps -AFM >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo | tee -a -i "$outputfilefqfn"
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-#----------------------------------------------------------------------------------------
-# bash - Port utilization and potential overlaps
-#----------------------------------------------------------------------------------------
-
-export command2run=netstat
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqfn
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap -- Ports used' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo | tee -a -i "$outputfilefqfn"
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-
-#----------------------------------------------------------------------------------------
-# bash - Port utilization and potential overlaps - Endpoint Management (EPM)
-#----------------------------------------------------------------------------------------
-
-export command2run=netstat_for_EPM
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo
-echo 'Execute '$command2run' with output to : '$outputfilefqfn
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 8080 -- Endpoint Port use of 8080' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 8080 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 8009 -- Endpoint Port use of 8009' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 8009 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 8005 -- Endpoint Port use of 8005' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 8005 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 80 -- Endpoint Port use of 80' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 80 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 443 -- Endpoint Port use of 443' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 443 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo 'netstat -nap | grep 4434 -- Endpoint Port use of 4434' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-netstat -nap | grep 4434 >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqfn"
-echo | tee -a -i "$outputfilefqfn"
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+echo '! doing something !' 
 
 #----------------------------------------------------------------------------------------
 # bash - ?what next?
@@ -1840,184 +1218,100 @@ echo | tee -a -i "$outputfilefqfn"
 
 #export command2run=command
 #export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-#export outputfilefqfn=$outputfilepath$outputfile
-
+#export outputfilefqdn=$outputfilepath$outputfile
+#
 #echo
-#echo 'Execute '$command2run' with output to : '$outputfilefqfn
-#$command2run > "$outputfilefqfn"
-
-#echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-#echo >> "$outputfilefqfn"
-#echo 'fwacell stats -s' >> "$outputfilefqfn"
-#echo >> "$outputfilefqfn"
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn
+#command > "$outputfilefqdn"
 #
-#fwaccel stats -s >> "$outputfilefqfn"
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#echo 'fwacell stats -s' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#
+#fwaccel stats -s >> "$outputfilefqdn"
 #
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-# clish operations - might have issues if user is in Gaia webUI
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+#
 
 
-export command2run=clish_commands
-export clishoutputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export clishoutputfilefqfn=$outputfilepath$clishoutputfile
+export notthispath=/home/
+export startpathroot=.
+export alternatepathroot=$customerpathroot
 
+export expandedpath=$(cd $startpathroot ; pwd)
+export startpathroot=$expandedpath
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
 
-#----------------------------------------------------------------------------------------
-# clish - save configuration to file
-#----------------------------------------------------------------------------------------
-
-export command2run=clish_config
-export configfile=$command2run'_'$outputfileprefix$outputfilesuffix
-export configfilefqfn=$outputfilepath$configfile
-export outputfile=$command2run'_'$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo | tee -a $outputfilefqfn
-echo 'Execute '$command2run' with output to : '$configfilefqfn | tee -a $outputfilefqfn
-echo | tee -a $outputfilefqfn
-
-CheckAndUnlockGaiaDB
-
-pushd $outputfilepath
-
-clish -i -s -c "save configuration $configfile" >> $outputfilefqfn
-
-popd
-
-cat $outputfilefqfn >> $clishoutputfilefqfn
-
-#----------------------------------------------------------------------------------------
-# clish - show assets
-#----------------------------------------------------------------------------------------
-
-export command2run=clish_assets
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-echo | tee -a $clishoutputfilefqfn
-echo 'Execute Command with output to Output Path : ' | tee -a -i $clishoutputfilefqfn
-echo ' - Execute Command    : '$command2run | tee -a -i $clishoutputfilefqfn
-echo ' - Output Path        : '$outputfilefqfn | tee -a -i $clishoutputfilefqfn
-echo | tee -a $clishoutputfilefqfn
-touch $outputfilefqfn
-
-echo 'clish show asset all :' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-CheckAndUnlockGaiaDB
-
-clish -i -c "show asset all" >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo 'clish show asset system :' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-CheckAndUnlockGaiaDB
-
-clish -i -c "show asset system" >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-cat $outputfilefqfn >> $clishoutputfilefqfn
-
-
-#----------------------------------------------------------------------------------------
-# clish and bash - Gather version information from all possible methods
-#----------------------------------------------------------------------------------------
-
-export command2run=versions
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqfn=$outputfilepath$outputfile
-
-touch $outputfilefqfn
-echo 'Versions:' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo 'uname for kernel version : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-uname -a >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo 'clish : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-CheckAndUnlockGaiaDB
-
-clish -i -c "show version all" >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-clish -i -c "show version os build" >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo 'cpinfo -y all : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-cpinfo -y all >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo 'fwm ver : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-fwm ver >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo 'fw ver : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-fw ver >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-echo 'cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar : ' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-cpvinfo $MDS_FWDIR/cpm-server/dleserver.jar >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
-
-echo >> "$outputfilefqfn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-
-if $IsR8XVersion; then
-    # installed_jumbo_take only exists in R7X
-    echo >> "$outputfilefqfn"
+if [ $isitthispath -eq 1 ] ; then
+    #Oh, Oh, we're in the home directory executing, not good!!!
+    #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
+    echo 'looks like we are in home path'
+    export outputpathroot=$alternatepathroot
 else
-    echo >> "$outputfilefqfn"
-    echo 'installed_jumbo_take : ' >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
-    installed_jumbo_take >> "$outputfilefqfn"
-    echo >> "$outputfilefqfn"
+    #OK use the current folder and create host_data sub-folder
+    echo 'NOT in home path'
+    export outputpathroot=$startpathroot
 fi
 
-echo '----------------------------------------------------------------------------' >> "$outputfilefqfn"
-echo >> "$outputfilefqfn"
+echo '1 expandedpath   = '\"$expandedpath\"
+echo '1 checkthispath  = '\"$checkthispath\"
+echo '1 isitthispath   = '\"$isitthispath\"
+echo '1 outputpathroot = '\"$outputpathroot\"
+echo
 
-cat $outputfilefqfn >> $clishoutputfilefqfn
+if [ ! -r $outputpathroot ] ; then
+    #not where we're expecting to be, since $outputpathroot is missing here
+    #OK, so make the expected folder and set permissions we need
+    mkdir -pv $outputpathroot
+    chmod 775 $outputpathroot
+else
+    #set permissions we need
+    chmod 775 $outputpathroot
+fi
 
+#Now that outputroot is not in /home/ let's work on where we are working from
+
+export expandedpath=$(cd $outputpathroot ; pwd)
+export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
+export isitthispath=`test -z $checkthispath; echo $?`
+export outputpathroot=${expandedpath}
+
+echo '2 expandedpath   = '\"$expandedpath\"
+echo '2 checkthispath  = '\"$checkthispath\"
+echo '2 isitthispath   = '\"$isitthispath\"
+echo '2 outputpathroot = '\"$outputpathroot\"
+echo
+
+echo
+export gaia_kernel_version=$(uname -r)
+export kernelv2x06=2.6
+export kernelv3x10=3.10
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv2x06"`
+export isitoldkernel=`test -z $checkthiskernel; echo $?`
+export checkthiskernel=`echo "${gaia_kernel_version}" | grep -i "$kernelv3x10"`
+export isitnewkernel=`test -z $checkthiskernel; echo $?`
+
+if [ $isitoldkernel -eq 1 ] ; then
+    echo "OLD Kernel version $gaia_kernel_version"
+elif [ $isitnewkernel -eq 1 ]; then
+    echo "NEW Kernel version $gaia_kernel_version"
+else
+    echo "Kernel version $gaia_kernel_version"
+fi
+echo
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-# End of clish operations - might have issues if user is in Gaia webUI
+#
+
+
+echo 'CLI Operations Completed'
+
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
@@ -2025,7 +1319,7 @@ cat $outputfilefqfn >> $clishoutputfilefqfn
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Collect and Capture Configuration and Information data
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================
@@ -2109,7 +1403,7 @@ echo
 #==================================================================================================
 #==================================================================================================
 
-export archivetftptargetfolder=$tftptargetfolder_root/$BASHScripttftptargetfolder
+export archivetftptargetfolder=$tftptargetfolder_testconfig
 export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
 
 if $EXPORTRESULTSTOTFPT ; then
@@ -2275,5 +1569,4 @@ echo
 
 echo
 echo 'Script Completed, exiting...';echo
-
 

@@ -3,13 +3,13 @@
 # TITLE:                    healthcheck.sh
 # USAGE:                    ./healthcheck.sh
 #
-# DESCRIPTION:                Checks the system for things that may adversely impact performance or reliability.
+# DESCRIPTION:              Checks the system for things that may adversely impact performance or reliability.
 #
 # AUTHOR (all versions):    Nathan Davieau (Check Point Diamond Services Manager)
 # CO-AUTHOR (v0.2-v3.6):    Rosemarie Rodriguez
 # CODE CONTRIBUTORS:        Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman, Michael Bybee
 #                           Brian Sterne, Yevgeniy Yeryomin
-# VERSION:                  7.07
+# VERSION:                  7.08
 # SK:                       sk121447
 #====================================================================================================
 
@@ -40,15 +40,16 @@ full_output_log=/var/log/$(hostname)_health-check_full_$(date +%Y%m%d%H%M).tmp
 installed_script_path="/usr/local/bin/healthcheck.sh"
 cpridAvailCheckResult=/var/tmp/cpridAvailCheck.tmp
 executed_script_path=$(readlink -f $0)
+device_manufacturer=$(dmidecode -t system 2>/dev/null | grep Manufacturer | awk '{print $2}' | tr -d ',')
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="7.07 11-13-2019"
+script_ver="7.08 12-13-2019"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
 offline_operations=false
-update_requested=false
+update_requested="false"
 headerCategory=""
 headerCheck=""
 
@@ -59,9 +60,9 @@ headerCheck=""
 r7730_ga_jumbo="351"
 r8010_ga_jumbo="225"
 r8020_ga_jumbo="118"
-r8030_ga_jumbo="50"
+r8030_ga_jumbo="111"
 latest_cpinfo_build="914000196"
-latest_cpuse_build="1786"
+latest_cpuse_build="1832"
 
 
 #====================================================================================================
@@ -1988,12 +1989,14 @@ check_known_issues()
     fi
 
     #Check Raid Hardware recognition failed, Hardware is missing/not supported
-    if [[ $(grep -i 'Raid Hardware recognition failed, Hardware is missing/not supported' $messages_tmp_file) ]] || [[ $(grep -i 'RAID monitoring: Failed to init raid' $messages_tmp_file) ]]; then
-        check_failed
-        printf "Known Issues,Raid Hardware recognition failed, Hardware is missing/not supported,WARNING,sk91903\n" >> $csv_log
-        printf "\"Raid Hardware recognition failed, Hardware is missing/not supported\" message detected.\n" >> $logfile
-        printf "For more information, refer to sk91903.\n" >> $logfile
-        printf "<span>\"Raid Hardware recognition failed, Hardware is missing/not supported\" message detected.<br>For more information, refer to sk91903.</span><br><br>\n" >> $html_file
+    if [[ $device_manufacturer == "CheckPoint" ]]; then
+        if [[ $(grep -i 'Raid Hardware recognition failed, Hardware is missing/not supported' $messages_tmp_file) ]] || [[ $(grep -i 'RAID monitoring: Failed to init raid' $messages_tmp_file) ]]; then
+            check_failed
+            printf "Known Issues,Raid Hardware recognition failed, Hardware is missing/not supported,WARNING,sk91903\n" >> $csv_log
+            printf "\"Raid Hardware recognition failed, Hardware is missing/not supported\" message detected.\n" >> $logfile
+            printf "For more information, refer to sk91903.\n" >> $logfile
+            printf "<span>\"Raid Hardware recognition failed, Hardware is missing/not supported\" message detected.<br>For more information, refer to sk91903.</span><br><br>\n" >> $html_file
+        fi
     fi
 
     #Check User not logged in. He has no configured role.
@@ -4848,166 +4851,176 @@ check_sar()
 check_updates()
 {
     #Check connectivity to the internet
-    if [[ $(ping -c1 www.checkpoint.com 2> /dev/null | grep -ow "1 received") ]]; then
-        
-        echo "Checking for updates."
-        #  Script Update
-        #====================================================================================================
-        #Pull down the download html page
-        curl_cli -o $healthcheck_url_tmp 'https://supportcenter.checkpoint.com/supportcenter/portal/role/supportcenterUser/page/default.psml/media-type/html?action=portlets.DCFileAction&eventSubmit_doGetdcdetails=&fileid=59369' --insecure > /dev/null 2>&1
+    if [[ $(ping -c1 8.8.8.8 2> /dev/null | grep -ow "1 received") ]]; then
+        #Set curl command
+        if [[ -e /etc/cp-release ]]; then
+            curl_cmd=$(which curl_cli)
+        else
+            curl_cmd=$(which curl)
+        fi
 
-        #Find the version info for the local script and the latest one on the site
-        latest_public_version=$(grep -A1 "File Revision" $healthcheck_url_tmp | grep "downloadDetailsItem" | awk '{print $3}' | awk -F'>' '{print $2}' | awk -F'<' '{print $1}')
-        latest_public_major=$(echo $latest_public_version | awk -F'.' '{print $1}' | bc)
-        latest_public_minor=$(echo $latest_public_version | awk -F'.' '{print $2}' | bc)
-        local_major=$(echo $script_ver | awk '{print $1}' | awk -F'.' '{print $1}' | tr -dc '[:alnum:]\n\r' | sed 's\[a-zA-Z]\\' | bc)
-        local_minor=$(echo $script_ver | awk '{print $1}' | awk -F'.' '{print $2}' | tr -dc '[:alnum:]\n\r' | sed 's\[a-zA-Z]\\' | bc)
+        #Ensure curl command is present
+        if [[ -n $curl_cmd ]]; then
+            echo "Checking for updates."
+            #  Script Update
+            #====================================================================================================
+            #Pull down the download html page
+            $curl_cmd -o $healthcheck_url_tmp 'https://supportcenter.checkpoint.com/supportcenter/portal/role/supportcenterUser/page/default.psml/media-type/html?action=portlets.DCFileAction&eventSubmit_doGetdcdetails=&fileid=59369' --insecure > /dev/null 2>&1
 
-        #Ensure the major and minor version is not blank
-        if [[ -n $latest_public_major && -n $latest_public_minor ]]; then
-            #Update the script if the latest major or minor version is higher.
-            if [[ $latest_public_minor -gt $local_minor && $latest_public_major -eq $local_major ]] || [[ $latest_public_major -gt $local_major ]]; then
-                if [[ $update_requested == true ]];then
-                    #Find the updated URL and MD5 hash for the latest script download
-                    latest_url=$(grep "HashKey" $healthcheck_url_tmp | head -n1 | awk '{print $3}' | sed 's/href="//' | sed 's/">//')
-                    latest_hash=$(echo $latest_url | awk -F/ '{print $6}')
+            #Find the version info for the local script and the latest one on the site
+            latest_public_version=$(grep -A1 "File Revision" $healthcheck_url_tmp | grep "downloadDetailsItem" | awk '{print $3}' | awk -F'>' '{print $2}' | awk -F'<' '{print $1}')
+            latest_public_major=$(echo $latest_public_version | awk -F'.' '{print $1}' | bc)
+            latest_public_minor=$(echo $latest_public_version | awk -F'.' '{print $2}' | bc)
+            local_major=$(echo $script_ver | awk '{print $1}' | awk -F'.' '{print $1}' | tr -dc '[:alnum:]\n\r' | sed 's\[a-zA-Z]\\' | bc)
+            local_minor=$(echo $script_ver | awk '{print $1}' | awk -F'.' '{print $2}' | tr -dc '[:alnum:]\n\r' | sed 's\[a-zA-Z]\\' | bc)
 
-                    #Download the latest script
-                    curl_cli -o $healthcheck_download_temp $latest_url --insecure
+            #Ensure the major and minor version is not blank
+            if [[ -n $latest_public_major && -n $latest_public_minor ]]; then
+                #Update the script if the latest major or minor version is higher.
+                if [[ $latest_public_minor -gt $local_minor && $latest_public_major -eq $local_major ]] || [[ $latest_public_major -gt $local_major ]]; then
+                    if [[ $update_requested == "true" ]];then
+                        #Find the updated URL and MD5 hash for the latest script download
+                        latest_url=$(grep "HashKey" $healthcheck_url_tmp | head -n1 | awk '{print $3}' | sed 's/href="//' | sed 's/">//')
+                        latest_hash=$(echo $latest_url | awk -F/ '{print $6}')
 
-                    #Ensure the md5 hash for the downloaded script is correct
-                    if [[ $(md5sum $healthcheck_download_temp | cut -d " " -f1) == $latest_hash ]]; then
-                        cp $healthcheck_download_temp $executed_script_path
-                        chmod +x $executed_script_path
-                        echo "The script has been updated successfully."
+                        #Download the latest script
+                        $curl_cmd -o $healthcheck_download_temp $latest_url --insecure
+
+                        #Ensure the md5 hash for the downloaded script is correct
+                        if [[ $(md5sum $healthcheck_download_temp | cut -d " " -f1) == $latest_hash ]]; then
+                            cp $healthcheck_download_temp $executed_script_path
+                            chmod +x $executed_script_path
+                            echo "The script has been updated successfully from SupportCenter."
+                        else
+                            echo "MD5 hash mismatch.  Failed to update the script."
+                        fi
                     else
-                        echo "MD5 hash mismatch.  Failed to update the script."
+                        printf "The script is out of date:\n"
+                        printf "Latest Script Version:  $latest_public_version\n"
                     fi
                 else
-                    printf "The script is out of date:\n"
-                    printf "Latest Script Version:  $latest_public_version\n"
+                    #Only show script up to date if the -u flag was specified
+                    if [[ $update_requested == "true" ]];then
+                        echo "This script is already up to date."
+                    fi
                 fi
             else
-                #Only show script up to date if the -u flag was specified
-                if [[ $update_requested == true ]];then
-                    echo "This script is already up to date."
+                #Only show online check failed if -u flag was specified
+                if [[ $update_requested == "true" ]];then
+                    echo "Failed to determine latest online verison."
                 fi
             fi
-        else
-            #Only show online check failed if -u flag was specified
-            if [[ $update_requested == true ]];then
-                echo "Failed to determine latest online verison."
+
+
+            #  Jumbo Version Update
+            #====================================================================================================
+            echo "Checking for CP software version updates."
+            #Temp files
+            r77_30_temp=/var/tmp/r77_30.tmp
+            r80_10_temp=/var/tmp/r80_10.tmp
+            r80_20_temp=/var/tmp/r80_20.tmp
+            r80_30_temp=/var/tmp/r80_30.tmp
+            
+            #Pull down each jumbo SK
+            script -c "$curl_cmd -o $r77_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk106162' --insecure" /dev/null > /dev/null 2>&1
+            script -c "$curl_cmd -o $r80_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk116380' --insecure" /dev/null > /dev/null 2>&1
+            script -c "$curl_cmd -o $r80_20_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk137592' --insecure" /dev/null > /dev/null 2>&1
+            script -c "$curl_cmd -o $r80_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk153152' --insecure" /dev/null > /dev/null 2>&1
+            
+            #Find the jumbo versions
+            online_latest_R77_30=$(grep -i latest $r77_30_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
+            online_latest_R80_10=$(grep -i latest $r80_10_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
+            online_latest_R80_20=$(grep -i latest $r80_20_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
+            online_latest_R80_30=$(grep -i latest $r80_30_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
+            
+            #Remove temp files
+            rm -rf $r77_30_temp 2>/dev/null
+            rm -rf $r80_10_temp 2>/dev/null
+            rm -rf $r80_20_temp 2>/dev/null
+            rm -rf $r80_30_temp 2>/dev/null
+            
+            #Set versions
+            if [[ $online_latest_R77_30 -gt $r7730_ga_jumbo ]]; then
+                sed -i "s/r7730_ga_jumbo=\"${r7730_ga_jumbo}\"/r7730_ga_jumbo=\"${online_latest_R77_30}\"/" $executed_script_path
+                r7730_ga_jumbo=$online_latest_R77_30
+                echo "GA jumbo for R77.30 updated."
             fi
+            if [[ $online_latest_R80_10 -gt $r8010_ga_jumbo ]]; then
+                sed -i "s/r8010_ga_jumbo=\"${r8010_ga_jumbo}\"/r8010_ga_jumbo=\"${online_latest_R80_10}\"/" $executed_script_path
+                r8010_ga_jumbo=$online_latest_R80_10
+                echo "GA jumbo for R80.10 updated."
+            fi
+            if [[ $online_latest_R80_20 -gt $r8020_ga_jumbo ]]; then
+                sed -i "s/r8020_ga_jumbo=\"${r8020_ga_jumbo}\"/r8020_ga_jumbo=\"${online_latest_R80_20}\"/" $executed_script_path
+                r8020_ga_jumbo=$online_latest_R80_20
+                echo "GA jumbo for R80.20 updated."
+            fi
+            if [[ $online_latest_R80_30 -gt $r8030_ga_jumbo ]]; then
+                sed -i "s/r8030_ga_jumbo=\"${r8030_ga_jumbo}\"/r8030_ga_jumbo=\"${online_latest_R80_30}\"/" $executed_script_path
+                r8030_ga_jumbo=$online_latest_R80_30
+                echo "GA jumbo for R80.30 updated."
+            fi
+
+
+            #  CPInfo Version Update
+            #====================================================================================================
+            #Temp file
+            cpinfo_temp=/var/tmp/cpinfo_latest.tmp
+
+            #Pull down cpinfo SK
+            script -c "$curl_cmd -o $cpinfo_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk92739' --insecure" /dev/null > /dev/null 2>&1
+
+            #Find the latest version
+            online_latest_cpinfo=$(grep -i "cpinfo package was replaced" $cpinfo_temp | sed 's/<strong>//g' | egrep -ow "build [0-9]{1,9}" | egrep -ow "[0-9]{1,9}" | sort -n | tail -n1)
+
+            #Remove temp files
+            rm -rf $cpinfo_temp 2>/dev/null
+
+            #Set versions
+            if [[ $online_latest_cpinfo -gt $latest_cpinfo_build ]]; then
+                sed -i "s/latest_cpinfo_build=\"${latest_cpinfo_build}\"/latest_cpinfo_build=\"${online_latest_cpinfo}\"/" $executed_script_path
+                latest_cpinfo_build=$online_latest_cpinfo
+                echo "CPInfo version updated."
+            fi
+
+
+            #  CPUSE Version Update
+            #====================================================================================================
+            #Temp file
+            cpuse_temp=/var/tmp/cpuse_temp.tmp
+
+            #Pull down cpuse SK
+            script -c "$curl_cmd -o $cpuse_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk92449' --insecure" /dev/null > /dev/null 2>&1
+
+            #Find the latest version
+            online_latest_cpuse=$(grep "Latest build of CPUSE" $cpuse_temp | sed 's/\&nbsp;/ /g' | egrep -iow 'Build [0-9]{1,5}' | egrep -iow '[0-9]{1,5}' | sort -n | tail -n1)
+
+            #Remove temp files
+            rm -rf $cpuse_temp 2>/dev/null
+
+            #Set versions
+            if [[ $online_latest_cpuse -gt $latest_cpuse_build ]]; then
+                sed -i "s/latest_cpuse_build=\"${latest_cpuse_build}\"/latest_cpuse_build=\"${online_latest_cpuse}\"/" $executed_script_path
+                latest_cpuse_build=$online_latest_cpuse
+                echo "CPUSE version updated."
+            fi
+        else
+            echo "Unable to contact Check Point servers for updates."
+            echo "Please check your internet connectivity and try again."
         fi
 
+        #File cleanup
+        rm $healthcheck_url_tmp > /dev/null 2>&1
+        rm $healthcheck_download_temp > /dev/null 2>&1
 
-        #  Jumbo Version Update
-        #====================================================================================================
-        #Temp files
-        r77_30_temp=/var/tmp/r77_30.tmp
-        r80_10_temp=/var/tmp/r80_10.tmp
-        r80_20_temp=/var/tmp/r80_20.tmp
-        r80_30_temp=/var/tmp/r80_30.tmp
-        
-        #Pull down each jumbo SK
-        script -c "curl_cli -o $r77_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk106162' --insecure" /dev/null > /dev/null 2>&1
-        script -c "curl_cli -o $r80_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk116380' --insecure" /dev/null > /dev/null 2>&1
-        script -c "curl_cli -o $r80_20_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk137592' --insecure" /dev/null > /dev/null 2>&1
-        script -c "curl_cli -o $r80_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk153152' --insecure" /dev/null > /dev/null 2>&1
-        
-        #Find the jumbo versions
-        online_latest_R77_30=$(grep -i latest $r77_30_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
-        online_latest_R80_10=$(grep -i latest $r80_10_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
-        online_latest_R80_20=$(grep -i latest $r80_20_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
-        online_latest_R80_30=$(grep -i latest $r80_30_temp | egrep -iow 'take_[0-9]{1,3}' | head -n1 | egrep -o '[0-9]{1,3}')
-        
-        #Remove temp files
-        rm -rf $r77_30_temp 2>/dev/null
-        rm -rf $r80_10_temp 2>/dev/null
-        rm -rf $r80_20_temp 2>/dev/null
-        rm -rf $r80_30_temp 2>/dev/null
-        
-        #Set versions
-        if [[ $online_latest_R77_30 -gt $r7730_ga_jumbo ]]; then
-            sed -i "s/r7730_ga_jumbo=\"${r7730_ga_jumbo}\"/r7730_ga_jumbo=\"${online_latest_R77_30}\"/" $executed_script_path
-            r7730_ga_jumbo=$online_latest_R77_30
-            echo "GA jumbo for R77.30 updated."
+        #Exit the script if -u flag was specified
+        if [[ $update_requested == "true" ]];then
+            #Update the installed script
+            script_install
+            
+            #Exit the script
+            temp_file_cleanup
         fi
-        if [[ $online_latest_R80_10 -gt $r8010_ga_jumbo ]]; then
-            sed -i "s/r8010_ga_jumbo=\"${r8010_ga_jumbo}\"/r8010_ga_jumbo=\"${online_latest_R80_10}\"/" $executed_script_path
-            r8010_ga_jumbo=$online_latest_R80_10
-            echo "GA jumbo for R80.10 updated."
-        fi
-        if [[ $online_latest_R80_20 -gt $r8020_ga_jumbo ]]; then
-            sed -i "s/r8020_ga_jumbo=\"${r8020_ga_jumbo}\"/r8020_ga_jumbo=\"${online_latest_R80_20}\"/" $executed_script_path
-            r8020_ga_jumbo=$online_latest_R80_20
-            echo "GA jumbo for R80.20 updated."
-        fi
-        if [[ $online_latest_R80_30 -gt $r8030_ga_jumbo ]]; then
-            sed -i "s/r8030_ga_jumbo=\"${r8030_ga_jumbo}\"/r8030_ga_jumbo=\"${online_latest_R80_30}\"/" $executed_script_path
-            r8030_ga_jumbo=$online_latest_R80_30
-            echo "GA jumbo for R80.30 updated."
-        fi
-
-
-        #  CPInfo Version Update
-        #====================================================================================================
-        #Temp file
-        cpinfo_temp=/var/tmp/cpinfo_latest.tmp
-
-        #Pull down cpinfo SK
-        script -c "curl_cli -o $cpinfo_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk92739' --insecure" /dev/null > /dev/null 2>&1
-
-        #Find the latest version
-        online_latest_cpinfo=$(grep -i "cpinfo package was replaced" $cpinfo_temp | sed 's/<strong>//g' | egrep -ow "build [0-9]{1,9}" | egrep -ow "[0-9]{1,9}" | sort -n | tail -n1)
-
-        #Remove temp files
-        rm -rf $cpinfo_temp 2>/dev/null
-
-        #Set versions
-        if [[ $online_latest_cpinfo -gt $latest_cpinfo_build ]]; then
-            sed -i "s/latest_cpinfo_build=\"${latest_cpinfo_build}\"/latest_cpinfo_build=\"${online_latest_cpinfo}\"/" $executed_script_path
-            latest_cpinfo_build=$online_latest_cpinfo
-            echo "CPInfo version updated."
-        fi
-
-
-        #  CPUSE Version Update
-        #====================================================================================================
-        #Temp file
-        cpuse_temp=/var/tmp/cpuse_temp.tmp
-
-        #Pull down cpuse SK
-        script -c "curl_cli -o $cpuse_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk92449' --insecure" /dev/null > /dev/null 2>&1
-
-        #Find the latest version
-        online_latest_cpuse=$(grep "Latest build of CPUSE" $cpuse_temp | sed 's/\&nbsp;/ /g' | egrep -iow 'Build [0-9]{1,5}' | egrep -iow '[0-9]{1,5}' | sort -n | tail -n1)
-
-        #Remove temp files
-        rm -rf $cpuse_temp 2>/dev/null
-
-        #Set versions
-        if [[ $online_latest_cpuse -gt $latest_cpuse_build ]]; then
-            sed -i "s/latest_cpuse_build=\"${latest_cpuse_build}\"/latest_cpuse_build=\"${online_latest_cpuse}\"/" $executed_script_path
-            latest_cpuse_build=$online_latest_cpuse
-            echo "CPUSE version updated."
-        fi
-    else
-        echo "Unable to contact Check Point servers for updates."
-        echo "Please check your internet connectivity and try again."
-    fi
-
-    #File cleanup
-    rm $healthcheck_url_tmp > /dev/null 2>&1
-    rm $healthcheck_download_temp > /dev/null 2>&1
-
-    #Exit the script if -u flag was specified
-    if [[ $update_requested == true ]];then
-        #Update the installed script
-        script_install
-        
-        #Exit the script
-        temp_file_cleanup
     fi
 }
 
@@ -5244,6 +5257,9 @@ run_offline_checks()
     else
         sys_type="N/A"
     fi
+
+    #Find manufacturer
+    device_manufacturer=$(dmidecode -t system 2>/dev/null | grep Manufacturer | awk '{print $2}' | tr -d ',')
 
     #Pull hostname from cpinfo
     cpinfo_hostname=$(grep -A2 "Issuing 'hostname'" $cpinfo_file | grep -v Issuing | sed "/^$/d" | head -n1)
@@ -6287,10 +6303,12 @@ while getopts :d:b:f:o:ahuvr opt; do
             ;;
         u)
             #Set flag for update requested
-            update_requested=true
+            update_requested="true"
             
             #Call the script update function
             check_updates
+
+            exit 0
             ;;
         v)
             #Show version info

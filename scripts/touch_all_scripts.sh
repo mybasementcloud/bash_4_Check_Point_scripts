@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -32,7 +32,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
@@ -67,6 +67,8 @@ touch --reference=__root_script_config.sh Health_Check/run_healthcheck_to_dump_d
 touch --reference=__root_script_config.sh Health_Check/help*/*.help
 touch --reference=__root_script_config.sh MDM/*.sh
 touch --reference=__root_script_config.sh MDM/help*/*.help
+touch --reference=__root_script_config.sh MGMT/*.sh
+touch --reference=__root_script_config.sh MGMT/help*/*.help
 touch --reference=__root_script_config.sh Patch_HotFix/*.sh
 touch --reference=__root_script_config.sh Session_Cleanup/*.sh
 touch --reference=__root_script_config.sh SmartEvent/*.sh

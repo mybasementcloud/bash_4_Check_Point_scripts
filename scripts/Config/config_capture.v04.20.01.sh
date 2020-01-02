@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
-ScriptRevision=001
+ScriptDate=2019-12-30
+ScriptVersion=04.20.01
+ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=006
 SubScriptsVersion=04.02.00
 #
@@ -32,7 +32,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
 export BASHScriptsFolder=Config
 
 export BASHScripttftptargetfolder="host_data"
@@ -2839,6 +2839,26 @@ echo | tee -a -i "$outputfilefqfn"
 #
 
 #----------------------------------------------------------------------------------------
+# bash - Document TLS Version in use
+#----------------------------------------------------------------------------------------
+
+export command2run=Check_TLS_Version
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo
+echo 'Execute '$command2run' with output to : '$outputfilefqfn
+
+cpopenssl ciphers -v `more /web/templates/httpd-ssl.conf.templ | grep SSLCipherSuite` | grep -i tls | awk '{print $2}' | sort --unique | tee -a -i "$outputfilefqfn"
+
+echo
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+
+#----------------------------------------------------------------------------------------
 # bash - ?what next?
 #----------------------------------------------------------------------------------------
 
@@ -2871,13 +2891,17 @@ echo | tee -a -i "$outputfilefqfn"
 #----------------------------------------------------------------------------------------
 
 
+echo | tee -a $logfilepath
+echo 'Execute clish opertations with common log in : '$clishoutputfilefqfn | tee -a $logfilepath
+echo | tee -a $logfilepath
+
 export command2run=clish_commands
 export clishoutputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
 export clishoutputfilefqfn=$outputfilepath$clishoutputfile
 
-echo | tee -a $outputfilefqfn
-echo 'Execute clish opertations with common log in : '$clishoutputfilefqfn | tee -a $outputfilefqfn
-echo | tee -a $outputfilefqfn
+echo | tee -a $clishoutputfilefqfn
+echo 'Execute clish opertations with common log in : '$clishoutputfilefqfn | tee -a $clishoutputfilefqfn
+echo | tee -a $clishoutputfilefqfn
 
 
 #----------------------------------------------------------------------------------------
@@ -3043,10 +3067,6 @@ echo >> "$outputfilefqfn"
 
 cat $outputfilefqfn >> $clishoutputfilefqfn
 
-echo | tee -a $clishoutputfilefqfn
-echo 'opertations clish with common log in completed!' | tee -a $clishoutputfilefqfn
-echo | tee -a $clishoutputfilefqfn
-
 
 #----------------------------------------------------------------------------------------
 # clish and bash - Gather ClusterXL information from all possible methods if it is a cluster
@@ -3123,6 +3143,15 @@ fi
 
 
 cat $outputfilefqfn >> $clishoutputfilefqfn
+
+
+#----------------------------------------------------------------------------------------
+# Wrap-up the common log for clish including operations
+#----------------------------------------------------------------------------------------
+
+echo | tee -a $clishoutputfilefqfn
+echo 'opertations clish with common log in completed!' | tee -a $clishoutputfilefqfn
+echo | tee -a $clishoutputfilefqfn
 
 
 #----------------------------------------------------------------------------------------

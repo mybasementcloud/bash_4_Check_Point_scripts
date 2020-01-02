@@ -6,9 +6,9 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
-ScriptRevision=000
+ScriptDate=2019-12-06
+ScriptVersion=04.16.00
+ScriptRevision=005
 TemplateLevel=006
 TemplateVersion=04.15.00
 SubScriptsLevel=006
@@ -283,17 +283,21 @@ export REMAINS=
 # Define local command line parameter CLIparm values
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 export CLIparm_l01_toolvername=
 export CLIparm_l02_toolpath=
 export CLIparm_l03_NOCPSTART=false
+export CLIparm_l04_targetversion=
+export CLIparm_l05_forcemigrate=false
 
 export DOCPSTART=true
+export EXPORTVERSIONDIFFERENT=false
+export FORCEUSEMIGRATE=false
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-09
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
 
 
 # -------------------------------------------------------------------------------------------------
@@ -303,7 +307,7 @@ export DOCPSTART=true
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 processcliremains () {
@@ -343,12 +347,19 @@ processcliremains () {
                     export CLIparm_l03_NOCPSTART=true
                     export DOCPSTART=false
                     ;;
+                --forcemigrate | --FORCEMIGRATE )
+                    export CLIparm_l05_forcemigrate=true
+                    export FORCEUSEMIGRATE=true
+                    ;;
                 # Handle --flag=value opts like this
                 --toolversion=* )
                     export CLIparm_l01_toolvername="${OPT#*=}"
                     ;;
                 --toolpath=* )
                     export CLIparm_l02_toolpath="${OPT#*=}"
+                    ;;
+                --exportversion=* )
+                    export CLIparm_l04_targetversion="${OPT#*=}"
                     ;;
                 # and --flag value opts like this
                 --toolversion )
@@ -357,6 +368,10 @@ processcliremains () {
                     ;;
                 --toolpath )
                     export CLIparm_l02_toolpath="$2"
+                    shift
+                    ;;
+                --exportversion )
+                    export CLIparm_l04_targetversion="$2"
                     shift
                     ;;
                 # Anything unknown is recorded for later
@@ -389,7 +404,7 @@ processcliremains () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
 
 
 # -------------------------------------------------------------------------------------------------
@@ -400,7 +415,7 @@ processcliremains () {
 # dumpcliparmparselocalresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparselocalresults () {
@@ -420,13 +435,17 @@ dumpcliparmparselocalresults () {
     echo 'Local CLI Parameters :' >> $workoutputfile
     echo >> $workoutputfile
 
-    echo 'CLIparm_l01_toolvername = '$CLIparm_l01_toolvername >> $workoutputfile
-    echo 'CLIparm_l02_toolpath    = '$CLIparm_l02_toolpath >> $workoutputfile
-    echo 'CLIparm_l03_NOCPSTART   = '$CLIparm_l03_NOCPSTART >> $workoutputfile
+    echo 'CLIparm_l01_toolvername   = '$CLIparm_l01_toolvername >> $workoutputfile
+    echo 'CLIparm_l02_toolpath      = '$CLIparm_l02_toolpath >> $workoutputfile
+    echo 'CLIparm_l03_NOCPSTART     = '$CLIparm_l03_NOCPSTART >> $workoutputfile
+    echo 'CLIparm_l04_targetversion = '$CLIparm_l04_targetversion >> $workoutputfile
+    echo 'CLIparm_l05_forcemigrate  = '$CLIparm_l05_forcemigrate >> $workoutputfile
     echo  >> $workoutputfile
-    echo 'DOCPSTART               = '$DOCPSTART >> $workoutputfile
+    echo 'FORCEUSEMIGRATE           = '$FORCEUSEMIGRATE >> $workoutputfile
     echo  >> $workoutputfile
-    echo 'LOCALREMAINS            = '$LOCALREMAINS >> $workoutputfile
+    echo 'DOCPSTART                 = '$DOCPSTART >> $workoutputfile
+    echo  >> $workoutputfile
+    echo 'LOCALREMAINS              = '$LOCALREMAINS >> $workoutputfile
     
 	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
@@ -468,7 +487,7 @@ dumpcliparmparselocalresults () {
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1316,26 +1335,148 @@ export outputfiletype=.tgz
 
 export toolsversion=$gaiaversion
 
-if [ -z $CLIparm_l01_toolvername ]; then
-    export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+if [ -z $CLIparm_l04_targetversion ]; then
+    export toolsversion=$gaiaversion
 else
-    export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$CLIparm_l01_toolvername
+    export toolsversion=$CLIparm_l04_targetversion
 fi
 
-if [ -z $CLIparm_l02_toolpath ]; then
-    export migratefilefolderroot=migration_tools/$toolsversion
-    export migratefilepath=$outputpathroot/$migratefilefolderroot/
+if [ $gaiaversion != $toolsversion ] ; then
+    export EXPORTVERSIONDIFFERENT=true
 else
-    if [ -r $CLIparm_l02_toolpath ]; then
-        export migratefilefolderroot=
-        export migratefilepath=${CLIparm_l02_toolpath%/}/
+    export EXPORTVERSIONDIFFERENT=false
+fi
+
+if [ -z $CLIparm_l01_toolvername ]; then
+    if $EXPORTVERSIONDIFFERENT ; then
+        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion
     else
-        export migratefilefolderroot=migration_tools/$toolsversion
-        export migratefilepath=$outputpathroot/$migratefilefolderroot/
+        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+    fi
+else
+    if $EXPORTVERSIONDIFFERENT ; then
+        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion'_using_'$CLIparm_l01_toolvername
+    else
+        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_using_'$CLIparm_l01_toolvername
     fi
 fi
 
-export migratefilename=migrate
+case "$gaiaversion" in
+    R80.20 | R80.30 ) 
+        case "$toolsversion" in
+            R80.20.M1 | R80.20.M2 | R80.40 ) 
+                if $FORCEUSEMIGRATE ; then
+                    if [ -z $CLIparm_l02_toolpath ]; then
+                        export migratefilefolderroot=migration_tools/$toolsversion
+                        export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                    else
+                        if [ -r $CLIparm_l02_toolpath ]; then
+                            export migratefilefolderroot=
+                            export migratefilepath=${CLIparm_l02_toolpath%/}/
+                        else
+                            export migratefilefolderroot=migration_tools/$toolsversion
+                            export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                        fi
+                    fi
+                    
+                    export migratefilename=migrate
+                else
+                    # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
+                    # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
+                    # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
+                    # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
+            
+            
+                    if [ -z $CLIparm_l02_toolpath ]; then
+                        export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                        export migratefilepath=$migratefilefolderroot/scripts/
+                    else
+                        if [ -r $CLIparm_l02_toolpath ]; then
+                            export migratefilefolderroot=
+                            export migratefilepath=${CLIparm_l02_toolpath%/}/
+                        else
+                            export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                            export migratefilepath=$migratefilefolderroot/scripts/
+                        fi
+                    fi
+                    
+                    export migratefilename=migrate_server
+                fi
+                ;;
+            *)  
+                if [ -z $CLIparm_l02_toolpath ]; then
+                    export migratefilefolderroot=migration_tools/$toolsversion
+                    export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                else
+                    if [ -r $CLIparm_l02_toolpath ]; then
+                        export migratefilefolderroot=
+                        export migratefilepath=${CLIparm_l02_toolpath%/}/
+                    else
+                        export migratefilefolderroot=migration_tools/$toolsversion
+                        export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                    fi
+                fi
+                
+                export migratefilename=migrate
+                ;;    
+        esac
+        ;;
+    R80.20.M1 | R80.20.M2 | R80.40 ) 
+        if $FORCEUSEMIGRATE ; then
+            if [ -z $CLIparm_l02_toolpath ]; then
+                export migratefilefolderroot=migration_tools/$toolsversion
+                export migratefilepath=$outputpathroot/$migratefilefolderroot/
+            else
+                if [ -r $CLIparm_l02_toolpath ]; then
+                    export migratefilefolderroot=
+                    export migratefilepath=${CLIparm_l02_toolpath%/}/
+                else
+                    export migratefilefolderroot=migration_tools/$toolsversion
+                    export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                fi
+            fi
+            
+            export migratefilename=migrate
+        else
+            # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
+            # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
+            # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
+            # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
+    
+    
+            if [ -z $CLIparm_l02_toolpath ]; then
+                export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                export migratefilepath=$migratefilefolderroot/scripts/
+            else
+                if [ -r $CLIparm_l02_toolpath ]; then
+                    export migratefilefolderroot=
+                    export migratefilepath=${CLIparm_l02_toolpath%/}/
+                else
+                    export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                    export migratefilepath=$migratefilefolderroot/scripts/
+                fi
+            fi
+            
+            export migratefilename=migrate_server
+        fi
+        ;;
+    *)
+        if [ -z $CLIparm_l02_toolpath ]; then
+            export migratefilefolderroot=migration_tools/$toolsversion
+            export migratefilepath=$outputpathroot/$migratefilefolderroot/
+        else
+            if [ -r $CLIparm_l02_toolpath ]; then
+                export migratefilefolderroot=
+                export migratefilepath=${CLIparm_l02_toolpath%/}/
+            else
+                export migratefilefolderroot=migration_tools/$toolsversion
+                export migratefilepath=$outputpathroot/$migratefilefolderroot/
+            fi
+        fi
+        
+        export migratefilename=migrate
+        ;;
+esac
 
 export migratefile=$migratefilepath$migratefilename
 
@@ -1399,6 +1540,53 @@ else
     #export command2run='export -n'
 fi
 
+#
+#    [host:0]# /opt/CPupgrade-tools-R80.30/scripts/migrate_server -h
+#    
+#    Use the migrate utility to export and import Check Point
+#    Security Management Server database.
+#    
+#    Usage: /opt/CPupgrade-tools-R80.30/scripts/migrate_server <ACTION> [OPTIONS] <FILE>
+#    
+#            ACTION (required parameter):
+#    
+#            export - exports database of Management Server or Multi-Domain Server.
+#            import - imports database of Management Server or Multi-Domain Server.
+#            verify - verifies database of Management Server or Multi-Domain Server.
+#    
+#            Options (optional parameters):
+#            '-h'                           show this message.
+#            '-v <target version>'          Import version.
+#            '-skip_upgrade_tools_check'    does not check for updated upgrade tools.
+#            '-l'                           Export/import logs without log indexes.
+#            '-x'                           Export/import logs with log indexes.
+#                                           Note: only closed logs are exported/imported.
+#            '-n'                           Run non-interactively.
+#            '--exclude-uepm-postgres-db'   skip over backup/restore of PostgreSQL.
+#            '--include-uepm-msi-files'     export/import the uepm msi files.
+#    
+#            <FILE> (required parameter only for import):
+#    
+#            Name of archived file to export/import database to/from.
+#            Path to archive should exist.
+#    
+#    Note:
+#    Run the utility either from the current directory or using
+#    an absolute path.
+#
+    
+case "$gaiaversion" in
+    R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
+        # migrate_server apparently REQUIRES the -v <version> option to work on export
+        # which his not clear in the HELP!
+        #
+        export command2run=$command2run' -v '$gaiaversion
+        ;;
+    *)
+        export command2run=$command2run
+        ;;
+esac
+
 export outputfile=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
@@ -1411,6 +1599,18 @@ else
     export command2run2='export -n -l --include-uepm-msi-files'
     #export command2run2='export -n --include-uepm-msi-files'
 fi
+
+case "$gaiaversion" in
+    R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
+        # migrate_server apparently REQUIRES the -v <version> option to work on export
+        # which his not clear in the HELP!
+        #
+        export command2run2=$command2run2' -v '$gaiaversion
+        ;;
+    *)
+        export command2run2=$command2run2
+        ;;
+esac
 
 export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
 export outputfilefqdn2=$outputfilepath$outputfile2
@@ -1426,7 +1626,7 @@ if [ $Check4EPM -gt 0 ]; then
     echo | tee -a -i $logfilepath
 fi
 
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
@@ -1492,7 +1692,7 @@ echo | tee -a -i $logfilepath
 DocumentMgmtcpwdadminlist
 
 echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
@@ -1512,7 +1712,7 @@ if $CLIparm_NOSTART ; then
     echo | tee -a -i $logfilepath
     
     echo | tee -a -i $logfilepath
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
     echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
    
 else
@@ -1530,7 +1730,7 @@ else
     echo | tee -a -i $logfilepath
     
     echo | tee -a -i $logfilepath
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
     echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
     
     echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath

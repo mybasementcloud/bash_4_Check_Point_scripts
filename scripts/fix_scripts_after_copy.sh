@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -32,7 +32,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
@@ -64,6 +64,8 @@ dos2unix Health_Check/*.sh
 dos2unix Health_Check/help/*.help
 dos2unix MDM/*.sh
 dos2unix MDM/help/*.help
+dos2unix MGMT/*.sh
+dos2unix MGMT/help/*.help
 dos2unix Patch_HotFix/*.sh
 dos2unix Session_Cleanup/*.sh
 dos2unix Session_Cleanup/common/*.sh

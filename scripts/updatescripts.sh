@@ -4,11 +4,11 @@
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
-ScriptRevision=001
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
+ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -32,7 +32,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
@@ -261,7 +261,7 @@ else
 
     if [ ! -r "$HOME/alias_commands_for_dot_bashrc.sh" ]; then
         #
-        # $HOME folder for user(s) has updates for standard alias configurations and root variables
+        # $HOME folder for user(s) does not have updates for standard alias configurations and root variables
         #
 
         export aliasupdatefile=`ls ./$targetscriptsfolder/UserConfig/add_alias_commands_all_users.all.*`

@@ -1,16 +1,14 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
-# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
-# EPM export includes standard NPM export and adds export of EP Client MSI files
+# SCRIPT Template for bash scripts, level - 006
 #
 # (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
+ScriptDate=2019-12-30
+ScriptVersion=04.20.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.20.00
 SubScriptsLevel=006
 SubScriptsVersion=04.02.00
 #
@@ -23,19 +21,19 @@ export BASHSubScriptVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=migrate_export_epm_ugex
-export BASHScriptShortName="migrate_export_epm"
-export BASHScriptDescription="migrate export EPM with EP Client MSI to local folder using version tools"
+export BASHScriptFileNameRoot=_template_bash_scripts
+export BASHScriptShortName=_template_bash_scripts.$TemplateLevel.v$ScriptVersion
+export BASHScriptDescription="Template for bash scripts"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
+export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=SMS
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+export BASHScriptsFolder=_template
 
 export BASHScripttftptargetfolder="_template"
 
@@ -71,9 +69,9 @@ export rootscriptconfigfile=__root_script_config.sh
 
 export WAITTIME=60
 
-export R8XRequired=false
+export R8XRequired=true
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -283,18 +281,7 @@ export REMAINS=
 # Define local command line parameter CLIparm values
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-09 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-export CLIparm_l01_toolvername=
-export CLIparm_l02_toolpath=
-export CLIparm_l03_NOCPSTART=false
-
-export DOCPSTART=true
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-09
-
+#export CLIparm_local1=
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -302,9 +289,6 @@ export DOCPSTART=true
 # -------------------------------------------------------------------------------------------------
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 processcliremains () {
     #
@@ -339,24 +323,14 @@ processcliremains () {
                 '-?' | --help )
                     SHOWHELP=true
                     ;;
-                --NOCPSTART )
-                    export CLIparm_l03_NOCPSTART=true
-                    export DOCPSTART=false
-                    ;;
                 # Handle --flag=value opts like this
-                --toolversion=* )
-                    export CLIparm_l01_toolvername="${OPT#*=}"
-                    ;;
-                --toolpath=* )
-                    export CLIparm_l02_toolpath="${OPT#*=}"
+                -q=* | --qlocal1=* )
+                    CLIparm_local1="${OPT#*=}"
+                    #shift
                     ;;
                 # and --flag value opts like this
-                --toolversion )
-                    export CLIparm_l01_toolvername="$2"
-                    shift
-                    ;;
-                --toolpath )
-                    export CLIparm_l02_toolpath="$2"
+                -q* | --qlocal1 )
+                    CLIparm_local1="$2"
                     shift
                     ;;
                 # Anything unknown is recorded for later
@@ -388,9 +362,6 @@ processcliremains () {
 
 }
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
-
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -420,11 +391,8 @@ dumpcliparmparselocalresults () {
     echo 'Local CLI Parameters :' >> $workoutputfile
     echo >> $workoutputfile
 
-    echo 'CLIparm_l01_toolvername = '$CLIparm_l01_toolvername >> $workoutputfile
-    echo 'CLIparm_l02_toolpath    = '$CLIparm_l02_toolpath >> $workoutputfile
-    echo 'CLIparm_l03_NOCPSTART   = '$CLIparm_l03_NOCPSTART >> $workoutputfile
-    echo  >> $workoutputfile
-    echo 'DOCPSTART               = '$DOCPSTART >> $workoutputfile
+    #echo 'CLIparm_local1          = '$CLIparm_local1 >> $workoutputfile
+    #echo 'CLIparm_local2          = '$CLIparm_local2 >> $workoutputfile
     echo  >> $workoutputfile
     echo 'LOCALREMAINS            = '$LOCALREMAINS >> $workoutputfile
     
@@ -1198,390 +1166,108 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START:  script shell operations description
 #
 #==================================================================================================
 #==================================================================================================
 
 
 # -------------------------------------------------------------------------------------------------
-# DocumentMgmtcpwdadminlist - Document the last execution of the cpwd_admin list command
+# script plumbing 1
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
-DocumentMgmtcpwdadminlist () {
-    #
-    # Document the last execution of the cpwd_admin list command
-    #
+if $IsR8XVersion ; then
+    # Do something because R8X
     
-    echo | tee -a -i $logfilepath
-    echo 'Check Point management services and processes' | tee -a -i $logfilepath
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        echo '$MDS_FWDIR/scripts/cpm_status.sh' | tee -a -i $logfilepath
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    fi
-    
-    echo 'cpwd_admin list' | tee -a -i $logfilepath
-    cpwd_admin list | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#DocumentMgmtcpwdadminlist
-
-
-# -------------------------------------------------------------------------------------------------
-# WatchMgmtcpwdadminlist - Watch and document the last execution of the cpwd_admin list command
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-WatchMgmtcpwdadminlist () {
-    #
-    # Watch and document the last execution of the cpwd_admin list command
-    #
-    
-    watchcommands="echo 'Check Point management services and processes'"
-    
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        watchcommands=$watchcommands";echo;echo;echo '$MDS_FWDIR/scripts/cpm_status.sh';$MDS_FWDIR/scripts/cpm_status.sh"
-    fi
-    
-    watchcommands=$watchcommands";echo;echo;echo 'cpwd_admin list';cpwd_admin list"
-    
-    if $CLIparm_NOWAIT ; then
-        echo 'Not watching and waiting...'
-    else
-        watch -d -n 1 "$watchcommands"
-    fi
-    
-    DocumentMgmtcpwdadminlist
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-#WatchMgmtcpwdadminlist
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
-
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
     echo
-    echo "Continueing with Migrate Export..."
+else
+    # Do something else because not R8X
+    
     echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "This script is not meant for MDM, exiting!"
-    exit 255
-else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
-    exit 255
 fi
 
 
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Example framework for executing bash commands and documenting those specifically
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-export outputfilepath=$outputpathroot/
-export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.tgz
-
-export toolsversion=$gaiaversion
-
-if [ -z $CLIparm_l01_toolvername ]; then
-    export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
-else
-    export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$CLIparm_l01_toolvername
-fi
-
-if [ -z $CLIparm_l02_toolpath ]; then
-    export migratefilefolderroot=migration_tools/$toolsversion
-    export migratefilepath=$outputpathroot/$migratefilefolderroot/
-else
-    if [ -r $CLIparm_l02_toolpath ]; then
-        export migratefilefolderroot=
-        export migratefilepath=${CLIparm_l02_toolpath%/}/
-    else
-        export migratefilefolderroot=migration_tools/$toolsversion
-        export migratefilepath=$outputpathroot/$migratefilefolderroot/
-    fi
-fi
-
-export migratefilename=migrate
-
-export migratefile=$migratefilepath$migratefilename
-
-if [ ! -r $migratefilepath ]; then
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
-    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    exit 255
-fi
-
-if [ ! -r $migratefile ]; then
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
-    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    exit 255
-fi
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Migration Tools Folder to use:  '$migratefilepath | tee -a -i $logfilepath
-echo 'Migration Export Tools to use:  '$migratefile | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-case "$gaiaversion" in
-    R80.20.M1 | R80.20.M2 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30 | R80.40.M1 | R80.40.M2 | R80.40 ) 
-        export IsMigrateWIndexes=true
-        ;;
-    *)
-        export IsMigrateWIndexes=false
-        ;;
-esac
-
-if $IsMigrateWIndexes ; then
-    # Migrate supports export of indexes
-    #export command2run='export -n -x'
-    export command2run='export -n'
-else
-    # Migrate does not supports export of indexes
-    #export command2run='export -n -l'
-    export command2run='export -n'
-fi
-
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-if $IsMigrateWIndexes ; then
-    # Migrate supports export of indexes
-    #export command2run2='export -n -x --include-uepm-msi-files'
-    export command2run2='export -n --include-uepm-msi-files'
-else
-    # Migrate does not supports export of indexes
-    #export command2run2='export -n -l --include-uepm-msi-files'
-    export command2run2='export -n --include-uepm-msi-files'
-fi
-
-export outputfile2=$outputfileprefix'_msi'$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
-
-echo | tee -a -i $logfilepath
-echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
-echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ $Check4EPM -gt 0 ]; then
-    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
-    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-fi
-
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Preparing ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-DocumentMgmtcpwdadminlist
-
-echo | tee -a -i $logfilepath
-echo 'cpstop ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cpstop | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'cpstop completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Executing...' | tee -a -i $logfilepath
-echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-#if [ $testmode -eq 0 ]; then
-#    # Not test mode
-#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#export targetversion=$gaiaversion
+#
+#export outputfilepath=$outputpathbase/
+#export outputfileprefix=$HOSTNAME'_'$targetversion
+#export outputfilesuffix='_'$DATEDTGS
+#export outputfiletype=.txt
+#
+#if [ ! -r $outputfilepath ] ; then
+#    mkdir -pv $outputfilepath
+#    chmod 775 $outputfilepath
 #else
-#    # test mode
-#    echo Test Mode! | tee -a -i $logfilepath
+#    chmod 775 $outputfilepath
 #fi
+#
 
-$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#case "$gaiaversion" in
+#    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30 | R80.40.M1 | R80.40.M2 | R80.40 ) 
+#        export do_session_cleanup=true
+#        ;;
+#    *)
+#        export do_session_cleanup=false
+#        ;;
+#esac
+#
+#if [ "$do_session_cleanup" == "true" ]; then
+#
 
-echo | tee -a -i $logfilepath
-echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo '! doing something !' 
 
-if [ $Check4EPM -gt 0 ]; then
-    echo | tee -a -i $logfilepath
-    echo 'Executing 2...' | tee -a -i $logfilepath
-    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
 
-    #if [ $testmode -eq 0 ]; then
-    #    # Not test mode
-    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-    #else
-    #    # test mode
-    #    echo Test Mode! | tee -a -i $logfilepath
-    #fi
-    
-    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+#----------------------------------------------------------------------------------------
+# bash - ?what next?
+#----------------------------------------------------------------------------------------
 
-    echo | tee -a -i $logfilepath
-    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-fi
 
-echo | tee -a -i $logfilepath
-ls -alh $outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+#export command2run=command
+#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+#export outputfilefqdn=$outputfilepath$outputfile
+#
+#echo
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn
+#command > "$outputfilefqdn"
+#
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#echo 'fwacell stats -s' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#
+#fwaccel stats -s >> "$outputfilefqdn"
+#
 
-DocumentMgmtcpwdadminlist
 
-echo | tee -a -i $logfilepath
-read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
 
-echo | tee -a -i $logfilepath
-echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
 
-if $CLIparm_NOSTART ; then
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop ...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstop | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-   
-    
-else
-    
-    DocumentMgmtcpwdadminlist
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop ...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstop | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    
-    echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
-    sleep $WAITTIME
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstart...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstart | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstart completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    WatchMgmtcpwdadminlist    
+#echo 'CLI Operations Completed'
 
-    if $IsR8XVersion ; then
-        # R80 version so kick the API on
-        #echo | tee -a -i $logfilepath
-        #echo 'api start ...' | tee -a -i $logfilepath
-        #echo | tee -a -i $logfilepath
-        #
-        #api start | tee -a -i $logfilepath
-        #
-        echo | tee -a -i $logfilepath
-        echo 'api status' | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    
-        api status | tee -a -i $logfilepath
-    
-        echo | tee -a -i $logfilepath
-    else
-        # not R80 version so no API
-        echo | tee -a -i $logfilepath
-    fi
 
-fi
-
-    
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END:  script shell operations description
 #
 #==================================================================================================
 #==================================================================================================

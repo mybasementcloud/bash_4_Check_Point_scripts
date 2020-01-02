@@ -7,9 +7,9 @@ Version		R80, R77
 Minor Version	R80.10,R77.10,R77.30,R80.20,R80.30,R77.20
 OS 		Gaia
 Build Number 	
-MD5 		b59faeed7d3c344c05d2300421bf1d8e
-SHA1 		a9c839e74cb8aeeec09c0a97d7297d9653a23248
-SHA256 		5f364ed61bc098837eccd0e2d03ab7ea797bf9ae66077efad03d7009741ef3d0
-Size 		390.08 KB
-Date Published 	2019-11-13 
-File Revision	7.07
+MD5 		04b2d6776c99805bdb03b590b96ff990
+SHA1 		1f2c23806794b229befaf1a430fc154f8121bf78
+SHA256 		7b47be7aff76be363b4508c3ea9b977c7323db4f4575b1863e8e8210679dee2d
+Size 		391.32 KB
+Date Published 	2019-12-14
+File Revision 	7.08
