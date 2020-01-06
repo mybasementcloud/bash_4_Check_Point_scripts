@@ -2,13 +2,13 @@
 #
 # SCRIPT Fix Scripts After Copy
 #
-# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-12-30
-ScriptVersion=04.20.00
-ScriptRevision=000
+ScriptDate=2020-01-05
+ScriptVersion=04.21.00
+ScriptRevision=004
 TemplateLevel=006
-TemplateVersion=04.20.00
+TemplateVersion=04.21.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -17,13 +17,14 @@ export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=touch_all_scripts
 export BASHScriptShortName=$BASHScriptFileNameRoot
-export BASHScriptDescription="Touch all Scripts, Help, and Versions"
+export BASHScriptnohupName=$BASHScriptShortName
+export BASHScriptDescription=="Touch all Scripts, Help, and Versions"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot

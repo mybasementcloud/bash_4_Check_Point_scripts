@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+# Version created 2020-01-05 2000 hrs CST
+#
+ScriptDate=2020-01-05
+ScriptVersion=04.21.00
+ScriptRevision=009
+TemplateLevel=006
+TemplateVersion=04.21.00
+SubScriptsLevel=006
+SubScriptsVersion=04.05.00
+#
+
+export BASHScriptVersion=v${ScriptVersion//./x}
+export BASHScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
+

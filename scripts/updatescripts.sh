@@ -2,13 +2,13 @@
 #
 # SCRIPT Update scripts from NAS storage via tftp pull, clear, and replace
 #
-# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-12-30
-ScriptVersion=04.20.00
-ScriptRevision=000
+ScriptDate=2020-01-05
+ScriptVersion=04.21.00
+ScriptRevision=004
 TemplateLevel=006
-TemplateVersion=04.20.00
+TemplateVersion=04.21.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -17,13 +17,14 @@ export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=updatescripts
 export BASHScriptShortName="updatescripts"
-export BASHScriptDescription="Update scripts from NAS storage via tftp pull, clear, and replace"
+export BASHScriptnohupName=$BASHScriptShortName
+export BASHScriptDescription=="Update scripts from NAS storage via tftp pull, clear, and replace"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot
@@ -48,6 +49,7 @@ export BASHScripttftptargetfolder="_template"
 # Date variable configuration
 # -------------------------------------------------------------------------------------------------
 
+
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
@@ -57,6 +59,54 @@ echo 'Date Time Group   :  '$DATE $DATEDTG $DATEDTGS
 echo 'Date (YYYY-MM-DD) :  '$DATEYMD
 echo
     
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# JQ and json related
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2020-01-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+# points to where jq is installed
+if [ -r ${CPDIR}/jq/jq ] ; then
+    export JQ=${CPDIR}/jq/jq
+elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
+    export JQ=${CPDIR_PATH}/jq/jq
+elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
+    export JQ=${MDS_CPDIR}/jq/jq
+else
+    export JQ=
+fi
+
+# points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
+export JQ16PATH=$MYWORKFOLDER/_tools/JQ
+export JQ16FILE=jq-linux64
+export JQ16FQFN=$JQ16PATH$JQ16FILE
+if [ -r $JQ16FQFN ] ; then
+    # OK we have the easy-button alternative
+    export JQ16=$JQ16FQFN
+elif [ -r "./_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the local folder alternative
+    export JQ16=./_tools/JQ/$JQ16FILE
+elif [ -r "../_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the parent folder alternative
+    export JQ16=../_tools/JQ/$JQ16FILE
+else
+    export JQ16=
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
+
+
+# -------------------------------------------------------------------------------------------------
+# END:  Basic Configuration
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------------------
 # Other variable configuration

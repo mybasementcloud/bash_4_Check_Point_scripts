@@ -2,15 +2,15 @@
 #
 # SCRIPT Root Script Configuration Parameters
 #
-# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
-ScriptRevision=000
+ScriptDate=2020-01-05
+ScriptVersion=04.21.00
+ScriptRevision=004
 TemplateLevel=006
-TemplateVersion=04.15.00
+TemplateVersion=04.21.00
 SubScriptsLevel=006
-SubScriptsVersion=04.02.00
+SubScriptsVersion=04.05.00
 #
 
 RootScriptVersion=v${RootScriptVersion//./x}
@@ -25,47 +25,21 @@ RootScriptDescription="Root Script Configuration Parameters"
 # 
 # =============================================================================
 
+# =============================================================================
+# Date and Time related values and formulas
+# =============================================================================
+
 export DATE=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-# points to where jq is installed
-export JQNotFound=false
-
-# points to where jq is installed
-if [ -r ${CPDIR}/jq/jq ] ; then
-    export JQ=${CPDIR}/jq/jq
-    export JQNotFound=false
-    export UseJSONJQ=true
-elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
-    export JQ=${CPDIR_PATH}/jq/jq
-    export JQNotFound=false
-    export UseJSONJQ=true
-elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
-    export JQ=${MDS_CPDIR}/jq/jq
-    export JQNotFound=false
-    export UseJSONJQ=true
-#elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
-#    export JQ=/opt/CPshrd-R80/jq/jq
-#    export JQNotFound=false
-#    export UseJSONJQ=true
-#elif [ -r /opt/CPshrd-R80.10/jq/jq ] ; then
-#    export JQ=/opt/CPshrd-R80.10/jq/jq
-#    export JQNotFound=false
-#    export UseJSONJQ=true
-#elif [ -r /opt/CPshrd-R80.20/jq/jq ] ; then
-#    export JQ=/opt/CPshrd-R80.20/jq/jq
-#    export JQNotFound=false
-#    export UseJSONJQ=true
-else
-    export JQ=
-    export JQNotFound=true
-    export UseJSONJQ=false
-fi
-
 # WAITTIME in seconds for read -t commands
 export WAITTIME=15
+
+# =============================================================================
+# Standard paths and folders
+# =============================================================================
 
 export customerpathroot=/var/log/__customer
 export customerworkpathroot=$customerpathroot/upgrade_export
@@ -73,6 +47,10 @@ export outputpathroot=$customerworkpathroot
 export dumppathroot=$customerworkpathroot/dump
 export changelogpathroot=$customerworkpathroot/Change_Log
 
+
+# =============================================================================
+# TFTP Export values
+# =============================================================================
 
 #
 # Set EXPORTRESULTSTOTFPT to:
@@ -91,6 +69,68 @@ export changelogpathroot=$customerworkpathroot/Change_Log
 export EXPORTRESULTSTOTFPT=true
 export tftptargetfolder_root=/_GAIA_CONFIG
 
+
+# =============================================================================
+# JSON Query JQ and version specific JQ16 values
+# =============================================================================
+
+export JQNotFound=true
+export UseJSONJQ=false
+
+# JQ points to where the default jq is installed, probably version 1.4
+if [ -r ${CPDIR}/jq/jq ] ; then
+    export JQ=${CPDIR}/jq/jq
+    export JQNotFound=false
+    export UseJSONJQ=true
+elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
+    export JQ=${CPDIR_PATH}/jq/jq
+    export JQNotFound=false
+    export UseJSONJQ=true
+elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
+    export JQ=${MDS_CPDIR}/jq/jq
+    export JQNotFound=false
+    export UseJSONJQ=true
+else
+    export JQ=
+    export JQNotFound=true
+    export UseJSONJQ=false
+fi
+
+# JQ16 points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
+export JQ16NotFound=true
+export UseJSONJQ16=false
+
+# As of template version v04.21.00 we also added jq version 1.6 to the mix and it lives in the customer path root /tools/JQ folder by default
+export JQ16PATH=$customerpathroot/_tools/JQ
+export JQ16FILE=jq-linux64
+export JQ16FQFN=$JQ16PATH$JQ16FILE
+
+if [ -r $JQ16FQFN ] ; then
+    # OK we have the easy-button alternative
+    export JQ16=$JQ16FQFN
+    export JQ16NotFound=false
+    export UseJSONJQ16=true
+elif [ -r "./_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the local folder alternative
+    export JQ16=./_tools/JQ/$JQ16FILE
+    export JQ16NotFound=false
+    export UseJSONJQ16=true
+elif [ -r "../_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the parent folder alternative
+    export JQ16=../_tools/JQ/$JQ16FILE
+    export JQ16NotFound=false
+    export UseJSONJQ16=true
+else
+    # nope, not part of the package, so clear the values
+    export JQ16=
+    export JQ16NotFound=true
+    export UseJSONJQ16=false
+fi
+
+
+# =============================================================================
+# More root script configuration values?
+# =============================================================================
 
 # =============================================================================
 # =============================================================================

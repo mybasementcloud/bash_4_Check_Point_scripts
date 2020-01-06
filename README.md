@@ -7,7 +7,7 @@ NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 
 NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
 
-Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40.M2.  R80.40 EA operation tests are pending.
+Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40.M2.  R80.40 EA operation tests show success.
 
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
@@ -15,12 +15,14 @@ Specific examples and operation for:
 - _fixes - script based changes and updates to address problems, bugs, issues, ideas, and format.  Can be used relative to the closest date template to fix scripts built with older templates.
 - _sub-scripts - sub-ordinate scripts called by the version vXX.YY.ZZ level template based scripts for common operations
 - _template - templates for bash scripts, may include some canned plumbing
+- _tools - tools folder with expected tools at the expected versions.  All sources subject to inlcuded limitations and rights
 - Common - general use scripts
 - Config - Configuration capture for Gaia (might work on SPLAT and Linux, not tested on those)
 - GAIA - scripts to automatically update GAIA extensions from Check Point (e.g. GAIA REST API) using the tgz file provided and placed on a known tftp host, then downloading an comparing to last installed package.
 - GW - Gateway systems
 - Health_Check - System Health Check Script as provided in sk121447, including example of how to collect the generated files into a dump file location
 - MDM - Multi-Domain Management Server systems
+- MGMT - Common Security Management scripts
 - Patch_HotFix - scripts that fix things
 - Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, with version 2018-11-21-1055CST using API script template so full access to CLI configuration of mgmt_cli authentication and access parameters run with --help to get CLI help; MDM specific scripts were removed, so use the -d <domain> parameter to identify the domain.
 - SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
@@ -38,10 +40,11 @@ NOTES:
 
 - Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1, R80.20 GA T101, (and later)
 - Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03.  Now updated to utilize available python scripts on Gaia instead of using clish commands that might get impaired by users in Gaia webUI
-- Updated to handle R80.30 GA and some R80.30 GoGo Gateway EA/R80.40 EA elements
+- Updated to handle R80.30 GA and some EA and future elements (R80.40) elements
 - Added sample updatescripts script to pull latest package of scripts (scripts.tgz) from a tftp server and expand them, after removing the existing script links and deleting the old folder
 - Added --NOSTART CLI parameter to where cpstart or mdsstart was executed in scripts, to not execute the restart of Check Point services
 - if $MYTFTPSERVER is set to IPv4 Address of a TFTP server, config_capture, healthdump, interface_info, and check_point_service_status_check will tftp their archived results to a folder defined in _root_script_config.sh.  If the value is not set, then only an archive is created at the root of the working folder.
+- Updated Common/do_scripts_nohup.sh and scripts with CLI parameter handling to expand capabilities to document nohup progress, show diskspace usage.  Use ./do_scripts_nohup --help to see parameters and options.  Scripts with CLI parameter handling create their own cleanup script.
 
 
 Reference Check Point Secure Knowledge (SK) articles:
