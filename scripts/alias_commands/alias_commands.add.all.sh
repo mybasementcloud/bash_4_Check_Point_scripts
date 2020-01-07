@@ -1,6 +1,6 @@
 #
-# Version :  v04.21.00.001
-# Date    :  2020-01-04
+# Version :  v04.22.00.001
+# Date    :  2020-01-06
 # !! SAMPLE !!
 #
 #========================================================================================
@@ -111,7 +111,11 @@ alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get
 
 # 2020-01-03
 
-alias getupdatetoolsscript='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/update_tools.sh;echo;chmod 775 update_tools.sh;echo;ls -alh update_tools.sh'
+alias gettoolsupdatescript='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/update_tools.sh;echo;chmod 775 update_tools.sh;echo;ls -alh update_tools.sh'
+
+# 2020-01-03
+# Clear legacy value if set
+alias getupdatetoolsscript 2>nul >nul ; if [ $? -eq 0 ] ; then echo 'alias getupdatetoolsscript SET!  REMOVING!'; unalias getupdatetoolsscript; fi ; echo
 
 # 2019-11-21 Updated
 
@@ -134,7 +138,7 @@ _list_custom_user_vars ()
     echo '==============================================================================='
     echo
     
-    echo 'MYWORKFOLDER                 ='"$MYWORKFOLDER"
+    echo '$MYWORKFOLDER                ='"$MYWORKFOLDER"
     echo '$MYWORKFOLDERCHANGE          ='"$MYWORKFOLDERCHANGE"
     echo '$MYWORKFOLDERCHANGE          ='"$MYWORKFOLDERCHANGE"
     echo '$MYWORKFOLDERDUMP            ='"$MYWORKFOLDERDUMP"

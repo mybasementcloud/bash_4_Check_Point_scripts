@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT Reset SmartLog/SmartEvent Indexing back X days
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=remove_script_links
-export BASHScriptShortName="remove_links"
+export BASHScriptFileNameRoot=Reset_SmartLog_Indexing_Back_X_Days
+export BASHScriptShortName=Reset_SmartLog_Indexing
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Remove Script Links"
+export BASHScriptDescription=="Reset SmartLog/SmartEvent Indexing back X days"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -33,8 +33,8 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=.
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+export BASHScriptsFolder=SmartEvent
 
 export BASHScripttftptargetfolder="_template"
 
@@ -194,10 +194,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
+# START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -223,6 +223,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -276,11 +277,12 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -518,7 +520,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -530,10 +532,26 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-10-03 -
+    # MODIFIED 2018-11-20 -
     
-    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
+    export configured_handler_root=$cli_script_cmdlineparm_handler_root
+    export actual_handler_root=$configured_handler_root
     
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -546,6 +564,8 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
+            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
+            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -956,8 +976,26 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
+    # MODIFIED 2018-11-20 -
     
+    export configured_handler_root=$gaia_version_type_handler_root
+    export actual_handler_root=$configured_handler_root
+    
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1182,297 +1220,214 @@ fi
 
 
 #----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Scripts link generation and setup
-#
-#----------------------------------------------------------------------------------------
+# Check if operation allowed based on version and installation type
 #----------------------------------------------------------------------------------------
 
 
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
-
-
-if [ ! -r $workingbase ] ; then
-    echo | tee -a -i $logfilepath
-    echo Error! | tee -a -i $logfilepath
-    echo Missing folder $workingbase | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo Exiting! | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+if ! $IsR8XVersion; then
+    # echo not doing reset indexing
+    echo 'Wrong version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Wrong version for '$BASHScriptName' ! ' >> $logfilepath
+    echo 'Exiting... ' | tee -a -i $outputfilefqdn
+    echo 'Exiting... ' >> $logfilepath
     exit 255
 else
-    chmod 775 $workingbase | tee -a -i $logfilepath
-fi
-
-chmod 775 $linksbase | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo 'Start with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/gaia_version_type | tee -a -i $logfilepath
-
-rm $workingroot/do_script_nohup | tee -a -i $logfilepath
-
-rm $workingroot/godump | tee -a -i $logfilepath
-rm $workingroot/godtgdump | tee -a -i $logfilepath
-
-rm $workingroot/goChangeLog | tee -a -i $logfilepath
-
-rm $workingroot/mkdump | tee -a -i $logfilepath
-rm $workingroot/mkdtgdump | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/config_capture | tee -a -i $logfilepath
-rm $workingroot/interface_info | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GAIA
-# =============================================================================
-
-
-export workingdir=GAIA
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if $IsR8XVersion ; then
-    
-    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
-    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
-    
+    # echo not doing reset indexing
+    echo 'Supported version for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
 fi
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
+if $sys_type_STANDALONE; then
+    # Standalone installations can be re-indexed
+    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+elif $sys_type_GW; then
+    # echo not doing reset indexing, this is gateway
+    echo 'Wrong installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Wrong installation type for '$BASHScriptName' ! ' >> $logfilepath
+    echo 'Exiting... ' | tee -a -i $outputfilefqdn
+    echo 'Exiting... ' >> $logfilepath
+    exit 255
+else
+    # echo doing reset indexing
+    echo 'Supported installation type for '$BASHScriptName' ! ' | tee -a -i $outputfilefqdn
+    echo 'Proceeding... ' | tee -a -i $outputfilefqdn
+fi
+
+echo | tee -a -i $outputfilefqdn
 
 
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
-rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
-rm $workingroot/cluster_info | tee -a -i $logfilepath
-rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
+export targetversion=$gaiaversion
 
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
-
-
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/healthcheck | tee -a -i $logfilepath
-rm $workingroot/healthdump | tee -a -i $logfilepath
-rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath
+    chmod 775 $outputfilepath
+else
+    chmod 775 $outputfilepath
+fi
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
+#----------------------------------------------------------------------------------------
+# bash - Backup current settings and and initiate re-indexing for X = $1 days
+#----------------------------------------------------------------------------------------
+
+export outputfile='Reset_SmartLog_SmartEvent_Indexing_'$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
 
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+#----------------------------------------------------------------------------------------
+# Check if CLI parm was passed as a number
+#----------------------------------------------------------------------------------------
 
-rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/report_mdsstat | tee -a -i $logfilepath
-rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
-rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
+export number_of_days_to_index=$1
+export minimum_days_to_index=1
+export maximum_days_to_index=730
 
+echo 'number_of_days_to_index) :  '$number_of_days_to_index | tee -a -i $outputfilefqdn
+echo | tee -a -i $outputfilefqdn
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  MGMT
-# =============================================================================
-
-
-export workingdir=MGMT
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-#rm $workingroot/x | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-export need_fix_webui=false
-
-rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
+if [ -n $number_of_days_to_index ]; then
+    # non-empty value
+    if [ $number_of_days_to_index -ge $minimum_days_to_index ] && [ $number_of_days_to_index -le $maximum_days_to_index ]; then
+        # value between $minimum_days_to_index and $maximum_days_to_index
+        echo 'using number_of_day_to_index value : '$number_of_days_to_index | tee -a -i $outputfilefqdn
+    else
+        # value out of range or not an integer
+        echo 'number_of_day_to_index value : '$number_of_days_to_index' NOT USABLE !' | tee -a -i $outputfilefqdn
+        echo 'number_of_day_to_index value : '$number_of_days_to_index' NOT USABLE !' >> $logfilepath
+        echo 'Exiting ... ' | tee -a -i $outputfilefqdn
+        echo 'Exiting ... ' >> $logfilepath
+        exit 255
+    fi
+else
+    # value empty
+    echo 'number_of_day_to_index value EMPTY: >'$number_of_days_to_index'< NOT USABLE !' | tee -a -i $outputfilefqdn
+    echo 'Provide the number of days to index in first command line parameter!' | tee -a -i $outputfilefqdn
+    echo 'Provide the number of days to index in first command line parameter!' >> $logfilepath
+    echo 'Exiting ... ' | tee -a -i $outputfilefqdn
+    echo 'Exiting ... ' >> $logfilepath
+    exit 255
+fi
+echo | tee -a -i $outputfilefqdn
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
+#----------------------------------------------------------------------------------------
+# Proceed with operations
+#----------------------------------------------------------------------------------------
 
 
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+export command2run="Stop SmartEvent, SmartLog indexing process"
 
-rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+echo | tee -a -i "$outputfilefqdn"
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
+echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
+echo '] evstop' | tee -a -i "$outputfilefqdn"
+echo '] ps auxw | grep log_indexer' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
+evstop | tee -a -i "$outputfilefqdn"
+ps auxw | grep log_indexer | tee -a -i "$outputfilefqdn"
+read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
 
+echo | tee -a -i "$outputfilefqdn"
 
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+export command2run="Backup Log Indexer Settings"
 
-rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
+echo | tee -a -i "$outputfilefqdn"
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
+export originalfile=$INDEXERDIR/log_indexer_custom_settings.conf
+export targetfile=$INDEXERDIR/log_indexer_custom_settings.conf.backup.$$DATEDTGS
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
+echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
+echo '] cp '"$originalfile"' '"$targetfile" | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
+cp $originalfile $targetfile | tee -a -i "$outputfilefqdn" 
 
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+echo | tee -a -i "$outputfilefqdn"
 
-rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
+export command2run="Reset Indexing value to $1"
 
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
+echo | tee -a -i "$outputfilefqdn"
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
+echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
+echo '] cd '"$INDEXERDIR" | tee -a -i "$outputfilefqdn"
+echo '] ./log_indexer -days_to_index '"$number_of_days_to_index" | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
+pushd $INDEXERDIR
+pwd $INDEXERDIR | tee -a -i "$outputfilefqdn"
 
+./log_indexer -days_to_index $number_of_days_to_index | tee -a -i "$outputfilefqdn"
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
+popd
+pwd $INDEXERDIR | tee -a -i "$outputfilefqdn"
 
+echo | tee -a -i "$outputfilefqdn"
 
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+#----------------------------------------------------------------------------------------
+# Handle restart of Check Point services
+#----------------------------------------------------------------------------------------
 
-rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
+echo | tee -a -i "$outputfilefqdn"
 
-# Legacy Naming Clean-up
-rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
+export command2run="Restart SmartEvent, SmartLog indexing process"
 
+echo | tee -a -i "$outputfilefqdn"
+echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo | tee -a -i "$outputfilefqdn"
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig.CORE_G2.NPM
-# =============================================================================
+echo 'Execute command : ' | tee -a -i "$outputfilefqdn"
 
+if $CLIparm_NOSTART; then
+    echo 'NOT starting Check Point services!' | tee -a -i "$outputfilefqdn"
+else
+    if $sys_type_MDS; then
+        
+        echo '] mdsstart' | tee -a -i "$outputfilefqdn"
+        echo | tee -a -i "$outputfilefqdn"
+        
+        mdsstart | tee -a -i "$outputfilefqdn"
+        
+    else
+        
+        echo '] evstart' | tee -a -i "$outputfilefqdn"
+        echo | tee -a -i "$outputfilefqdn"
+        
+        evstart | tee -a -i "$outputfilefqdn"
+        
+    fi
+    
+    read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+    echo
+    
+fi
 
-export workingdir=UserConfig.CORE_G2.NPM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/alias_commands_CORE_G2_NPM_add_user
-rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
-rm $workingroot/alias_commands_CORE_G2_NPM_update_user
-rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
-
-rm -f -r -d $linksbase | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingroot | tee -a -i $logfilepath
-ls -alh $workingroot | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingbase | tee -a -i $logfilepath
-ls -alh $workingbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-
+echo | tee -a -i "$outputfilefqdn"
 
 
 #----------------------------------------------------------------------------------------

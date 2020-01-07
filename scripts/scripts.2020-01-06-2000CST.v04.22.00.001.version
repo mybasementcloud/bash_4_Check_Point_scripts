@@ -2,11 +2,11 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-# Version created 2020-01-05 2000 hrs CST
+# Version created 2020-01-05 2200 hrs CST
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=009
+ScriptDate=2020-01-06
+ScriptVersion=04.22.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.21.00
 SubScriptsLevel=006

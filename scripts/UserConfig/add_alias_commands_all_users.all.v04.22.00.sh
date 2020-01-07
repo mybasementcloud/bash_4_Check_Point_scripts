@@ -1,29 +1,30 @@
 #!/bin/bash
 #
-# SCRIPT Determine Gaia version and Installation type
+# SCRIPT add content of alias_commands.add.all.sh to all /home folders that have the file
 #
-# (C) 2016-2019 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2019-11-22
-ScriptVersion=04.15.00
+ScriptDate=2020-01-05
+ScriptVersion=04.22.00
 ScriptRevision=000
 TemplateLevel=006
-TemplateVersion=04.11.00
+TemplateVersion=04.20.00
 SubScriptsLevel=006
-SubScriptsVersion=04.02.00
+SubScriptsVersion=04.05.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
 export BASHScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
 
-export BASHSubScriptVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=determine_gaia_version_and_installation_type
-export BASHScriptShortName=gaia_version_type
-export BASHScriptDescription="Determine Gaia version and installation type"
+export BASHScriptFileNameRoot=add_alias_commands_all_users.all
+export BASHScriptShortName="add_alias_commands_all_users"
+export BASHScriptnohupName=$BASHScriptShortName
+export BASHScriptDescription=="Add content of alias_commands.add.all.sh to all /home folders that have the file"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -33,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=Common
+export BASHScriptsFolder=UserConfig
 
 export BASHScripttftptargetfolder="_template"
 
@@ -71,7 +72,9 @@ export WAITTIME=60
 
 export R8XRequired=false
 export UseR8XAPI=false
-export UseJSONJQ=false
+export UseJSONJQ=true
+export UseJSONJQ16=true
+export JQ16Required=false
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -104,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -172,10 +175,12 @@ if $isitR77version; then
     echo "This is an R77.X version..."
     export UseR8XAPI=false
     export UseJSONJQ=false
+    export UseJSONJQ16=false
 elif $isitR80version; then
     echo "This is an R80.X version..."
     export UseR8XAPI=$UseR8XAPI
     export UseJSONJQ=$UseJSONJQ
+    export UseJSONJQ16=$UseJSONJQ16
 else
     echo "This is not an R77.X or R80.X version ????"
 fi
@@ -192,7 +197,7 @@ fi
 # START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -218,6 +223,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -271,11 +277,12 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -759,7 +766,7 @@ GetScriptSourceFolder () {
 # ConfigureJQforJSON - Configure JQ variable value for JSON parsing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureJQforJSON () {
@@ -787,18 +794,6 @@ ConfigureJQforJSON () {
         export JQ=${MDS_CPDIR}/jq/jq
         export JQNotFound=false
         export UseJSONJQ=true
-    #elif [ -r /opt/CPshrd-R80/jq/jq ] ; then
-    #    export JQ=/opt/CPshrd-R80/jq/jq
-    #    export JQNotFound=false
-    #    export UseJSONJQ=true
-    #elif [ -r /opt/CPshrd-R80.10/jq/jq ] ; then
-    #    export JQ=/opt/CPshrd-R80.10/jq/jq
-    #    export JQNotFound=false
-    #    export UseJSONJQ=true
-    #elif [ -r /opt/CPshrd-R80.20/jq/jq ] ; then
-    #    export JQ=/opt/CPshrd-R80.20/jq/jq
-    #    export JQNotFound=false
-    #    export UseJSONJQ=true
     else
         export JQ=
         export JQNotFound=true
@@ -806,7 +801,7 @@ ConfigureJQforJSON () {
 
         if $UseR8XAPI ; then
             # to use the R8X API, JQ is required!
-            echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq" | tee -a -i $logfilepath
+            echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq !" | tee -a -i $logfilepath
             echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo "Log output in file $logfilepath" | tee -a -i $logfilepath
@@ -815,11 +810,57 @@ ConfigureJQforJSON () {
         fi
     fi
     
+    # JQ16 points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
+    export JQ16NotFound=true
+    export UseJSONJQ16=false
+    
+    # As of template version v04.21.00 we also added jq version 1.6 to the mix and it lives in the customer path root /tools/JQ folder by default
+    export JQ16PATH=$customerpathroot/_tools/JQ
+    export JQ16FILE=jq-linux64
+    export JQ16FQFN=$JQ16PATH$JQ16FILE
+
+    if [ -r $JQ16FQFN ] ; then
+        # OK we have the easy-button alternative
+        export JQ16=$JQ16FQFN
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    elif [ -r "./_tools/JQ/$JQ16FILE" ] ; then
+        # OK we have the local folder alternative
+        export JQ16=./_tools/JQ/$JQ16FILE
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    elif [ -r "../_tools/JQ/$JQ16FILE" ] ; then
+        # OK we have the parent folder alternative
+        export JQ16=../_tools/JQ/$JQ16FILE
+        export JQ16NotFound=false
+        export UseJSONJQ16=true
+    else
+        export JQ16=
+        export JQ16NotFound=true
+        export UseJSONJQ16=false
+        
+        if $UseR8XAPI ; then
+            if $JQ16Required ; then
+                # to use the R8X API, JQ is required!
+                echo 'Missing jq version 1.6, not found in '$JQ16FQFN', '"./_tools/JQ/$JQ16FILE"', or '"../_tools/JQ/$JQ16FILE"' !' | tee -a -i $logfilepath
+                echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
+                echo | tee -a -i $logfilepath
+                echo "Log output in file $logfilepath" | tee -a -i $logfilepath
+                echo | tee -a -i $logfilepath
+                exit 1
+            else
+                echo 'Missing jq version 1.6, not found in '$JQ16FQFN', '"./_tools/JQ/$JQ16FILE"', or '"../_tools/JQ/$JQ16FILE"' !' | tee -a -i $logfilepath
+                echo 'However it is not required for this operation' | tee -a -i $logfilepath
+                echo | tee -a -i $logfilepath
+            fi
+        fi
+    fi
+    
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -1072,7 +1113,8 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptDescription | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1092,9 +1134,15 @@ GetScriptSourceFolder
 # JQ and json related
 # -------------------------------------------------------------------------------------------------
 
-if $UseJSONJQ ; then 
+# MODIFIED 2020-01-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+if $UseJSONJQ || UseJSONJQ16; then 
     ConfigureJQforJSON
 fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1166,20 +1214,273 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
 
-# Call to determine gaia version and type was executed and handled via the procedures and exteral
-# script call
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
+
+export targetversion=$gaiaversion
+
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
+
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+fi
+
+
+#----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
+#----------------------------------------------------------------------------------------
+
+export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export alliasAddFile=alias_commands.add.all.sh
+export alliasAddFilefqdn=$scriptspathroot/alias_commands/$alliasAddFile
+
+export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
+export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands/$dotbashrcmodfile
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
+
+if [ ! -r $dotbashrcmodfilefqdn ] ; then
+    echo 'Missing '"$dotbashrcmodfilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found '"$dotbashrcmodfilefqdn"' file :  '$alliasAddFilefqdn
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Adding alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+dos2unix $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
+
+
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
+
+
+export file2find=.bashrc
+export findrootfolder=/home
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Populate array of Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+FILEARRAY=()
+
+GETFINDFILES=`find $findrootfolder -name $file2find`
+
+arraylength=0
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo 'Files :  ' | tee -a "$outputfilefqdn"
+    	echo | tee -a "$outputfilefqdn"
+    fi
+
+    workfolder=`dirname $line`
+
+    case "$workfolder" in
+        # Help and Standard Operations
+        '/home/_nonlocl'  )
+            # ignoring this account
+        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
+            ;;
+        '/home/monitor'  )
+            # ignoring this
+        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
+            ;;
+        '/home/cp_postgres'  )
+            # ignoring this
+        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
+            ;;
+        '/home/cpep_user'  )
+            # ignoring this
+        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
+            ;;
+        * )
+            # Not explicitly ignored
+            #FILEARRAY+=("$line")
+            FILEARRAY+=("$line")
+        	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
+        	
+        	arraylength=${#FILEARRAY[@]}
+        	arrayelement=$((arraylength-1))
+            ;;
+    esac
+	
+done <<< "$GETFINDFILES"
+
+if [ $arraylength -eq 0 ]; then
+	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
+    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Array of Found Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+parmnum=0
+for j in "${FILEARRAY[@]}"
+do
+    #echo "$j : ${j//\'/}"
+    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
+    parmnum=`expr $parmnum + 1`
+done
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+
+parmnum=0
+for i in "${FILEARRAY[@]}"
+do
+    
+    #echo -e "$parmnum \t ${i}" | tee -a "$outputfilefqdn"
+    workfolder=`dirname $i`
+
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo "Current $i file in folder $workfolder" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo "Copy $alliasAddFilefqdn to $workfolder" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    
+    cp $alliasAddFilefqdn $workfolder/ | tee -a "$outputfilefqdn"
+    
+    echo "Copy $dotbashrcmodfilefqdn to $workfolder" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    cp $dotbashrcmodfilefqdn $workfolder/ | tee -a "$outputfilefqdn"
+
+    echo >> "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+
+    export checkaddalliasappended=`grep "$alliasAddFile" "$i"`
+    export checkifaddalliasappended=`test -z "$checkaddalliasappended"; echo $?`
+
+    if [ $checkifaddalliasappended -eq 1 ] ; then
+        # $alliasAddFile is already appended
+        echo "No need to append $dotbashrcmodfilefqdn to $i, already there." | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+    else
+        # $alliasAddFile is NOT appended, so append the file
+        echo "Append $dotbashrcmodfilefqdn to $i" | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        cat $dotbashrcmodfilefqdn >> $i | tee -a "$outputfilefqdn"
+
+        echo | tee -a "$outputfilefqdn"
+    fi
+
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Updated $i file" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+   
+    parmnum=`expr $parmnum + 1`
+done
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================

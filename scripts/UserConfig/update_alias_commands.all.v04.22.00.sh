@@ -5,8 +5,8 @@
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptVersion=04.22.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -1246,10 +1246,10 @@ export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$output
 export outputfilefqdn=$outputfilepath$outputfile
 
 export alliasAddFile=alias_commands.add.all.sh
-export alliasAddFilefqdn=$scriptspathroot/$BASHScriptsFolder/$alliasAddFile
+export alliasAddFilefqdn=$scriptspathroot/alias_commands/$alliasAddFile
 
 #export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
-#export dotbashrcmodfilefqdn=$scriptspathroot/$BASHScriptsFolder/$dotbashrcmodfile
+#export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands/$dotbashrcmodfile
 
 
 if [ ! -r $alliasAddFilefqdn ] ; then

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT add content of alias_commands.add.all.sh to all /home folders that have the file
+# SCRIPT Remove script link files
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptVersion=04.22.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=add_alias_commands_all_users.all
-export BASHScriptShortName="add_alias_commands_all_users"
+export BASHScriptFileNameRoot=remove_script_links
+export BASHScriptShortName="remove_links"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Add content of alias_commands.add.all.sh to all /home folders that have the file"
+export BASHScriptDescription=="Remove Script Links"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -33,8 +33,8 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=UserConfig
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
 
@@ -107,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=false
+export ShowGaiaVersionResults=true
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -194,10 +194,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Command Line Parameter Handling and Help
+# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -223,7 +223,6 @@ fi
 # --RESTART
 #
 # --NOHUP
-# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -277,12 +276,11 @@ else
 fi
 
 export CLIparm_NOHUP=false
-export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -520,7 +518,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -532,26 +530,10 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-11-20 -
+    # MODIFIED 2018-10-03 -
     
-    export configured_handler_root=$cli_script_cmdlineparm_handler_root
-    export actual_handler_root=$configured_handler_root
+    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
     
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -564,8 +546,6 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
-            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
-            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -976,26 +956,8 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    # MODIFIED 2018-11-20 -
+    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
     
-    export configured_handler_root=$gaia_version_type_handler_root
-    export actual_handler_root=$configured_handler_root
-    
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1113,8 +1075,7 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
-echo $BASHScriptDescription | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1214,273 +1175,315 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Update alias commands all
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
 
 #----------------------------------------------------------------------------------------
-# Configure specific parameters
+#----------------------------------------------------------------------------------------
+#
+# Scripts link generation and setup
+#
+#----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
-export targetversion=$gaiaversion
 
-export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
+export workingroot=$customerworkpathroot
+export workingbase=$workingroot/scripts
+export linksbase=$workingbase/.links
 
-if [ ! -r $outputfilepath ] ; then
-    mkdir -pv $outputfilepath | tee -a -i $logfilepath
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
+
+if [ ! -r $workingbase ] ; then
+    echo | tee -a -i $logfilepath
+    echo Error! | tee -a -i $logfilepath
+    echo Missing folder $workingbase | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo Exiting! | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    exit 255
 else
-    chmod 775 $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $workingbase | tee -a -i $logfilepath
 fi
+
+chmod 775 $linksbase | tee -a -i $logfilepath
+
+
+echo | tee -a -i $logfilepath
+echo 'Start with links clean-up!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Common
+# =============================================================================
+
+
+export workingdir=Common
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/gaia_version_type | tee -a -i $logfilepath
+
+rm $workingroot/do_script_nohup | tee -a -i $logfilepath
+
+rm $workingroot/godump | tee -a -i $logfilepath
+rm $workingroot/godtgdump | tee -a -i $logfilepath
+
+rm $workingroot/goChangeLog | tee -a -i $logfilepath
+
+rm $workingroot/mkdump | tee -a -i $logfilepath
+rm $workingroot/mkdtgdump | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Config
+# =============================================================================
+
+
+export workingdir=Config
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/config_capture | tee -a -i $logfilepath
+rm $workingroot/interface_info | tee -a -i $logfilepath
+rm $workingroot/EPM_config_check | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GAIA
+# =============================================================================
+
+
+export workingdir=GAIA
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if $IsR8XVersion ; then
+    
+    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
+    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW
+# =============================================================================
+
+
+export workingdir=GW
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
+rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
+rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
+rm $workingroot/cluster_info | tee -a -i $logfilepath
+rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Health_Check
+# =============================================================================
+
+
+export workingdir=Health_Check
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/healthcheck | tee -a -i $logfilepath
+rm $workingroot/healthdump | tee -a -i $logfilepath
+rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
+
+# Legacy Naming Clean-up
+rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MDM
+# =============================================================================
+
+
+export workingdir=MDM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
+rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
+rm $workingroot/report_mdsstat | tee -a -i $logfilepath
+rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
+rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MGMT
+# =============================================================================
+
+
+export workingdir=MGMT
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+#rm $workingroot/x | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Patch_HotFix
+# =============================================================================
+
+
+export workingdir=Patch_HotFix
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+export need_fix_webui=false
+
+rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Session_Cleanup
+# =============================================================================
+
+
+export workingdir=Session_Cleanup
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
+#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
+#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
+#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
+#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS
+# =============================================================================
+
+
+export workingdir=SMS
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
+
+rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
+
+rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
+rm $workingroot/restart_mgmt | tee -a -i $logfilepath
+rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
+
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig
+# =============================================================================
+
+
+export workingdir=UserConfig
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
+rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
+rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
+rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
+
+# Legacy Naming Clean-up
+rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
+rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
+rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig.CORE_G2.NPM
+# =============================================================================
+
+
+export workingdir=UserConfig.CORE_G2.NPM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/alias_commands_CORE_G2_NPM_add_user
+rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
+rm $workingroot/alias_commands_CORE_G2_NPM_update_user
+rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
+rm -f -r -d $linksbase | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+
+echo | tee -a -i $logfilepath
+echo 'List folder : '$workingroot | tee -a -i $logfilepath
+ls -alh $workingroot | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'List folder : '$workingbase | tee -a -i $logfilepath
+ls -alh $workingbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done with links clean-up!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+
 
 
 #----------------------------------------------------------------------------------------
-# Execute modification of the .bashrc file for the user in $HOME
 #----------------------------------------------------------------------------------------
-
-export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-export alliasAddFile=alias_commands.add.all.sh
-export alliasAddFilefqdn=$scriptspathroot/$BASHScriptsFolder/$alliasAddFile
-
-export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
-export dotbashrcmodfilefqdn=$scriptspathroot/$BASHScriptsFolder/$dotbashrcmodfile
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-
-if [ ! -r $alliasAddFilefqdn ] ; then
-    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
-    echo 'Exiting!' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    exit 255
-else
-    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-fi
-
-if [ ! -r $dotbashrcmodfilefqdn ] ; then
-    echo 'Missing '"$dotbashrcmodfilefqdn"' file !!!' | tee -a "$outputfilefqdn"
-    echo 'Exiting!' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    exit 255
-else
-    echo 'Found '"$dotbashrcmodfilefqdn"' file :  '$alliasAddFilefqdn
-    echo | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    cat $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-fi
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Adding alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
-dos2unix $dotbashrcmodfilefqdn | tee -a "$outputfilefqdn"
-
-
-# -------------------------------------------------------------------------------------------------
-# script plumbing 1
-# -------------------------------------------------------------------------------------------------
-
-
-export file2find=.bashrc
-export findrootfolder=/home
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Populate array of Files" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-FILEARRAY=()
-
-GETFINDFILES=`find $findrootfolder -name $file2find`
-
-arraylength=0
-while read -r line; do
-
-    if [ $arraylength -eq 0 ]; then
-    	echo 'Files :  ' | tee -a "$outputfilefqdn"
-    	echo | tee -a "$outputfilefqdn"
-    fi
-
-    workfolder=`dirname $line`
-
-    case "$workfolder" in
-        # Help and Standard Operations
-        '/home/_nonlocl'  )
-            # ignoring this account
-        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
-            ;;
-        '/home/monitor'  )
-            # ignoring this
-        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
-            ;;
-        '/home/cp_postgres'  )
-            # ignoring this
-        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
-            ;;
-        '/home/cpep_user'  )
-            # ignoring this
-        	echo 'Ignoring : '$line | tee -a "$outputfilefqdn"
-            ;;
-        * )
-            # Not explicitly ignored
-            #FILEARRAY+=("$line")
-            FILEARRAY+=("$line")
-        	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
-        	
-        	arraylength=${#FILEARRAY[@]}
-        	arrayelement=$((arraylength-1))
-            ;;
-    esac
-	
-done <<< "$GETFINDFILES"
-
-if [ $arraylength -eq 0 ]; then
-	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
-    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
-    exit 255
-fi
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Array of Found Files" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-parmnum=0
-for j in "${FILEARRAY[@]}"
-do
-    #echo "$j : ${j//\'/}"
-    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
-    parmnum=`expr $parmnum + 1`
-done
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-
-parmnum=0
-for i in "${FILEARRAY[@]}"
-do
-    
-    #echo -e "$parmnum \t ${i}" | tee -a "$outputfilefqdn"
-    workfolder=`dirname $i`
-
-    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo "Current $i file in folder $workfolder" >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cat $i >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo "Copy $alliasAddFilefqdn to $workfolder" | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    
-    cp $alliasAddFilefqdn $workfolder/ | tee -a "$outputfilefqdn"
-    
-    echo "Copy $dotbashrcmodfilefqdn to $workfolder" | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    cp $dotbashrcmodfilefqdn $workfolder/ | tee -a "$outputfilefqdn"
-
-    echo >> "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-
-    export checkaddalliasappended=`grep "$alliasAddFile" "$i"`
-    export checkifaddalliasappended=`test -z "$checkaddalliasappended"; echo $?`
-
-    if [ $checkifaddalliasappended -eq 1 ] ; then
-        # $alliasAddFile is already appended
-        echo "No need to append $dotbashrcmodfilefqdn to $i, already there." | tee -a "$outputfilefqdn"
-        echo | tee -a "$outputfilefqdn"
-    else
-        # $alliasAddFile is NOT appended, so append the file
-        echo "Append $dotbashrcmodfilefqdn to $i" | tee -a "$outputfilefqdn"
-        echo | tee -a "$outputfilefqdn"
-        
-        cat $dotbashrcmodfilefqdn >> $i | tee -a "$outputfilefqdn"
-
-        echo | tee -a "$outputfilefqdn"
-    fi
-
-    echo >> "$outputfilefqdn"
-    echo '===============================================================================' >> "$outputfilefqdn"
-    echo "Updated $i file" >> "$outputfilefqdn"
-    echo >> "$outputfilefqdn"
-    
-    cat $i >> "$outputfilefqdn"
-    
-    echo >> "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-   
-    parmnum=`expr $parmnum + 1`
-done
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-cat $HOME/.bashrc | tee -a "$outputfilefqdn"
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo "Current $HOME folder" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-ls -alh $HOME/ | tee -a "$outputfilefqdn"
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
-echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
-echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-. $HOME/$alliasAddFile
-
-echo | tee -a "$outputfilefqdn"
-echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
-echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-
-alias | tee -a "$outputfilefqdn"
-
-echo | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo '===============================================================================' | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
-pwd | tee -a "$outputfilefqdn"
-echo | tee -a "$outputfilefqdn"
+#
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Update alias commands all
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================
