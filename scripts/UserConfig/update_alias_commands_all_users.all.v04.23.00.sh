@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute restart of cp processes
+# SCRIPT update content of alias_commands.add.all.sh to all /home folders that have the file
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=restart_mgmt
-export BASHScriptShortName=Restart_CP_Processes
+export BASHScriptFileNameRoot=update_alias_commands_all_users.all
+export BASHScriptShortName="update_alias_commands_all_users"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Restart Check Point processes"
+export BASHScriptDescription=="Update content of alias_commands.add.all.sh to all /home folders that have the file"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -34,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=_template
+export BASHScriptsFolder=UserConfig
 
 export BASHScripttftptargetfolder="_template"
 
@@ -107,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -1113,7 +1113,8 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptDescription | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1213,175 +1214,245 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# DocumentMgmtcpwdadminlist - Document the last execution of the cpwd_admin list command
-# -------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-DocumentMgmtcpwdadminlist () {
-    #
-    # Document the last execution of the cpwd_admin list command
-    #
-    
-    echo | tee -a -i $outputfilefqdn
-    echo 'Check Point management services and processes' | tee -a -i $outputfilefqdn
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        echo '$MDS_FWDIR/scripts/cpm_status.sh' | tee -a -i $outputfilefqdn
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-        echo | tee -a -i $outputfilefqdn
-    fi
-    
-    echo 'cpwd_admin list' | tee -a -i $outputfilefqdn
-    cpwd_admin list | tee -a -i $outputfilefqdn
-
-    echo | tee -a -i $outputfilefqdn
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#DocumentMgmtcpwdadminlist
-
-
-# -------------------------------------------------------------------------------------------------
-# WatchMgmtcpwdadminlist - Watch and document the last execution of the cpwd_admin list command
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-WatchMgmtcpwdadminlist () {
-    #
-    # Watch and document the last execution of the cpwd_admin list command
-    #
-    
-    watchcommands="echo 'Check Point management services and processes'"
-    
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        watchcommands=$watchcommands";echo;echo;echo '$MDS_FWDIR/scripts/cpm_status.sh';$MDS_FWDIR/scripts/cpm_status.sh"
-    fi
-    
-    watchcommands=$watchcommands";echo;echo;echo 'cpwd_admin list';cpwd_admin list"
-    
-    if $CLIparm_NOWAIT ; then
-        echo 'Not watching and waiting...'
-    else
-        watch -d -n 1 "$watchcommands"
-    fi
-    
-    DocumentMgmtcpwdadminlist
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#WatchMgmtcpwdadminlist
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
-
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "Continueing with Migrate Export..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "This script is not meant for MDM, exiting!"
-    exit 255
-else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
-    exit 255
-fi
-
-
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
-
+export targetversion=$gaiaversion
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=restart_mgmt_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=$HOSTNAME'_'$targetversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
-
-if [ ! -r $outputfilepath ] 
-then
-    mkdir -pv $outputfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+
+#----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
+#----------------------------------------------------------------------------------------
+
+export outputfile=$BASHScriptFileNameRoot'.'$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-touch $outputfilefqdn
+export alliasAddFile=alias_commands.add.all.sh
+export alliasAddFilefqdn=$scriptspathroot/alias_commands/$alliasAddFile
 
-DocumentMgmtcpwdadminlist
+#export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
+#export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands/$dotbashrcmodfile
 
-echo | tee -a -i $outputfilefqdn
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
 
-echo | tee -a -i $logfilepath
-echo 'cpstop ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
 
-cpstop | tee -a -i $outputfilefqdn
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Updating alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
-echo | tee -a -i $logfilepath
-echo 'cpstop completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+dos2unix $alliasAddFilefqdn >> "$outputfilefqdn"
 
-WatchMgmtcpwdadminlist
 
-echo | tee -a -i $outputfilefqdn
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
 
-echo | tee -a -i $logfilepath
-echo 'cpstart...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
 
-cpstart | tee -a -i $outputfilefqdn
+export file2find=$alliasAddFile
+export findrootfolder=/home
 
-echo | tee -a -i $logfilepath
-echo 'cpstart completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Populate array of Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
-WatchMgmtcpwdadminlist
+FILEARRAY=()
+
+GETFINDFILES=`find $findrootfolder -name $file2find`
+
+arraylength=0
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo 'Files :  ' | tee -a "$outputfilefqdn"
+    	echo | tee -a "$outputfilefqdn"
+    fi
+
+    #FILEARRAY+=("$line")
+    FILEARRAY+=("$line")
+	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
+	
+	arraylength=${#FILEARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETFINDFILES"
+
+if [ $arraylength -eq 0 ]; then
+	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
+    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Array of Found Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+parmnum=0
+for j in "${FILEARRAY[@]}"
+do
+    #echo "$j : ${j//\'/}"
+    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
+    parmnum=`expr $parmnum + 1`
+done
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+for i in "${FILEARRAY[@]}"
+do
+    
+    workfolder=`dirname $i`
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Current $i file in folder $workfolder" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo "Check if excluded users folder" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    
+    if [ "$workfolder" != "/home/adminscp" ]; then
+        # folder is not restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "INCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo >> "$outputfilefqdn"
+        echo '===============================================================================' >> "$outputfilefqdn"
+        echo "Copy $alliasAddFilefqdn to $i" | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        cp $alliasAddFilefqdn $i | tee -a "$outputfilefqdn"
+        
+        
+    else
+        # folder is restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "EXCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo 'Remove existing '$workfolder/$alliasAddFile' files' | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        rm -f -v $workfolder/$alliasAddFile | tee -a "$outputfilefqdn"
+        
+        echo | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        #echo 'Remove existing '$workfolder/$dotbashrcmodfile' files' | tee -a "$outputfilefqdn"
+        #echo | tee -a "$outputfilefqdn"
+        
+        #rm -f -v $workfolder/$dotbashrcmodfile | tee -a "$outputfilefqdn"
+        
+        #echo >> "$outputfilefqdn"
+        #echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        
+    fi
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Updated $i file" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+   
+done
+
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================

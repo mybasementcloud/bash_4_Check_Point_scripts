@@ -98,7 +98,7 @@ GOTO :ASKOLDVEROK
 
 :CHANGEOLDVERSION
 ECHO.
-SET /P CHKOLDVERSVALUE=Enter new OLD Version (%CHKOLDVERSVALUE%) ^>
+SET /P CHKOLDVERSVALUE=Enter updated OLD Version (%CHKOLDVERSVALUE%) ^>
 GOTO :ASKOLDVEROK
 
 :QUITNOW1
@@ -141,7 +141,7 @@ ECHO.
 ECHO New Version to Find and replace.  Validate NEW version is OK as entered?  
 ECHO   [Y]es is OK, [N]o or [C]hange to update value, [Q]uit Rename_Version
 ECHO.
-SET /P OPT1=REplace with this NEW Version (%CHKNEWVERSVALUE%) [Y/N/C/Q] (%OPT1%) ^>
+SET /P OPT1=Replace with this NEW Version (%CHKNEWVERSVALUE%) [Y/N/C/Q] (%OPT1%) ^>
 if /i "%OPT1%"=="Y" GOTO :NEWVERISSET
 if /i "%OPT1%"=="N" GOTO :CHANGENEWVERSION
 if /i "%OPT1%"=="C" GOTO :CHANGENEWVERSION
@@ -151,7 +151,7 @@ GOTO :ASKNEWVEROK
 
 :CHANGENEWVERSION
 ECHO.
-SET /P CHKNEWVERSVALUE=Enter new NEW Version (%CHKNEWVERSVALUE%) ^>
+SET /P CHKNEWVERSVALUE=Enter updated NEW Version (%CHKNEWVERSVALUE%) ^>
 GOTO :ASKNEWVEROK
 
 :QUITNOW2

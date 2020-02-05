@@ -1,13 +1,13 @@
 @ECHO OFF
 REM
 REM CODESNIPET :  Code Snipet Open File Types in Text File Editor
-REM Version    :  02.02.00
-REM Date       :  2020-01-05
+REM Version    :  02.05.00
+REM Date       :  2020-01-11
 REM
 
-SET _LOCALSCRIPTNAME=CodeSnipet.OpenFileTypesInTextFileEditor
-SET _LOCALSCRIPTDATE=2020-01-05
-SET _LOCALSCRIPTTIME=1715CST
+SET _LOCALSCRIPTNAME=OpenFileTypesInTextFileEditor.bash
+SET _LOCALSCRIPTDATE=2020-01-11
+SET _LOCALSCRIPTTIME=1115CST
 SET _LOCALSCRIPTVERSION=02.05.00
 SET _LOCALSCRIPTREVISION=001
 
@@ -15,7 +15,7 @@ SET _LOCALSCRIPTREVISION=001
 @ECHO.
 @ECHO =====================================================================================
 @ECHO =====================================================================================
-@ECHO Code Snipet Script Name:  %_LOCALSCRIPTNAME%
+@ECHO Script Name:  %_LOCALSCRIPTNAME%
 @ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME%
 @ECHO SCRIPT CALLED     :  %0
 @ECHO SCRIPT PARAMETERS :  %*
@@ -349,7 +349,7 @@ REM ============================================================================
 REM =====================================================================================
 
 @ECHO ===================================================================================== >> "%_scriptLOGFQPN%"
-@ECHO Code Snipet Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
+@ECHO Script Name:  %_LOCALSCRIPTNAME% >> "%_scriptLOGFQPN%"
 @ECHO VERSION:  %_LOCALSCRIPTVERSION%  REVISION:  %_LOCALSCRIPTREVISION%  DATE:  %_LOCALSCRIPTDATE%  TIME:  %_LOCALSCRIPTTIME% >> "%_scriptLOGFQPN%"
 @ECHO SCRIPT CALLED     :  %0 >> "%_scriptLOGFQPN%"
 @ECHO SCRIPT PARAMETERS :  %* >> "%_scriptLOGFQPN%"

@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT for BASH to execute restart of cp processes
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.22.00
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=remove_script_links
-export BASHScriptShortName="remove_links"
+export BASHScriptFileNameRoot=restart_mgmt
+export BASHScriptShortName=Restart_CP_Processes
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Remove Script Links"
+export BASHScriptDescription=="Restart Check Point processes"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -33,8 +33,8 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=.
+# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
+export BASHScriptsFolder=_template
 
 export BASHScripttftptargetfolder="_template"
 
@@ -194,10 +194,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
+# START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -223,6 +223,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -276,11 +277,12 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -518,7 +520,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -530,10 +532,26 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-10-03 -
+    # MODIFIED 2018-11-20 -
     
-    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
+    export configured_handler_root=$cli_script_cmdlineparm_handler_root
+    export actual_handler_root=$configured_handler_root
     
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -546,6 +564,8 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
+            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
+            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -956,8 +976,26 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
+    # MODIFIED 2018-11-20 -
     
+    export configured_handler_root=$gaia_version_type_handler_root
+    export actual_handler_root=$configured_handler_root
+    
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1181,304 +1219,164 @@ fi
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# DocumentMgmtcpwdadminlist - Document the last execution of the cpwd_admin list command
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
-# Scripts link generation and setup
+
+DocumentMgmtcpwdadminlist () {
+    #
+    # Document the last execution of the cpwd_admin list command
+    #
+    
+    echo | tee -a -i $outputfilefqdn
+    echo 'Check Point management services and processes' | tee -a -i $outputfilefqdn
+    if $IsR8XVersion ; then
+        # cpm_status.sh only exists in R8X
+        echo '$MDS_FWDIR/scripts/cpm_status.sh' | tee -a -i $outputfilefqdn
+        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
+        echo | tee -a -i $outputfilefqdn
+    fi
+    
+    echo 'cpwd_admin list' | tee -a -i $outputfilefqdn
+    cpwd_admin list | tee -a -i $outputfilefqdn
+
+    echo | tee -a -i $outputfilefqdn
+    return 0
+}
+
 #
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#DocumentMgmtcpwdadminlist
 
 
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
+# -------------------------------------------------------------------------------------------------
+# WatchMgmtcpwdadminlist - Watch and document the last execution of the cpwd_admin list command
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+WatchMgmtcpwdadminlist () {
+    #
+    # Watch and document the last execution of the cpwd_admin list command
+    #
+    
+    watchcommands="echo 'Check Point management services and processes'"
+    
+    if $IsR8XVersion ; then
+        # cpm_status.sh only exists in R8X
+        watchcommands=$watchcommands";echo;echo;echo '$MDS_FWDIR/scripts/cpm_status.sh';$MDS_FWDIR/scripts/cpm_status.sh"
+    fi
+    
+    watchcommands=$watchcommands";echo;echo;echo 'cpwd_admin list';cpwd_admin list"
+    
+    if $CLIparm_NOWAIT ; then
+        echo 'Not watching and waiting...'
+    else
+        watch -d -n 1 "$watchcommands"
+    fi
+    
+    DocumentMgmtcpwdadminlist
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#WatchMgmtcpwdadminlist
 
 
-if [ ! -r $workingbase ] ; then
-    echo | tee -a -i $logfilepath
-    echo Error! | tee -a -i $logfilepath
-    echo Missing folder $workingbase | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo Exiting! | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
+
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!"
+    echo
+    echo "Continueing with Migrate Export..."
+    echo
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!"
+    echo
+    echo "This script is not meant for MDM, exiting!"
     exit 255
 else
-    chmod 775 $workingbase | tee -a -i $logfilepath
-fi
-
-chmod 775 $linksbase | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo 'Start with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/gaia_version_type | tee -a -i $logfilepath
-
-rm $workingroot/do_script_nohup | tee -a -i $logfilepath
-
-rm $workingroot/godump | tee -a -i $logfilepath
-rm $workingroot/godtgdump | tee -a -i $logfilepath
-
-rm $workingroot/goChangeLog | tee -a -i $logfilepath
-
-rm $workingroot/mkdump | tee -a -i $logfilepath
-rm $workingroot/mkdtgdump | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/config_capture | tee -a -i $logfilepath
-rm $workingroot/interface_info | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GAIA
-# =============================================================================
-
-
-export workingdir=GAIA
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if $IsR8XVersion ; then
-    
-    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
-    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
-    
+    echo "System is a gateway!"
+    echo
+    echo "This script is not meant for gateways, exiting!"
+    exit 255
 fi
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
 
 
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
-rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
-rm $workingroot/cluster_info | tee -a -i $logfilepath
-rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
+export outputfilepath=$outputpathbase/
+export outputfileprefix=restart_mgmt_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
+if [ ! -r $outputfilepath ] 
+then
+    mkdir -pv $outputfilepath
+fi
 
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
 
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+touch $outputfilefqdn
 
-rm $workingroot/healthcheck | tee -a -i $logfilepath
-rm $workingroot/healthdump | tee -a -i $logfilepath
-rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
+DocumentMgmtcpwdadminlist
 
-# Legacy Naming Clean-up
-rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
-
-
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/report_mdsstat | tee -a -i $logfilepath
-rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
-rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MGMT
-# =============================================================================
-
-
-export workingdir=MGMT
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-#rm $workingroot/x | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-export need_fix_webui=false
-
-rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
-
-
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
-
-
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
-
-
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
-
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
-
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
-
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
-
-
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig.CORE_G2.NPM
-# =============================================================================
-
-
-export workingdir=UserConfig.CORE_G2.NPM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/alias_commands_CORE_G2_NPM_add_user
-rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
-rm $workingroot/alias_commands_CORE_G2_NPM_update_user
-rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
-
-rm -f -r -d $linksbase | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
+echo | tee -a -i $outputfilefqdn
 
 echo | tee -a -i $logfilepath
-echo 'List folder : '$workingroot | tee -a -i $logfilepath
-ls -alh $workingroot | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingbase | tee -a -i $logfilepath
-ls -alh $workingbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done with links clean-up!' | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-# =============================================================================
-# =============================================================================
+cpstop | tee -a -i $outputfilefqdn
 
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+WatchMgmtcpwdadminlist
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+echo | tee -a -i $outputfilefqdn
 
+echo | tee -a -i $logfilepath
+echo 'cpstart...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstart | tee -a -i $outputfilefqdn
+
+echo | tee -a -i $logfilepath
+echo 'cpstart completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+WatchMgmtcpwdadminlist
 
 #==================================================================================================
 #==================================================================================================

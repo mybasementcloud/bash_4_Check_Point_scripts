@@ -1,13 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT Update API memory configuration for Management API (sk119553)
-# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk119553
+# SCRIPT update content of alias_commands.add.all.sh to .bashrc file
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -22,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_api_memory
-export BASHScriptShortName=fix_api_memory
+export BASHScriptFileNameRoot=update_alias_commands.all
+export BASHScriptShortName="update_alias_commands"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Update API memory configuration for Management API (sk119553)"
+export BASHScriptDescription=="Update content of alias_commands.add.all.sh to .bashrc files"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -35,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=_template
+export BASHScriptsFolder=UserConfig
 
 export BASHScripttftptargetfolder="_template"
 
@@ -71,7 +70,7 @@ export rootscriptconfigfile=__root_script_config.sh
 
 export WAITTIME=60
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
@@ -85,8 +84,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -108,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -1214,63 +1213,112 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START:  script shell operations description
+# START :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
 
-if $IsR8XVersion ; then
-    # Do something because R8X
-    
-    if [[ $sys_type_SMS = 'true' ]] || [[ $sys_type_SmartEvent = 'true' ]] ||  [[ $sys_type_MDS = 'true' ]]; then
-        # Only relevant for an management server
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-        echo 'Original file: /opt/CPshared/5.0/tmp/.CPprofile.sh' >> $logfilepath
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-        echo >> $logfilepath
-        cat /opt/CPshared/5.0/tmp/.CPprofile.sh >> $logfilepath
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-    
-        echo "_cpprof_add NGM_WEB_API_MAX_MEMORY 4096 0 0" >> /opt/CPshared/5.0/tmp/.CPprofile.sh
-        echo "_cpprof_add NGM_WEB_API_JRE_64 1 0 0" >> /opt/CPshared/5.0/tmp/.CPprofile.sh
-    
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-        echo 'Updated file: /opt/CPshared/5.0/tmp/.CPprofile.sh' >> $logfilepath
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-        echo >> $logfilepath
-        cat /opt/CPshared/5.0/tmp/.CPprofile.sh >> $logfilepath
-        echo '-------------------------------------------------------------------------------' >> $logfilepath
-    
-        api restart | tee -a -i $logfilepath
-        
-        echo | tee -a -i $logfilepath
-        pushd /opt/CPshared/5.0/tmp/
-        pwd | tee -a -i $logfilepath
-        
-        echo | tee -a -i $logfilepath
-        grep "_cpprof_add NGM_WEB_API_" .CPprofile.sh | tee -a -i $logfilepath
-        
-        echo | tee -a -i $logfilepath
-        popd
-        pwd | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    else
-        # Not relevant if not a management server
-        echo 'Not management server!  Exiting...'
-        echo | tee -a -i $logfilepath
-    fi
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
+
+export targetversion=$gaiaversion
+
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
+
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 else
-    # Do something else because not R8X
-    echo 'Not correct version of product!  Exiting' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
 
+#----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
+#----------------------------------------------------------------------------------------
+
+export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export alliasAddFile=alias_commands.add.all.sh
+export alliasAddFilefqdn=$scriptspathroot/alias_commands/$alliasAddFile
+
+#export dotbashrcmodfile=alias_commands_for_dot_bashrc.sh
+#export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands/$dotbashrcmodfile
+
+
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
+else
+    echo 'Found '"$alliasAddFilefqdn"' file :  '$alliasAddFilefqdn
+    echo | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+fi
+
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Updating alias commands from $alliasAddFilefqdn to user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+cp $alliasAddFilefqdn $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+
 #==================================================================================================
 #==================================================================================================
 #
-# END:  script shell operations description
+# END :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================

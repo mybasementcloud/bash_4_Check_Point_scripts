@@ -4,9 +4,9 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.22.00
-ScriptRevision=000
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -1243,7 +1243,7 @@ fi
 # Execute modification of the .bashrc file for the user in $HOME
 #----------------------------------------------------------------------------------------
 
-export outputfile='add_alias_cmds_all_'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfile=$BASHScriptFileNameRoot'.'$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
 export alliasAddFile=alias_commands.add.all.sh
@@ -1391,35 +1391,71 @@ do
     
     echo >> "$outputfilefqdn"
     echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-    echo "Copy $alliasAddFilefqdn to $workfolder" | tee -a "$outputfilefqdn"
+    echo "Check if excluded users folder" | tee -a "$outputfilefqdn"
     echo | tee -a "$outputfilefqdn"
     
-    cp $alliasAddFilefqdn $workfolder/ | tee -a "$outputfilefqdn"
-    
-    echo "Copy $dotbashrcmodfilefqdn to $workfolder" | tee -a "$outputfilefqdn"
-    echo | tee -a "$outputfilefqdn"
-    cp $dotbashrcmodfilefqdn $workfolder/ | tee -a "$outputfilefqdn"
-
-    echo >> "$outputfilefqdn"
-    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-
-    export checkaddalliasappended=`grep "$alliasAddFile" "$i"`
-    export checkifaddalliasappended=`test -z "$checkaddalliasappended"; echo $?`
-
-    if [ $checkifaddalliasappended -eq 1 ] ; then
-        # $alliasAddFile is already appended
-        echo "No need to append $dotbashrcmodfilefqdn to $i, already there." | tee -a "$outputfilefqdn"
-        echo | tee -a "$outputfilefqdn"
-    else
-        # $alliasAddFile is NOT appended, so append the file
-        echo "Append $dotbashrcmodfilefqdn to $i" | tee -a "$outputfilefqdn"
+    if [ "$workfolder" != "/home/adminscp" ]; then
+        # folder is not restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "INCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo >> "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo "Copy $alliasAddFilefqdn to $workfolder" | tee -a "$outputfilefqdn"
         echo | tee -a "$outputfilefqdn"
         
-        cat $dotbashrcmodfilefqdn >> $i | tee -a "$outputfilefqdn"
-
+        cp $alliasAddFilefqdn $workfolder/ | tee -a "$outputfilefqdn"
+        
+        echo "Copy $dotbashrcmodfilefqdn to $workfolder" | tee -a "$outputfilefqdn"
         echo | tee -a "$outputfilefqdn"
+        cp $dotbashrcmodfilefqdn $workfolder/ | tee -a "$outputfilefqdn"
+        
+        echo >> "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        
+        export checkaddalliasappended=`grep "$alliasAddFile" "$i"`
+        export checkifaddalliasappended=`test -z "$checkaddalliasappended"; echo $?`
+        
+        if [ $checkifaddalliasappended -eq 1 ] ; then
+            # $alliasAddFile is already appended
+            echo "No need to append $dotbashrcmodfilefqdn to $i, already there." | tee -a "$outputfilefqdn"
+            echo | tee -a "$outputfilefqdn"
+        else
+            # $alliasAddFile is NOT appended, so append the file
+            echo "Append $dotbashrcmodfilefqdn to $i" | tee -a "$outputfilefqdn"
+            echo | tee -a "$outputfilefqdn"
+            
+            cat $dotbashrcmodfilefqdn >> $i | tee -a "$outputfilefqdn"
+            
+            echo | tee -a "$outputfilefqdn"
+        fi
+        
+    else
+        # folder is restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "EXCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo 'Remove existing '$workfolder/$alliasAddFile' files' | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        rm -f -v $workfolder/$alliasAddFile | tee -a "$outputfilefqdn"
+        
+        echo | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo 'Remove existing '$workfolder/$dotbashrcmodfile' files' | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        rm -f -v $workfolder/$dotbashrcmodfile | tee -a "$outputfilefqdn"
+        
+        echo >> "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        
     fi
-
+    
     echo >> "$outputfilefqdn"
     echo '===============================================================================' >> "$outputfilefqdn"
     echo "Updated $i file" >> "$outputfilefqdn"
@@ -1429,7 +1465,7 @@ do
     
     echo >> "$outputfilefqdn"
     echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
-   
+    
     parmnum=`expr $parmnum + 1`
 done
 echo '===============================================================================' | tee -a "$outputfilefqdn"

@@ -4,9 +4,9 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=026
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.21.00
 SubScriptsLevel=NA
@@ -295,13 +295,22 @@ export script2nohupfile=$(basename -- "$script2nohup")
 #export script2nohupfile="${script2nohup##*/}"
 export script2nohupfilename="${script2nohupfile##*.}"
 export script2nohupfileext="${script2nohupfile%.*}"
-export script2nohupstdoutlog=.nohup.$DATEDTGS.$script2nohupfile.stdout.txt
-export script2nohupstderrlog=.nohup.$DATEDTGS.$script2nohupfile.stderr.txt
-export script2watchnohupwork=.nohup.$DATEDTGS.$script2nohupfile.watchme.sh
-export script2watchdiskspace=.nohup.$DATEDTGS.$script2nohupfile.diskspace.sh
-export script2cleannohupwork=.nohup.$DATEDTGS.$script2nohupfile.cleanup.sh
-export script2logdisklv_log=.nohup.$DATEDTGS.$script2nohupfile.diskspace.vg_splat-lv_log.sh
-export script2logdisklvcrnt=.nohup.$DATEDTGS.$script2nohupfile.diskspace.vg_splat-lv_current.sh
+
+#export script2nohupstdoutlog=.nohup.$DATEDTGS.$script2nohupfile.stdout.txt
+#export script2nohupstderrlog=.nohup.$DATEDTGS.$script2nohupfile.stderr.txt
+#export script2watchnohupwork=.nohup.$DATEDTGS.$script2nohupfile.watchme.sh
+#export script2watchdiskspace=.nohup.$DATEDTGS.$script2nohupfile.diskspace.sh
+#export script2cleannohupwork=.nohup.$DATEDTGS.$script2nohupfile.cleanup.sh
+#export script2logdisklv_log=.nohup.$DATEDTGS.$script2nohupfile.diskspace.vg_splat-lv_log.sh
+#export script2logdisklvcrnt=.nohup.$DATEDTGS.$script2nohupfile.diskspace.vg_splat-lv_current.sh
+
+export script2nohupstdoutlog=.nohup.$DATEDTG.$script2nohupfile.stdout.txt
+export script2nohupstderrlog=.nohup.$DATEDTG.$script2nohupfile.stderr.txt
+export script2watchnohupwork=.nohup.$DATEDTG.$script2nohupfile.watchme.sh
+export script2watchdiskspace=.nohup.$DATEDTG.$script2nohupfile.diskspace.sh
+export script2cleannohupwork=.nohup.$DATEDTG.$script2nohupfile.cleanup.sh
+export script2logdisklv_log=.nohup.$DATEDTG.$script2nohupfile.diskspace.vg_splat-lv_log.sh
+export script2logdisklvcrnt=.nohup.$DATEDTG.$script2nohupfile.diskspace.vg_splat-lv_current.sh
 
 echo 'NOHUP Clean-up related files and values : ' | tee -a -i $logfilepath
 echo ' $script2nohup          : '"$script2nohup" | tee -a -i $logfilepath
@@ -441,6 +450,7 @@ sleep 10
 
 # That should be enough time for the called script to get things going
 
-ls -alh .nohup.$DATEDTGS.$script2nohupfile.* | tee -a -i $logfilepath
+#ls -alh .nohup.$DATEDTGS.$script2nohupfile.* | tee -a -i $logfilepath
+ls -alh .nohup.$DATEDTG.$script2nohupfile.* | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 

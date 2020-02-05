@@ -2,13 +2,13 @@
 #
 # SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
 # using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
-#
+# EPM export includes standard NPM export and adds export of EP Client MSI files
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -23,10 +23,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=migrate_export_npm_ugex
-export BASHScriptShortName="migrate_export_npm"
+export BASHScriptFileNameRoot=migrate_server_export_epm_ugex
+export BASHScriptShortName="migrate_server_export_epm"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="migrate export NPM to local folder using version tools"
+export BASHScriptDescription=="migrate_server export EPM with EP Client MSI to local folder using version tools"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -1353,19 +1353,31 @@ WatchMgmtcpwdadminlist () {
 # -------------------------------------------------------------------------------------------------
 
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "Continueing with Migrate Export..."
-    echo
+    echo "System is Security Management Server!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "Continueing with Migrate Export..." | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
 elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "This script is not meant for MDM, exiting!"
+    echo "System is Multi-Domain Management Server!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "This script is not meant for MDM, exiting!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
     exit 255
 else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
+    echo "System is a gateway!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "This script is not meant for gateways, exiting!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
     exit 255
 fi
 
@@ -1408,120 +1420,60 @@ else
     fi
 fi
 
-case "$gaiaversion" in
-    R80.20 | R80.30 ) 
-        case "$toolsversion" in
-            R80.20.M1 | R80.20.M2 | R80.40 ) 
-                if $FORCEUSEMIGRATE ; then
-                    if [ -z $CLIparm_l02_toolpath ]; then
-                        export migratefilefolderroot=migration_tools/$toolsversion
-                        export migratefilepath=$outputpathroot/$migratefilefolderroot/
-                    else
-                        if [ -r $CLIparm_l02_toolpath ]; then
-                            export migratefilefolderroot=
-                            export migratefilepath=${CLIparm_l02_toolpath%/}/
-                        else
-                            export migratefilefolderroot=migration_tools/$toolsversion
-                            export migratefilepath=$outputpathroot/$migratefilefolderroot/
-                        fi
-                    fi
-                    
-                    export migratefilename=migrate
-                else
-                    # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
-                    # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
-                    # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
-                    # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
-            
-            
-                    if [ -z $CLIparm_l02_toolpath ]; then
-                        export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
-                        export migratefilepath=$migratefilefolderroot/scripts/
-                    else
-                        if [ -r $CLIparm_l02_toolpath ]; then
-                            export migratefilefolderroot=
-                            export migratefilepath=${CLIparm_l02_toolpath%/}/
-                        else
-                            export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
-                            export migratefilepath=$migratefilefolderroot/scripts/
-                        fi
-                    fi
-                    
-                    export migratefilename=migrate_server
-                fi
-                ;;
-            *)  
-                if [ -z $CLIparm_l02_toolpath ]; then
-                    export migratefilefolderroot=migration_tools/$toolsversion
-                    export migratefilepath=$outputpathroot/$migratefilefolderroot/
-                else
-                    if [ -r $CLIparm_l02_toolpath ]; then
-                        export migratefilefolderroot=
-                        export migratefilepath=${CLIparm_l02_toolpath%/}/
-                    else
-                        export migratefilefolderroot=migration_tools/$toolsversion
-                        export migratefilepath=$outputpathroot/$migratefilefolderroot/
-                    fi
-                fi
-                
-                export migratefilename=migrate
-                ;;    
-        esac
-        ;;
-    R80.20.M1 | R80.20.M2 | R80.40 ) 
-        if $FORCEUSEMIGRATE ; then
-            if [ -z $CLIparm_l02_toolpath ]; then
-                export migratefilefolderroot=migration_tools/$toolsversion
-                export migratefilepath=$outputpathroot/$migratefilefolderroot/
-            else
-                if [ -r $CLIparm_l02_toolpath ]; then
-                    export migratefilefolderroot=
-                    export migratefilepath=${CLIparm_l02_toolpath%/}/
-                else
-                    export migratefilefolderroot=migration_tools/$toolsversion
-                    export migratefilepath=$outputpathroot/$migratefilefolderroot/
-                fi
-            fi
-            
-            export migratefilename=migrate
-        else
-            # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
-            # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
-            # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
-            # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
-    
-    
-            if [ -z $CLIparm_l02_toolpath ]; then
+case "$toolsversion" in
+    R80.20 | R80.20.M1 | R80.20.M2 | R80.30 | R80.40 ) 
+        # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
+        # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
+        # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
+        # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
+        
+        
+        if [ -z $CLIparm_l02_toolpath ]; then
+            if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
                 export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
                 export migratefilepath=$migratefilefolderroot/scripts/
+            elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
+                export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
+                export migratefilepath=$migratefilefolderroot/scripts/
+            elif [ -r "/opt/CPsuite-$toolsversion" ]; then
+                export migratefilefolderroot=/opt/CPsuite-$toolsversion
+                export migratefilepath=$migratefilefolderroot/fw1/scripts/
             else
-                if [ -r $CLIparm_l02_toolpath ]; then
-                    export migratefilefolderroot=
-                    export migratefilepath=${CLIparm_l02_toolpath%/}/
-                else
-                    export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
-                    export migratefilepath=$migratefilefolderroot/scripts/
-                fi
+                export migratefilefolderroot=/opt/CPsuite-$gaiaversion
+                export migratefilepath=$migratefilefolderroot/fw1/scripts/
             fi
-            
-            export migratefilename=migrate_server
-        fi
-        ;;
-    *)
-        if [ -z $CLIparm_l02_toolpath ]; then
-            export migratefilefolderroot=migration_tools/$toolsversion
-            export migratefilepath=$outputpathroot/$migratefilefolderroot/
         else
             if [ -r $CLIparm_l02_toolpath ]; then
                 export migratefilefolderroot=
                 export migratefilepath=${CLIparm_l02_toolpath%/}/
             else
-                export migratefilefolderroot=migration_tools/$toolsversion
-                export migratefilepath=$outputpathroot/$migratefilefolderroot/
+                if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
+                    export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                    export migratefilepath=$migratefilefolderroot/scripts/
+                elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
+                    export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
+                    export migratefilepath=$migratefilefolderroot/scripts/
+                elif [ -r "/opt/CPsuite-$toolsversion" ]; then
+                    export migratefilefolderroot=/opt/CPsuite-$toolsversion
+                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
+                else
+                    export migratefilefolderroot=/opt/CPsuite-$gaiaversion
+                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
+                fi
             fi
         fi
         
-        export migratefilename=migrate
+        export migratefilename=migrate_server
+        ;;
+    *)  
+        echo 'Export Version NOT SUPPORTED:  '$toolsversion | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+        echo ' EXITING...' | tee -a -i $logfilepath
+        echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        exit 255
         ;;
 esac
 
@@ -1551,31 +1503,22 @@ echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+echo 'Execute fw logswitch' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+fw logswitch | tee -a -i $logfilepath
+fw logswitch -audit | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
 echo 'Migration Tools Folder to use:  '$migratefilepath | tee -a -i $logfilepath
 echo 'Migration Export Tools to use:  '$migratefile | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
-case "$gaiaversion" in
-    R80.20.M1 | R80.20.M2 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30 | R80.40.M1 | R80.40.M2 | R80.40 ) 
-        export IsMigrateWIndexes=true
-        ;;
-    *)
-        export IsMigrateWIndexes=false
-        ;;
-esac
-
-if $IsMigrateWIndexes ; then
-    # Migrate supports export of indexes
-    #export command2run='export -n -x'
-    export command2run='export -n'
-else
-    # Migrate does not supports export of indexes
-    #export command2run='export -n -l'
-    export command2run='export -n'
-fi
 
 #
 #    [host:0]# /opt/CPupgrade-tools-R80.30/scripts/migrate_server -h
@@ -1614,23 +1557,53 @@ fi
     
 case "$gaiaversion" in
     R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
-        # migrate_server apparently REQUIRES the -v <version> option to work on export
-        # which his not clear in the HELP!
-        #
-        export command2run=$command2run' -v '$gaiaversion
+        export IsMigrateWIndexes=true
         ;;
     *)
-        export command2run=$command2run
+        export IsMigrateWIndexes=false
         ;;
 esac
 
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run='export -n -x'
+    export command2run='export -n'
+else
+    # Migrate does not supports export of indexes
+    #export command2run='export -n -l'
+    export command2run='export -n'
+fi
+
+export command2run=$command2run' -v '$gaiaversion
+
 export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
+
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run2='export -n -x --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+else
+    # Migrate does not supports export of indexes
+    #export command2run2='export -n -l --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+fi
+
+export command2run2=$command2run2' -v '$gaiaversion
+
+export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn2=$outputfilepath$outputfile2
 
 echo | tee -a -i $logfilepath
 echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
 echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
 
 if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
@@ -1667,11 +1640,31 @@ echo | tee -a -i $logfilepath
 
 $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
-
 echo | tee -a -i $logfilepath
 echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+if [ $Check4EPM -gt 0 ]; then
+    echo | tee -a -i $logfilepath
+    echo 'Executing 2...' | tee -a -i $logfilepath
+    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    #if [ $testmode -eq 0 ]; then
+    #    # Not test mode
+    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    #else
+    #    # test mode
+    #    echo Test Mode! | tee -a -i $logfilepath
+    #fi
+    
+    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+    echo | tee -a -i $logfilepath
+    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
+echo | tee -a -i $logfilepath
 ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
