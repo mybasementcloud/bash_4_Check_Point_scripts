@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT generate an array of domains and show that array
+# SCRIPT update content of alias_commands.add.CORE_G2.NPM.sh to all /home folders that have the file
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=show_all_domains_in_array
-export BASHScriptShortName=show_all_domains_in_array
+export BASHScriptFileNameRoot=update_alias_commands_all_users.CORE_G2.NPM
+export BASHScriptShortName="update_alias_commands_all_users.CORE_G2.NPM"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="API Example - generate an array of domains and show that array"
+export BASHScriptDescription=="Update content of alias_commands.add.CORE_G2.NPM.sh to all /home folders that have the file"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -34,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=MDM
+export BASHScriptsFolder=UserConfig.CORE_G2.NPM
 
 export BASHScripttftptargetfolder="_template"
 
@@ -70,8 +70,8 @@ export rootscriptconfigfile=__root_script_config.sh
 
 export WAITTIME=60
 
-export R8XRequired=true
-export UseR8XAPI=true
+export R8XRequired=false
+export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
 export JQ16Required=false
@@ -107,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -1113,7 +1113,8 @@ GetGaiaVersionAndInstallationType () {
 
 
 echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptName', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo $BASHScriptDescription | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
@@ -1213,121 +1214,245 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
+
 #----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Generate list of domains in Array
-#
-#----------------------------------------------------------------------------------------
+# Configure specific parameters
 #----------------------------------------------------------------------------------------
 
+export targetversion=$gaiaversion
 
-if ! $IsR8XVersion ; then
-    
-    echo | tee -a -i $logfilepath
-    echo '!!!! This script is expected to run on R8X versions and higher with API support !!!!' | tee -a -i $logfilepath
-    echo 'Exiting...!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    exit 255
-    
+export outputfilepath=$outputpathbase/
+export outputfileprefix=$HOSTNAME'_'$targetversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.txt
+
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
-if [ "$sys_type_MDS" != "true" ]; then
-    
-    echo | tee -a -i $logfilepath
-    echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i $logfilepath
-    echo 'Exiting...!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+
+#----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
+#----------------------------------------------------------------------------------------
+
+export outputfile=$BASHScriptFileNameRoot'.'$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+export alliasAddFile=alias_commands.CORE_G2.NPM.sh
+export alliasAddFilefqdn=$scriptspathroot/alias_commands.CORE_G2.NPM/$alliasAddFile
+
+#export dotbashrcmodfile=alias_commands_for_dot_bashrc.CORE_G2.NPM.sh
+#export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands.CORE_G2.NPM/$dotbashrcmodfile
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
     exit 255
-    
+else
+    echo 'Found file :  '$alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
 fi
 
-echo | tee -a -i $logfilepath
-echo 'Generate Array with list of domains on MDS' | tee -a -i $logfilepath
-echo  | tee -a -i $logfilepath
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Updating alias commands from $alliasAddFilefqdn to all user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
-#clish -c "show web ssl-port"
-#MGMTSSLPORT=4344
-clish -i -c "lock database override" >> $logfilepath
-clish -i -c "lock database override" >> $logfilepath
+dos2unix $alliasAddFilefqdn >> "$outputfilefqdn"
 
-GETWEBSSLPORT=`clish -c "show web ssl-port" | awk '{print $2}'`
-export MGMTSSLPORT=$GETWEBSSLPORT
 
-echo 'web SSL Port = '$MGMTSSLPORT | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
 
-DOMAINSARRAY=()
 
-GETDOMAINS="`mgmt_cli show domains -r true --port $MGMTSSLPORT --format json | jq '.objects[].name'`"
+export file2find=$alliasAddFile
+export findrootfolder=/home
 
-echo 'Populate array of domains : ' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Populate array of Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
-line="\"System Data\""
-DOMAINSARRAY+=("$line")
-echo -n 'Domains :  '$line | tee -a -i $logfilepath
+FILEARRAY=()
 
-line="\"Global\""
-DOMAINSARRAY+=("$line")
-echo -n ', '$line | tee -a -i $logfilepath
+GETFINDFILES=`find $findrootfolder -name $file2find`
 
-arraylength=2
+arraylength=0
 while read -r line; do
 
     if [ $arraylength -eq 0 ]; then
-    	echo -n 'Domains :  ' | tee -a -i $logfilepath
-    else
-    	echo -n ', ' | tee -a -i $logfilepath
+    	echo 'Files :  ' | tee -a "$outputfilefqdn"
+    	echo | tee -a "$outputfilefqdn"
     fi
 
-    DOMAINSARRAY+=("$line")
-    echo -n $line | tee -a -i $logfilepath
-
-    #if [ "$line" == 'lo' ]; then
-    #    echo -n 'Not adding '$line | tee -a -i $logfilepath
-    #else 
-    #    DOMAINSARRAY+=("$line")
-    #    echo -n $line | tee -a -i $logfilepath
-    #fi
+    #FILEARRAY+=("$line")
+    FILEARRAY+=("$line")
+	echo '['$arraylength'] '$line | tee -a "$outputfilefqdn"
 	
-	arraylength=${#DOMAINSARRAY[@]}
+	arraylength=${#FILEARRAY[@]}
 	arrayelement=$((arraylength-1))
 	
-done <<< "$GETDOMAINS"
-echo | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+done <<< "$GETFINDFILES"
 
-echo 'Show list of domains in array' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-for j in "${DOMAINSARRAY[@]}"
+if [ $arraylength -eq 0 ]; then
+	echo 'ERROR!!!' | tee -a "$outputfilefqdn"
+    echo 'No files found!  Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
+fi
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Array of Found Files" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+parmnum=0
+for j in "${FILEARRAY[@]}"
 do
-    echo "${j}" | tee -a -i $logfilepath
+    #echo "$j : ${j//\'/}"
+    echo -e "$parmnum \t ${j}" | tee -a "$outputfilefqdn"
+    parmnum=`expr $parmnum + 1`
 done
-echo
 
-echo 'Raw dump of domains array : ' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo ${DOMAINSARRAY[@]} | tee -a -i $logfilepath
-#echo ${DOMAINSARRAY[*]} | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+for i in "${FILEARRAY[@]}"
+do
+    
+    workfolder=`dirname $i`
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Current $i file in folder $workfolder" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+    echo "Check if excluded users folder" | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
+    
+    if [ "$workfolder" != "/home/adminscp" ]; then
+        # folder is not restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "INCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo >> "$outputfilefqdn"
+        echo '===============================================================================' >> "$outputfilefqdn"
+        echo "Copy $alliasAddFilefqdn to $i" | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        cp $alliasAddFilefqdn $i | tee -a "$outputfilefqdn"
+        
+        
+    else
+        # folder is restricted
+        
+        echo >> "$outputfilefqdn"
+        echo "EXCLUDED users folder : $workfolder" | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        echo 'Remove existing '$workfolder/$alliasAddFile' files' | tee -a "$outputfilefqdn"
+        echo | tee -a "$outputfilefqdn"
+        
+        rm -f -v $workfolder/$alliasAddFile | tee -a "$outputfilefqdn"
+        
+        echo | tee -a "$outputfilefqdn"
+        echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        #echo 'Remove existing '$workfolder/$dotbashrcmodfile' files' | tee -a "$outputfilefqdn"
+        #echo | tee -a "$outputfilefqdn"
+        
+        #rm -f -v $workfolder/$dotbashrcmodfile | tee -a "$outputfilefqdn"
+        
+        #echo >> "$outputfilefqdn"
+        #echo '-------------------------------------------------------------------------------' >> "$outputfilefqdn"
+        
+    fi
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo "Updated $i file" >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+    
+    cat $i >> "$outputfilefqdn"
+    
+    echo >> "$outputfilefqdn"
+    echo '===============================================================================' >> "$outputfilefqdn"
+    echo >> "$outputfilefqdn"
+   
+done
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
-echo Done! | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================

@@ -6,9 +6,9 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-02-04
+ScriptDate=2020-02-06
 ScriptVersion=04.23.00
-ScriptRevision=000
+ScriptRevision=001
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -1388,7 +1388,7 @@ fi
 
 
 export outputfilepath=$outputpathroot/
-export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.tgz
 
@@ -1408,15 +1408,15 @@ fi
 
 if [ -z $CLIparm_l01_toolvername ]; then
     if $EXPORTVERSIONDIFFERENT ; then
-        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion
     else
-        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
     fi
 else
     if $EXPORTVERSIONDIFFERENT ; then
-        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion'_using_'$CLIparm_l01_toolvername
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion'_using_'$CLIparm_l01_toolvername
     else
-        export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion'_export_using_'$CLIparm_l01_toolvername
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_using_'$CLIparm_l01_toolvername
     fi
 fi
 

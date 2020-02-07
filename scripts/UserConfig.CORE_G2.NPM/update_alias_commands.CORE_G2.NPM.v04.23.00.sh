@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to report on cp MDM management processes
+# SCRIPT update content of alias_commands.add.CORE_G2.NPM.sh to .bashrc file
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+ScriptDate=2020-02-04
+ScriptVersion=04.23.00
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -21,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=report_mdsstat
-export BASHScriptShortName=report_mdsstat
+export BASHScriptFileNameRoot=update_alias_commands.CORE_G2.NPMv
+export BASHScriptShortName="update_alias_commands.CORE_G2.NPM"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Report on Check Point Multi-Domain Management (MDM) Domains and Processes"
+export BASHScriptDescription=="Update content of alias_commands.add.CORE_G2.NPM.sh to .bashrc files"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -34,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=MDM
+export BASHScriptsFolder=UserConfig.CORE_G2.NPM
 
 export BASHScripttftptargetfolder="_template"
 
@@ -107,7 +107,7 @@ export currentlocalpath=$localdotpath
 export workingpath=$currentlocalpath
 
 export UseGaiaVersionAndInstallation=true
-export ShowGaiaVersionResults=true
+export ShowGaiaVersionResults=false
 export KeepGaiaVersionResultsFile=false
 
 # -------------------------------------------------------------------------------------------------
@@ -1213,89 +1213,112 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!"
-    echo
-    echo "Continueing with MDS mdsstat reporting..."
-    echo
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!"
-    echo
-    echo "This script is not meant for SMS, exiting!"
-    exit 255
-    echo
-else
-    echo "System is a gateway!"
-    echo
-    echo "This script is not meant for gateways, exiting!"
-    exit 255
-fi
-
-
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
+export targetversion=$gaiaversion
 
 export outputfilepath=$outputpathbase/
-export outputfileprefix=report_cpwd_admin_list_$HOSTNAME'_'$gaiaversion
+export outputfileprefix=$HOSTNAME'_'$targetversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
-if [ ! -r $outputfilepath ]; then
-    mkdir -pv $outputfilepath
+if [ ! -r $outputfilepath ] ; then
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
+else
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+
+#----------------------------------------------------------------------------------------
+# Execute modification of the .bashrc file for the user in $HOME
+#----------------------------------------------------------------------------------------
+
+export outputfile='add_alias_cmds_CORE_G2_NPM_'$outputfileprefix$outputfilesuffix$outputfiletype
 export outputfilefqdn=$outputfilepath$outputfile
 
-touch $outputfilefqdn
+export alliasAddFile=alias_commands.CORE_G2.NPM.sh
+export alliasAddFilefqdn=$scriptspathroot/alias_commands.CORE_G2.NPM/$alliasAddFile
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
+#export dotbashrcmodfile=alias_commands_for_dot_bashrc.CORE_G2.NPM.sh
+#export dotbashrcmodfilefqdn=$scriptspathroot/alias_commands.CORE_G2.NPM/$dotbashrcmodfile
+
+
+if [ ! -r $alliasAddFilefqdn ] ; then
+    echo 'Missing '"$alliasAddFilefqdn"' file !!!' | tee -a "$outputfilefqdn"
+    echo 'Exiting!' | tee -a "$outputfilefqdn"
+    exit 255
 else
-    echo | tee -a -i $outputfilefqdn
-fi
-mdsstat | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
-
-
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    watch -d -n 1 "$MDS_FWDIR/scripts/cpm_status.sh;echo;mdsstat"
-    echo
-else
-    watch -d -n 1 "mdsstat"
-    echo
+    echo 'Found '"$alliasAddFilefqdn"' file :  '$alliasAddFilefqdn
+    echo | tee -a "$outputfilefqdn"
+    cat $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+    echo | tee -a "$outputfilefqdn"
 fi
 
+echo | tee -a "$outputfilefqdn"
 
-if $IsR8XVersion ; then
-    # cpm_status.sh only exists in R8X
-    $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $outputfilefqdn
-    echo | tee -a -i $outputfilefqdn
-else
-    echo | tee -a -i $outputfilefqdn
-fi
-mdsstat | tee -a -i $outputfilefqdn
-echo | tee -a -i $outputfilefqdn
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Updating alias commands from $alliasAddFilefqdn to user's $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+dos2unix $alliasAddFilefqdn | tee -a "$outputfilefqdn"
+cp $alliasAddFilefqdn $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME/.bashrc file" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+cat $HOME/.bashrc | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo "Current $HOME folder" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+ls -alh $HOME/ | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo 'Execute alias file from $HOME' | tee -a "$outputfilefqdn"
+echo '. $HOME/$alliasAddFile' | tee -a "$outputfilefqdn"
+echo '. '"$HOME"'/'"$alliasAddFile" | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+. $HOME/$alliasAddFile
+
+echo | tee -a "$outputfilefqdn"
+echo '-------------------------------------------------------------------------------' | tee -a "$outputfilefqdn"
+echo 'Current set alias commands :' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+
+alias | tee -a "$outputfilefqdn"
+
+echo | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo '===============================================================================' | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
+pwd | tee -a "$outputfilefqdn"
+echo | tee -a "$outputfilefqdn"
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END :  Update alias commands all
 #
 #==================================================================================================
 #==================================================================================================

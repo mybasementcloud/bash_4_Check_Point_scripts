@@ -6,7 +6,7 @@
 #
 SubScriptDate=2020-02-04
 SubScriptVersion=04.05.00
-ScriptRevision=010
+ScriptRevision=015
 TemplateVersion=04.21.00
 TemplateLevel=006
 SubScriptsLevel=006
@@ -421,7 +421,7 @@ FinalizeOutputAndLogPaths () {
         chmod 775 $logfilepathbase >> $logfilepath
     fi
     
-    export logfilepathfinal=$logfilepathbase/$BASHScriptName.$DATEDTGS.log
+    export logfilepathfinal=$logfilepathbase/$BASHScriptName.$gaiaversion.$DATEDTGS.log
     
     # if we've been logging, move the temporary log to the final path
     #

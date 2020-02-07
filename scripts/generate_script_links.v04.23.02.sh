@@ -4,8 +4,8 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-02-04
-ScriptVersion=04.23.00
+ScriptDate=2020-02-06
+ScriptVersion=04.23.02
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
@@ -1430,12 +1430,12 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-file_MDM_001=backup_mds_ugex.v04.21.00.sh
-file_MDM_002=backup_mds_w_logs_ugex.v04.21.00.sh
+file_MDM_001=backup_mds_ugex.v04.23.00.sh
+file_MDM_002=backup_mds_w_logs_ugex.v04.23.00.sh
 
-file_MDM_003=report_mdsstat.v04.21.00.sh
-file_MDM_004=watch_mdsstat.v04.21.00.sh
-file_MDM_005=show_all_domains_in_array.v04.21.00.sh
+file_MDM_003=report_mdsstat.v04.23.00.sh
+file_MDM_004=watch_mdsstat.v04.23.00.sh
+file_MDM_005=show_all_domains_in_array.v04.23.00.sh
 
 ln -sf $sourcefolder/$file_MDM_001 $linksfolder/backup_mds_ugex
 ln -sf $sourcefolder/$file_MDM_002 $linksfolder/backup_mds_w_logs_ugex
@@ -1470,9 +1470,16 @@ else
     chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
-#file_MGMT_001=
+file_MGMT_001=identify_self_referencing_symbolic_link_files.v01.00.00.sh
+file_MGMT_002=identify_self_referencing_symbolic_link_files.Lite.v01.00.00.sh
 
-#ln -sf $sourcefolder/$file_MGMT_001 $linksfolder/
+ln -sf $sourcefolder/$file_MGMT_001 $linksfolder/identify_self_referencing_symbolic_link_files
+ln -sf $sourcefolder/$file_MGMT_001 $workingroot/identify_self_referencing_symbolic_link_files
+
+# Done testing, providing this as a stand-alone solution
+#
+#ln -sf $sourcefolder/$file_MGMT_002 $linksfolder/Lite.identify_self_referencing_symbolic_link_files
+#ln -sf $sourcefolder/$file_MGMT_002 $workingroot/Lite.identify_self_referencing_symbolic_link_files
 
 if [ "$sys_type_SMS" == "true" ]; then
     echo

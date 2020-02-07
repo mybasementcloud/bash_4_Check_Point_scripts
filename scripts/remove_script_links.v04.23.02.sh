@@ -4,8 +4,8 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-02-04
-ScriptVersion=04.23.00
+ScriptDate=2020-02-06
+ScriptVersion=04.23.02
 ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
@@ -1332,7 +1332,8 @@ export workingdir=MGMT
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
 
-#rm $workingroot/x | tee -a -i $logfilepath
+rm $workingroot/identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
+rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
 
 
 # =============================================================================

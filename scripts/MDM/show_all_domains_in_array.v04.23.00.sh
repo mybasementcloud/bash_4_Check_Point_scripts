@@ -1,14 +1,12 @@
 #!/bin/bash
 #
-# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
-# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
-# this scripts export a second file with logs and indexes (if R8X)
+# SCRIPT generate an array of domains and show that array
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 ScriptDate=2020-02-06
 ScriptVersion=04.23.00
-ScriptRevision=001
+ScriptRevision=000
 TemplateLevel=006
 TemplateVersion=04.20.00
 SubScriptsLevel=006
@@ -23,10 +21,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=migrate_server_export_w_logs_npm_ugex
-export BASHScriptShortName="migrate_server_export_npm_w_logs"
+export BASHScriptFileNameRoot=show_all_domains_in_array
+export BASHScriptShortName=show_all_domains_in_array
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="migrate_server export NPM with logs to local folder using version tools"
+export BASHScriptDescription=="API Example - generate an array of domains and show that array"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -36,7 +34,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|UserConfig.CORE_G2.NPM
-export BASHScriptsFolder=SMS
+export BASHScriptsFolder=MDM
 
 export BASHScripttftptargetfolder="_template"
 
@@ -72,8 +70,8 @@ export rootscriptconfigfile=__root_script_config.sh
 
 export WAITTIME=60
 
-export R8XRequired=false
-export UseR8XAPI=false
+export R8XRequired=true
+export UseR8XAPI=true
 export UseJSONJQ=true
 export UseJSONJQ16=true
 export JQ16Required=false
@@ -290,22 +288,7 @@ export REMAINS=
 # Define local command line parameter CLIparm values
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-export CLIparm_l01_toolvername=
-export CLIparm_l02_toolpath=
-export CLIparm_l03_NOCPSTART=false
-export CLIparm_l04_targetversion=
-export CLIparm_l05_forcemigrate=false
-
-export DOCPSTART=true
-export EXPORTVERSIONDIFFERENT=false
-export FORCEUSEMIGRATE=false
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
-
+#export CLIparm_local1=
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -313,9 +296,6 @@ export FORCEUSEMIGRATE=false
 # -------------------------------------------------------------------------------------------------
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
 
 processcliremains () {
     #
@@ -350,35 +330,14 @@ processcliremains () {
                 '-?' | --help )
                     SHOWHELP=true
                     ;;
-                --NOCPSTART )
-                    export CLIparm_l03_NOCPSTART=true
-                    export DOCPSTART=false
-                    ;;
-                --forcemigrate | --FORCEMIGRATE )
-                    export CLIparm_l05_forcemigrate=true
-                    export FORCEUSEMIGRATE=true
-                    ;;
                 # Handle --flag=value opts like this
-                --toolversion=* )
-                    export CLIparm_l01_toolvername="${OPT#*=}"
-                    ;;
-                --toolpath=* )
-                    export CLIparm_l02_toolpath="${OPT#*=}"
-                    ;;
-                --exportversion=* )
-                    export CLIparm_l04_targetversion="${OPT#*=}"
+                -q=* | --qlocal1=* )
+                    CLIparm_local1="${OPT#*=}"
+                    #shift
                     ;;
                 # and --flag value opts like this
-                --toolversion )
-                    export CLIparm_l01_toolvername="$2"
-                    shift
-                    ;;
-                --toolpath )
-                    export CLIparm_l02_toolpath="$2"
-                    shift
-                    ;;
-                --exportversion )
-                    export CLIparm_l04_targetversion="$2"
+                -q* | --qlocal1 )
+                    CLIparm_local1="$2"
                     shift
                     ;;
                 # Anything unknown is recorded for later
@@ -410,9 +369,6 @@ processcliremains () {
 
 }
 
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
-
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -422,7 +378,7 @@ processcliremains () {
 # dumpcliparmparselocalresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparselocalresults () {
@@ -442,17 +398,10 @@ dumpcliparmparselocalresults () {
     echo 'Local CLI Parameters :' >> $workoutputfile
     echo >> $workoutputfile
 
-    echo 'CLIparm_l01_toolvername   = '$CLIparm_l01_toolvername >> $workoutputfile
-    echo 'CLIparm_l02_toolpath      = '$CLIparm_l02_toolpath >> $workoutputfile
-    echo 'CLIparm_l03_NOCPSTART     = '$CLIparm_l03_NOCPSTART >> $workoutputfile
-    echo 'CLIparm_l04_targetversion = '$CLIparm_l04_targetversion >> $workoutputfile
-    echo 'CLIparm_l05_forcemigrate  = '$CLIparm_l05_forcemigrate >> $workoutputfile
+    #echo 'CLIparm_local1          = '$CLIparm_local1 >> $workoutputfile
+    #echo 'CLIparm_local2          = '$CLIparm_local2 >> $workoutputfile
     echo  >> $workoutputfile
-    echo 'FORCEUSEMIGRATE           = '$FORCEUSEMIGRATE >> $workoutputfile
-    echo  >> $workoutputfile
-    echo 'DOCPSTART                 = '$DOCPSTART >> $workoutputfile
-    echo  >> $workoutputfile
-    echo 'LOCALREMAINS              = '$LOCALREMAINS >> $workoutputfile
+    echo 'LOCALREMAINS            = '$LOCALREMAINS >> $workoutputfile
     
 	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
@@ -494,7 +443,7 @@ dumpcliparmparselocalresults () {
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1269,504 +1218,111 @@ fi
 #==================================================================================================
 #==================================================================================================
 
-
-# -------------------------------------------------------------------------------------------------
-# DocumentMgmtcpwdadminlist - Document the last execution of the cpwd_admin list command
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 #
-
-DocumentMgmtcpwdadminlist () {
-    #
-    # Document the last execution of the cpwd_admin list command
-    #
-    
-    echo | tee -a -i $logfilepath
-    echo 'Check Point management services and processes' | tee -a -i $logfilepath
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        echo '$MDS_FWDIR/scripts/cpm_status.sh' | tee -a -i $logfilepath
-        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    fi
-    
-    echo 'cpwd_admin list' | tee -a -i $logfilepath
-    cpwd_admin list | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    
-    return 0
-}
-
+# Generate list of domains in Array
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-#DocumentMgmtcpwdadminlist
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# WatchMgmtcpwdadminlist - Watch and document the last execution of the cpwd_admin list command
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-WatchMgmtcpwdadminlist () {
-    #
-    # Watch and document the last execution of the cpwd_admin list command
-    #
+if ! $IsR8XVersion ; then
     
-    watchcommands="echo 'Check Point management services and processes'"
-    
-    if $IsR8XVersion ; then
-        # cpm_status.sh only exists in R8X
-        watchcommands=$watchcommands";echo;echo;echo '$MDS_FWDIR/scripts/cpm_status.sh';$MDS_FWDIR/scripts/cpm_status.sh"
-    fi
-    
-    watchcommands=$watchcommands";echo;echo;echo 'cpwd_admin list';cpwd_admin list"
-    
-    if $CLIparm_NOWAIT ; then
-        echo 'Not watching and waiting...'
-    else
-        watch -d -n 1 "$watchcommands"
-    fi
-    
-    DocumentMgmtcpwdadminlist
-    
-    return 0
-}
-
-#
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
-
-#WatchMgmtcpwdadminlist
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# Validate we are working on a system that handles this operation
-# -------------------------------------------------------------------------------------------------
-
-if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
-    echo "System is Security Management Server!" | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo "Continueing with Migrate Export..." | tee -a -i $logfilepath
+    echo '!!!! This script is expected to run on R8X versions and higher with API support !!!!' | tee -a -i $logfilepath
+    echo 'Exiting...!' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
-    echo "System is Multi-Domain Management Server!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "This script is not meant for MDM, exiting!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
     exit 255
-else
-    echo "System is a gateway!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "This script is not meant for gateways, exiting!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
     
+fi
+
+if [ "$sys_type_MDS" != "true" ]; then
+    
+    echo | tee -a -i $logfilepath
+    echo '!!!! This script is expected to run on Multi-Domain Management !!!!' | tee -a -i $logfilepath
+    echo 'Exiting...!' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
     exit 255
+    
 fi
 
+echo | tee -a -i $logfilepath
+echo 'Generate Array with list of domains on MDS' | tee -a -i $logfilepath
+echo  | tee -a -i $logfilepath
 
-# -------------------------------------------------------------------------------------------------
-# Setup script values
-# -------------------------------------------------------------------------------------------------
+#clish -c "show web ssl-port"
+#MGMTSSLPORT=4344
+clish -i -c "lock database override" >> $logfilepath
+clish -i -c "lock database override" >> $logfilepath
 
+GETWEBSSLPORT=`clish -c "show web ssl-port" | awk '{print $2}'`
+export MGMTSSLPORT=$GETWEBSSLPORT
 
-export outputfilepath=$outputpathroot/
-export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.tgz
+echo 'web SSL Port = '$MGMTSSLPORT | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-export toolsversion=$gaiaversion
+DOMAINSARRAY=()
 
-if [ -z $CLIparm_l04_targetversion ]; then
-    export toolsversion=$gaiaversion
-else
-    export toolsversion=$CLIparm_l04_targetversion
-fi
+GETDOMAINS="`mgmt_cli show domains -r true --port $MGMTSSLPORT --format json | jq '.objects[].name'`"
 
-if [ $gaiaversion != $toolsversion ] ; then
-    export EXPORTVERSIONDIFFERENT=true
-else
-    export EXPORTVERSIONDIFFERENT=false
-fi
+echo 'Populate array of domains : ' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-if [ -z $CLIparm_l01_toolvername ]; then
-    if $EXPORTVERSIONDIFFERENT ; then
-        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion
+line="\"System Data\""
+DOMAINSARRAY+=("$line")
+echo -n 'Domains :  '$line | tee -a -i $logfilepath
+
+line="\"Global\""
+DOMAINSARRAY+=("$line")
+echo -n ', '$line | tee -a -i $logfilepath
+
+arraylength=2
+while read -r line; do
+
+    if [ $arraylength -eq 0 ]; then
+    	echo -n 'Domains :  ' | tee -a -i $logfilepath
     else
-        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
-    fi
-else
-    if $EXPORTVERSIONDIFFERENT ; then
-        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion'_using_'$CLIparm_l01_toolvername
-    else
-        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_using_'$CLIparm_l01_toolvername
-    fi
-fi
-
-case "$toolsversion" in
-    R80.20 | R80.20.M1 | R80.20.M2 | R80.30 | R80.40 ) 
-        # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
-        # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
-        # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
-        # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
-        
-        
-        if [ -z $CLIparm_l02_toolpath ]; then
-            if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
-                export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
-                export migratefilepath=$migratefilefolderroot/scripts/
-            elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
-                export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
-                export migratefilepath=$migratefilefolderroot/scripts/
-            elif [ -r "/opt/CPsuite-$toolsversion" ]; then
-                export migratefilefolderroot=/opt/CPsuite-$toolsversion
-                export migratefilepath=$migratefilefolderroot/fw1/scripts/
-            else
-                export migratefilefolderroot=/opt/CPsuite-$gaiaversion
-                export migratefilepath=$migratefilefolderroot/fw1/scripts/
-            fi
-        else
-            if [ -r $CLIparm_l02_toolpath ]; then
-                export migratefilefolderroot=
-                export migratefilepath=${CLIparm_l02_toolpath%/}/
-            else
-                if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
-                    export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
-                    export migratefilepath=$migratefilefolderroot/scripts/
-                elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
-                    export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
-                    export migratefilepath=$migratefilefolderroot/scripts/
-                elif [ -r "/opt/CPsuite-$toolsversion" ]; then
-                    export migratefilefolderroot=/opt/CPsuite-$toolsversion
-                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
-                else
-                    export migratefilefolderroot=/opt/CPsuite-$gaiaversion
-                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
-                fi
-            fi
-        fi
-        
-        export migratefilename=migrate_server
-        ;;
-    *)  
-        echo 'Export Version NOT SUPPORTED:  '$toolsversion | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-        echo ' EXITING...' | tee -a -i $logfilepath
-        echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        
-        exit 255
-        ;;
-esac
-
-export migratefile=$migratefilepath$migratefilename
-
-if [ ! -r $migratefilepath ]; then
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
-    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    exit 255
-fi
-
-if [ ! -r $migratefile ]; then
-    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
-    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
-    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
-    echo ' EXITING...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    exit 255
-fi
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Execute fw logswitch' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-fw logswitch | tee -a -i $logfilepath
-fw logswitch -audit | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Migration Tools Folder to use:  '$migratefilepath | tee -a -i $logfilepath
-echo 'Migration Export Tools to use:  '$migratefile | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-#
-#    [host:0]# /opt/CPupgrade-tools-R80.30/scripts/migrate_server -h
-#    
-#    Use the migrate utility to export and import Check Point
-#    Security Management Server database.
-#    
-#    Usage: /opt/CPupgrade-tools-R80.30/scripts/migrate_server <ACTION> [OPTIONS] <FILE>
-#    
-#            ACTION (required parameter):
-#    
-#            export - exports database of Management Server or Multi-Domain Server.
-#            import - imports database of Management Server or Multi-Domain Server.
-#            verify - verifies database of Management Server or Multi-Domain Server.
-#    
-#            Options (optional parameters):
-#            '-h'                           show this message.
-#            '-v <target version>'          Import version.
-#            '-skip_upgrade_tools_check'    does not check for updated upgrade tools.
-#            '-l'                           Export/import logs without log indexes.
-#            '-x'                           Export/import logs with log indexes.
-#                                           Note: only closed logs are exported/imported.
-#            '-n'                           Run non-interactively.
-#            '--exclude-uepm-postgres-db'   skip over backup/restore of PostgreSQL.
-#            '--include-uepm-msi-files'     export/import the uepm msi files.
-#    
-#            <FILE> (required parameter only for import):
-#    
-#            Name of archived file to export/import database to/from.
-#            Path to archive should exist.
-#    
-#    Note:
-#    Run the utility either from the current directory or using
-#    an absolute path.
-#
-    
-case "$gaiaversion" in
-    R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
-        export IsMigrateWIndexes=true
-        ;;
-    *)
-        export IsMigrateWIndexes=false
-        ;;
-esac
-
-if $IsMigrateWIndexes ; then
-    # Migrate supports export of indexes
-    #export command2run='export -n -x'
-    export command2run='export -n'
-else
-    # Migrate does not supports export of indexes
-    #export command2run='export -n -l'
-    export command2run='export -n'
-fi
-
-export command2run=$command2run' -v '$gaiaversion
-
-export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-if $IsMigrateWIndexes ; then
-    # Migrate supports export of indexes
-    export command2run2='export -n -x'
-    #export command2run2='export -n'
-else
-    # Migrate does not supports export of indexes
-    export command2run2='export -n -l'
-    #export command2run2='export -n'
-fi
-
-export command2run2=$command2run2' -v '$gaiaversion
-
-export outputfile2=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
-
-echo | tee -a -i $logfilepath
-echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
-echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
-echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Preparing ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-DocumentMgmtcpwdadminlist
-
-echo | tee -a -i $logfilepath
-echo 'cpstop ...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-cpstop | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'cpstop completed' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Executing...' | tee -a -i $logfilepath
-echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-#if [ $testmode -eq 0 ]; then
-#    # Not test mode
-#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
-#else
-#    # test mode
-#    echo Test Mode! | tee -a -i $logfilepath
-#fi
-
-$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Executing 2...' | tee -a -i $logfilepath
-echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-
-#if [ $testmode -eq 0 ]; then
-#    # Not test mode
-#    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-#else
-#    # test mode
-#    echo Test Mode! | tee -a -i $logfilepath
-#fi
-
-$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-ls -alh $outputfilefqdn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-DocumentMgmtcpwdadminlist
-
-echo | tee -a -i $logfilepath
-if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if $CLIparm_NOSTART ; then
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop ...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstop | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-   
-else
-    
-    DocumentMgmtcpwdadminlist
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop ...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstop | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstop completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    
-    echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
-    sleep $WAITTIME
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstart...' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    cpstart | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'cpstart completed' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    DocumentMgmtcpwdadminlist
-    
-    echo | tee -a -i $logfilepath
-    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    
-    DocumentMgmtcpwdadminlist
-    
-    if $IsR8XVersion ; then
-        # R80 version so kick the API on
-        #echo | tee -a -i $logfilepath
-        #echo 'api start ...' | tee -a -i $logfilepath
-        #echo | tee -a -i $logfilepath
-        #
-        #api start | tee -a -i $logfilepath
-        #
-        echo | tee -a -i $logfilepath
-        echo 'api status' | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    
-        api status | tee -a -i $logfilepath
-    
-        echo | tee -a -i $logfilepath
-    else
-        # not R80 version so no API
-        echo | tee -a -i $logfilepath
+    	echo -n ', ' | tee -a -i $logfilepath
     fi
 
-fi
+    DOMAINSARRAY+=("$line")
+    echo -n $line | tee -a -i $logfilepath
 
-    
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+    #if [ "$line" == 'lo' ]; then
+    #    echo -n 'Not adding '$line | tee -a -i $logfilepath
+    #else 
+    #    DOMAINSARRAY+=("$line")
+    #    echo -n $line | tee -a -i $logfilepath
+    #fi
+	
+	arraylength=${#DOMAINSARRAY[@]}
+	arrayelement=$((arraylength-1))
+	
+done <<< "$GETDOMAINS"
 echo | tee -a -i $logfilepath
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
-
+echo 'Show list of domains in array' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+for j in "${DOMAINSARRAY[@]}"
+do
+    echo "${j}" | tee -a -i $logfilepath
+done
+echo
 
+echo 'Raw dump of domains array : ' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo ${DOMAINSARRAY[@]} | tee -a -i $logfilepath
+#echo ${DOMAINSARRAY[*]} | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+echo Done! | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 #==================================================================================================
 #==================================================================================================
