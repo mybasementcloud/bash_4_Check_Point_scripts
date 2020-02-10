@@ -4,13 +4,22 @@
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
-ScriptDate=2020-01-05
-ScriptVersion=04.21.00
-ScriptRevision=004
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+#
+ScriptDate=2020-02-10
+ScriptVersion=04.24.00
+ScriptRevision=001
 TemplateLevel=006
-TemplateVersion=04.20.00
+TemplateVersion=04.24.00
 SubScriptsLevel=006
-SubScriptsVersion=04.05.00
+SubScriptsVersion=04.06.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -33,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|Health_Check|MDM|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig
+# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=GAIA
 
 export BASHScripttftptargetfolder="_template"
@@ -1602,6 +1611,14 @@ echo | tee -a -i $logfilepath
 #==================================================================================================
 #==================================================================================================
 
+
+if [ -r nul ] ; then
+    rm nul >> $logfilepath
+fi
+
+if [ -r None ] ; then
+    rm None >> $logfilepath
+fi
 
 echo | tee -a -i $logfilepath
 echo 'List folder : '$outputpathbase | tee -a -i $logfilepath

@@ -1,8 +1,0 @@
-  Starting Folder Path       --Path <Starting_Folder_Path> | --Path=<Starting_Folder_Path>
-
-  Remove Circular SymLinks   --KILL | --kill
-
- ]# script_name -v --Path "${RTDIR}/log_indexes/" --KILL
-
-
-
