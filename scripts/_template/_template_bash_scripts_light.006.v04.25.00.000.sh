@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT Template for bash scripts, level - 006
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,20 +30,20 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
-export BASHScriptShortName=fix_gaia_webui_login_dot_js.v$ScriptVersion
+export BASHScriptFileNameRoot=_template_bash_scripts_light
+export BASHScriptShortName=_template_light.$TemplateLevel.v$ScriptVersion
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription=="Template Light for bash scripts"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=_template
 
 export BASHScripttftptargetfolder="_template"
 
@@ -70,121 +70,131 @@ echo
     
 
 # -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-# JQ and json related
-# -------------------------------------------------------------------------------------------------
-
-# points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
-    
-# -------------------------------------------------------------------------------------------------
-# END:  Basic Configuration
-# -------------------------------------------------------------------------------------------------
+# Other variable configuration
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# START: Root Script Configuration
-# -------------------------------------------------------------------------------------------------
-
-export scriptspathroot=/var/log/__customer/upgrade_export/scripts
-export rootscriptconfigfile=__root_script_config.sh
+WAITTIME=20
 
 
 # -------------------------------------------------------------------------------------------------
-# localrootscriptconfiguration - Local Root Script Configuration setup
+# CheckAndUnlockGaiaDB - Check and Unlock Gaia database
 # -------------------------------------------------------------------------------------------------
 
-localrootscriptconfiguration () {
+# MODIFIED 2019-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CheckAndUnlockGaiaDB () {
     #
-    # Local Root Script Configuration setup
+    # CheckAndUnlockGaiaDB - Check and Unlock Gaia database
     #
+    
+    echo -n 'Unlock gaia database : '
 
-    # WAITTIME in seconds for read -t commands
-    export WAITTIME=60
+    export gaiadbunlocked=false
+
+    until $gaiadbunlocked ; do
+
+        export checkgaiadblocked=`clish -i -c "lock database override" | grep -i "owned"`
+        export isclishowned=`test -z $checkgaiadblocked; echo $?`
+
+        if [ $isclishowned -eq 1 ]; then 
+            echo -n '.'
+            export gaiadbunlocked=false
+        else
+            echo -n '!'
+            export gaiadbunlocked=true
+        fi
+
+    done
+
+    echo; echo
     
-    export customerpathroot=/var/log/__customer
-    export customerworkpathroot=$customerpathroot/upgrade_export
-    export outputpathroot=$customerworkpathroot
-    export dumppathroot=$customerworkpathroot/dump
-    export changelogpathroot=$customerworkpathroot/Change_Log
-    
-    echo
     return 0
 }
 
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+#CheckAndUnlockGaiaDB
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-if [ -r "$scriptspathroot/$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder for scripts
-    # So let's call that script to configure what we need
 
-    . $scriptspathroot/$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "../$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder above the executiong script
-    # So let's call that script to configure what we need
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Start of Script Operations
+# -------------------------------------------------------------------------------------------------
 
-    . ../$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder with the executiong script
-    # So let's call that script to configure what we need
 
-    . $rootscriptconfigfile "$@"
-    errorreturn=$?
-else
-    # Did not the Root Script Configuration File
-    # So let's call local configuration
+# -------------------------------------------------------------------------------------------------
+# local scripts variables configuration
+# -------------------------------------------------------------------------------------------------
 
-    localrootscriptconfiguration "$@"
-    errorreturn=$?
+
+targetfolder=/var/log/__customer/upgrade_export
+
+
+# -------------------------------------------------------------------------------------------------
+# logfile configuration
+# -------------------------------------------------------------------------------------------------
+
+
+# setup initial log file for output logging
+export logfilefolder=$targetfolder/Change_Log/$DATEDTGS.$BASHScriptShortName
+export logfilepath=$logfilefolder/$BASHScriptName.$DATEDTGS.log
+
+if [ ! -w $logfilefolder ]; then
+    mkdir -pv $logfilefolder
 fi
 
-
-# -------------------------------------------------------------------------------------------------
-# END:  Root Script Configuration
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-export outputpathbase=$changelogpathroot/$DATEDTGS
-
-if [ ! -r $changelogpathroot ]; then
-    mkdir -pv $changelogpathroot
-fi
-if [ ! -r $outputpathbase ]; then
-    mkdir -pv $outputpathbase
-fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
-
-echo 'Created folder :  '$outputpathbase
-echo
-ls -al $outputpathbase
-echo
+touch $logfilepath
 
 
 # -------------------------------------------------------------------------------------------------
-# End of script
+# Script intro
+# -------------------------------------------------------------------------------------------------
+
+
+echo | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
+
+
+# do something
+
+
+# -------------------------------------------------------------------------------------------------
+# Closing operations and log file information
 # -------------------------------------------------------------------------------------------------
 
 
 if [ -r nul ] ; then
-    rm nul
+    rm nul >> $logfilepath
 fi
 
 if [ -r None ] ; then
-    rm None
+    rm None >> $logfilepath
 fi
+
+echo | tee -a -i $logfilepath
+echo 'Log File : '$logfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# -------------------------------------------------------------------------------------------------
+# End of script Operations
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 echo
 echo 'Script Completed, exiting...';echo
-

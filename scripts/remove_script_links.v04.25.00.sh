@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Update GAIA REST API Installation with latest package from tftp server - SAMPLE
+# SCRIPT Remove script link files
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,20 +30,20 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=update_gaia_rest_api
-export BASHScriptShortName=Update_GAIA_REST_API
+export BASHScriptFileNameRoot=remove_script_links
+export BASHScriptShortName="remove_links"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Update GAIA REST API Installation with latest package from tftp server"
+export BASHScriptDescription=="Remove Script Links"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=GAIA
+export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
 
@@ -79,7 +79,7 @@ export rootscriptconfigfile=__root_script_config.sh
 
 export WAITTIME=60
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
@@ -93,8 +93,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -203,10 +203,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Command Line Parameter Handling and Help
+# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -232,7 +232,6 @@ fi
 # --RESTART
 #
 # --NOHUP
-# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -286,12 +285,11 @@ else
 fi
 
 export CLIparm_NOHUP=false
-export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -529,7 +527,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -541,26 +539,10 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-11-20 -
+    # MODIFIED 2018-10-03 -
     
-    export configured_handler_root=$cli_script_cmdlineparm_handler_root
-    export actual_handler_root=$configured_handler_root
+    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
     
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -573,8 +555,6 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
-            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
-            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -985,26 +965,8 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    # MODIFIED 2018-11-20 -
+    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
     
-    export configured_handler_root=$gaia_version_type_handler_root
-    export actual_handler_root=$configured_handler_root
-    
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1222,382 +1184,356 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Download and if necessary, upgrade GAIA REST API
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# local script variables
-# -------------------------------------------------------------------------------------------------
-
-
-if [ ! -z $MYTFTPSERVER1 ] && [ $MYTFTPSERVER1 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER1
-elif [ ! -z $MYTFTPSERVER2 ] && [ $MYTFTPSERVER2 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER2
-elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER3
-elif [ ! -z $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER
-else
-    export sourcetftpserver=192.169.1.1
-fi
-
-
-export remoterootfolder=/__gaia
-export remotefilefolder=gaia_rest_api
-export remotefilename=Check_Point_gaia_api.tgz
-export fqpnremotefile=$remoterootfolder/$remotefilefolder/$remotefilename
-
-#export remotescriptfolder=gaia_rest_api
-#export remotescriptname=update_gaia_api.sh
-#export fqpnremotescript=$remoterootfolder/$remotescriptfolder/$remotescriptname
-
-export rootworkpath=/var/log/__customer/download
-export workfolder=gaia_rest_api
-export workfoldercurrent=current
-export workfoldernew=new
-
-export workfilename=$remotefilename
-export installerfilename=install_gaia_api.sh
-
-export fqpnworkfolder=$rootworkpath/$workfolder
-export fqpncurrentfolder=$fqpnworkfolder/$workfoldercurrent
-export fqpnnewfolder=$fqpnworkfolder/$workfoldernew
-
-export fqfpworkfile=$fqpnworkfolder/$workfilename
-export fqfpcurrentfile=$fqpncurrentfolder/$workfilename
-export fqfpnewfile=$fqpnnewfolder/$workfilename
-
-
 #----------------------------------------------------------------------------------------
-# Check for working folders
 #----------------------------------------------------------------------------------------
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo ' Folder path check and creation! ' >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-if [ ! -r $rootworkpath ] ; then
-    mkdir -pv $rootworkpath >> $logfilepath
-    chmod 775 $rootworkpath
-else
-    chmod 775 $rootworkpath
-fi
-
-if [ ! -r $fqpnworkfolder ] ; then
-    mkdir -pv $fqpnworkfolder
-    chmod 775 $fqpnworkfolder
-else
-    chmod 775 $fqpnworkfolder
-fi
-
-if [ ! -r $fqpncurrentfolder ] ; then
-    mkdir -pv $fqpncurrentfolder
-    chmod 775 $fqpncurrentfolder
-else
-    chmod 775 $fqpncurrentfolder
-fi
-
-if [ ! -r $fqpnnewfolder ] ; then
-    mkdir -pv $fqpnnewfolder
-    chmod 775 $fqpnnewfolder
-else
-    chmod 775 $fqpnnewfolder
-fi
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-
+#
+# Scripts link generation and setup
+#
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Drop into folder and make sure we can write! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Wait until the target folder is available : '$fqpnworkfolder; echo
-echo -n '!'
-until [ -r $fqpnworkfolder ]
-do
-    echo -n '.'
-done
-echo
-
-echo | tee -a -i $logfilepath
-echo 'pushd to '$fqpnworkfolder | tee -a -i $logfilepath
-pushd "$fqpnworkfolder"
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Current content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-rm  $fqpnworkfolder/* | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Post clean-up content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+export workingroot=$customerworkpathroot
+export workingbase=$workingroot/scripts
+export linksbase=$workingbase/.links
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Get remote files! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Fetch latest $remotefilename from tftp repository on $sourcetftpserver..." | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-tftp -v -m binary $sourcetftpserver -c get $fqpnremotefile | tee -a -i $logfilepath
-#tftp -v -m binary $sourcetftpserver -c get $fqpnremotescript | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check File transfer OK! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Check that we got it." | tee -a -i $logfilepath
-if [ ! -r $workfilename ]; then
-    # Oh, oh, we didn't get the $workfilename file
+if [ ! -r $workingbase ] ; then
     echo | tee -a -i $logfilepath
-    echo 'Critical Error!!! Did not obtain '$workfilename' file from tftp!!!' | tee -a -i $logfilepath
+    echo Error! | tee -a -i $logfilepath
+    echo Missing folder $workingbase | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
+    echo Exiting! | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
     exit 255
 else
-    # we have the $workfilename file and can work with it
-    echo | tee -a -i $logfilepath
-    ls -alh $workfilename | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # copy the new file to the new folder
-    cp $workfilename $fqpnnewfolder >> $logfilepath
+    chmod 775 $workingbase | tee -a -i $logfilepath
 fi
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+chmod 775 $linksbase | tee -a -i $logfilepath
 
 
 echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check if this is the first run or if we need to verify downloaded file is newer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo 'Start with links clean-up!' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-# check installation of Dynamic CLI
-rpm -q gaia_api &> /dev/null
-if [ $? -ne 0 ]; then
-    # Gaia REST API is not currently installed
-    echo "Gaia REST API is not currenlty installed!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+# =============================================================================
+# =============================================================================
+# FOLDER:  Common
+# =============================================================================
 
-    # overwrite the current file with the work file
-    echo "Overwrite the current file : $fqfpcurrentfile with $workfilename" | tee -a -i $logfilepath
-    echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+
+export workingdir=Common
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/gaia_version_type | tee -a -i $logfilepath
+
+rm $workingroot/do_script_nohup | tee -a -i $logfilepath
+
+rm $workingroot/godump | tee -a -i $logfilepath
+rm $workingroot/godtgdump | tee -a -i $logfilepath
+
+rm $workingroot/goChangeLog | tee -a -i $logfilepath
+
+rm $workingroot/mkdump | tee -a -i $logfilepath
+rm $workingroot/mkdtgdump | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Config
+# =============================================================================
+
+
+export workingdir=Config
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/config_capture | tee -a -i $logfilepath
+rm $workingroot/interface_info | tee -a -i $logfilepath
+rm $workingroot/EPM_config_check | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GAIA
+# =============================================================================
+
+
+export workingdir=GAIA
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if $IsR8XVersion ; then
     
-    # copy the new file to the current folder
-    cp $workfilename $fqpncurrentfolder >> $logfilepath
+    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
+    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW
+# =============================================================================
+
+
+export workingdir=GW
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
+rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
+rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
+rm $workingroot/cluster_info | tee -a -i $logfilepath
+rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW.CORE
+# =============================================================================
+
+
+export workingdir=GW.CORE
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ ! -r $sourcefolder ] ; then
+    # This folder is not part of the distribution
+    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
 else
-    if [ -r $fqfpcurrentfile ]; then
-        # we have a current file to check
-        echo "We have an existing current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    
-        # md5sum current/Check_Point_gaia_dynamic_cli.tgz
-        export md5current=$(md5sum $fqfpcurrentfile | cut -d " " -f 1)
-        echo 'md5 of current : '$md5current | tee -a -i $logfilepath
-        
-        # md5sum Check_Point_gaia_dynamic_cli.tgz
-        export md5new=$(md5sum $fqfpnewfile | cut -d " " -f 1)
-        echo 'md5 of     new : '$md5new | tee -a -i $logfilepath
-        
-        if [ $md5new == $md5current ]; then 
-            echo "Files are the same" | tee -a -i $logfilepath
-            echo 'No reason to update the existing installation!' | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'returning to script starting folder' | tee -a -i $logfilepath
-            popd
-            pwd | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'Exiting...' | tee -a -i $logfilepath
-            
-            echo | tee -a -i $logfilepath
-            echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-            echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            
-            exit 255
-        else 
-            echo "Files are different, moving right along..." | tee -a -i $logfilepath
-        fi
-        echo | tee -a -i $logfilepath
-        
-    else
-        # no current file, so copy new file to current
-        echo "There is no current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        
-        # copy the new file to the current folder
-        cp $workfilename $fqpncurrentfolder >> $logfilepath
-    fi
+    $workingroot/fix_smcias_interfaces | tee -a -i $logfilepath
+    $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE | tee -a -i $logfilepath
 fi
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Health_Check
+# =============================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+export workingdir=Health_Check
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/healthcheck | tee -a -i $logfilepath
+rm $workingroot/healthdump | tee -a -i $logfilepath
+rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
+
+# Legacy Naming Clean-up
+rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
 
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Untar the '$workfilename' and execute the installer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# =============================================================================
+# =============================================================================
+# FOLDER:  MDM
+# =============================================================================
 
-if [ -r $workfilename ]; then
-    # OK now that we are clear on doing the work, let's extract this file and make it happen
 
-    # now unzip existing scripts folder
-    echo "Extract $workfilename file..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    tar -zxvf $workfilename | tee -a -i $logfilepath
+export workingdir=MDM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
 
-    echo | tee -a -i $logfilepath
-    ls -alh | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # now execute installer script in local folder
-    echo "Execute installer file $installerfilename ..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
+rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
+rm $workingroot/report_mdsstat | tee -a -i $logfilepath
+rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
+rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
 
-    ./$installerfilename | tee -a -i $logfilepath
 
-    cp $workfilename $fqpncurrentfolder | tee -a -i $logfilepath
+# =============================================================================
+# =============================================================================
+# FOLDER:  MGMT
+# =============================================================================
 
-    #echo 'Reboot to get operational!' | tee -a -i $logfilepath
 
+export workingdir=MGMT
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
+rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Patch_HotFix
+# =============================================================================
+
+
+export workingdir=Patch_HotFix
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+export need_fix_webui=false
+
+rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Session_Cleanup
+# =============================================================================
+
+
+export workingdir=Session_Cleanup
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
+rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
+rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
+#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
+#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
+#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
+#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS
+# =============================================================================
+
+
+export workingdir=SMS
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
+rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
+rm $workingroot/restart_mgmt | tee -a -i $logfilepath
+rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS.migrate_backup
+# =============================================================================
+
+
+export workingdir=SMS.migrate_backup
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
+
+rm $workingroot/migrate_server_export_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_server_export_w_logs_npm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_server_export_epm_ugex | tee -a -i $logfilepath
+rm $workingroot/migrate_server_export_w_logs_epm_ugex | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig
+# =============================================================================
+
+
+export workingdir=UserConfig
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
+rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
+rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
+rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
+
+# Legacy Naming Clean-up
+rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
+rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
+rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig.CORE_G2.NPM
+# =============================================================================
+
+
+export workingdir=UserConfig.CORE_G2.NPM
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ ! -r $sourcefolder ] ; then
+    # This folder is not part of the distribution
+    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
 else
-    # Heh????
     
-    echo | tee -a -i $logfilepath
-    echo 'Files and folders:' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    ls -alhR | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    rm $workingroot/alias_commands_CORE_G2_NPM_add_user
+    rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
+    rm $workingroot/alias_commands_CORE_G2_NPM_update_user
+    rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
     
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    exit 255
 fi
 
 
-echo | tee -a -i $logfilepath
-echo 'returning to script starting folder' | tee -a -i $logfilepath
-popd
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# =============================================================================
+# =============================================================================
+# FOLDER:  
+# =============================================================================
 
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
+# =============================================================================
+# =============================================================================
 
-echo | tee -a -i $logfilepath
-echo 'Files and folders:' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alhR "$fqpnworkfolder" | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+rm -f -r -d $linksbase | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
 
 echo | tee -a -i $logfilepath
-echo 'Check Gaia REST API Status' | tee -a -i $logfilepath
-gaia_api status | tee -a -i $logfilepath
+echo 'List folder : '$workingroot | tee -a -i $logfilepath
+ls -alh $workingroot | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'List folder : '$workingbase | tee -a -i $logfilepath
+ls -alh $workingbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done with links clean-up!' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# =============================================================================
+# =============================================================================
+
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
-
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+#
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Download and if necessary, upgrade GAIA REST API
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================

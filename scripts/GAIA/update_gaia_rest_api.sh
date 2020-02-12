@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-02-10
-ScriptVersion=04.24.00
-ScriptRevision=001
+ScriptDate=2020-02-11
+ScriptVersion=04.25.00
+ScriptRevision=000
+TemplateVersion=04.25.00
 TemplateLevel=006
-TemplateVersion=04.24.00
 SubScriptsLevel=006
-SubScriptsVersion=04.06.00
+SubScriptsVersion=04.07.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|[UserConfig.CORE_G2.NPM]
+# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=GAIA
 
 export BASHScripttftptargetfolder="_template"
@@ -1153,6 +1153,15 @@ fi
 # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
 
 
+#----------------------------------------------------------------------------------------
+# Gaia version and installation type identification
+#----------------------------------------------------------------------------------------
+
+if $UseGaiaVersionAndInstallation ; then
+    GetGaiaVersionAndInstallationType "$@"
+fi
+
+
 # -------------------------------------------------------------------------------------------------
 # Configure script output paths and folders
 # -------------------------------------------------------------------------------------------------
@@ -1164,15 +1173,6 @@ SetScriptOutputPathsAndFolders "$@"
 # END:  Root Operations
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-
-
-#----------------------------------------------------------------------------------------
-# Gaia version and installation type identification
-#----------------------------------------------------------------------------------------
-
-if $UseGaiaVersionAndInstallation ; then
-    GetGaiaVersionAndInstallationType "$@"
-fi
 
 
 # -------------------------------------------------------------------------------------------------

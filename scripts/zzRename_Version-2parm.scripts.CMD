@@ -1,11 +1,11 @@
 ECHO OFF
 REM
-REM CODESNIPET :  Rename Files with Version using 3 parameters : OldVersion, NewVersion, TargetFolder - scripts folder specific
+REM CODESNIPET :  Rename Files with Version using 2 parameters : OldVersion, NewVersion - scripts folder specific
 REM Version    :  04.25.00
 REM Date       :  2020-01-11
 REM
 
-SET _LOCALSCRIPTNAME=RenameFilesWithVersion3Parameter.bash
+SET _LOCALSCRIPTNAME=RenameFilesWithVersion2Parameter.bash
 SET _LOCALSCRIPTDATE=2020-01-11
 SET _LOCALSCRIPTTIME=2245CST
 SET _LOCALSCRIPTVERSION=04.25.00
@@ -544,32 +544,32 @@ REM -----------------------------------------------------------------
 REM -----------------------------------------------------------------
 
 REM -----------------------------------------------------------------
-REM Set Target Folder
+REM Set Working Directory
 REM -----------------------------------------------------------------
 
-SET TARGETFOLDER=.
+REM SET WORKDIR=.
 
-ECHO.
-ECHO Paramter 3 = "%3"
-ECHO.
+REM ECHO.
+REM ECHO Paramter 3 = "%3"
+REM ECHO.
 
 REM ECHO ON
 
-if not exist %3 goto :NoParm3Set
-SET TARGETFOLDER=%~3
+REM if not exist %3 goto :NoParm3Set
+REM SET WORKDIR=%~3
 
-REM ECHO Work Directory = "%TARGETFOLDER%"
-REM if not %TARGETFOLDER:~0,3%==" goto :NoQuotes
-REM SET TARGETFOLDER=%TARGETFOLDER:~3%
-REM SET TARGETFOLDER=%TARGETFOLDER:~0,-3%
+REM ECHO Work Directory = "%WORKDIR%"
+REM if not %WORKDIR:~0,3%==" goto :NoQuotes
+REM SET WORKDIR=%WORKDIR:~3%
+REM SET WORKDIR=%WORKDIR:~0,-3%
 REM :NoQuotes
 REM ECHO OFF
 
-:NoParm3Set
+REM :NoParm3Set
 
-ECHO.
-ECHO Target Folder = "%TARGETFOLDER%"
-ECHO.
+REM ECHO.
+REM ECHO Work Directory = "%WORKDIR%"
+REM ECHO.
 
 
 REM -----------------------------------------------------------------
@@ -696,63 +696,29 @@ ECHO. >> "%_scriptLOGFQPN%"
 ECHO Current Folder : "%CD%" >> "%_scriptLOGFQPN%"
 ECHO. >> "%_scriptLOGFQPN%"
 
-
-@ECHO: >> "%_scriptLOGFQPN%"
-
-
-REM * ===================================================================================
-REM * Enter the target folder for operations
-REM * ===================================================================================
-
-
-PUSHD "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
-
-@ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: CURRENT DIRECTORY :  %CD%
-@ECHO:
-
-
-REM * ===================================================================================
-REM * Do what we came to do
-REM * ===================================================================================
-
-
-CALL :sub_ProcessFolderFileRename "."
-
-
-REM * ===================================================================================
-REM * Operation completed
-REM * ===================================================================================
-
-
-@ECHO:
-@ECHO: Done Processing Target Folder
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: Done Processing Target Folder >> "%_scriptLOGFQPN%"
-
-
-REM * ===================================================================================
-REM * Return to calling folder
-REM * ===================================================================================
-
-
-POPD >> "%_scriptLOGFQPN%"
-
-@ECHO:
-@ECHO: CURRENT DIRECTORY :  %CD%
-@ECHO:
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
+REM CALL :sub_ProcessFolderFileRename ".\_fixes"
+CALL :sub_ProcessFolderFileRename ".\_sub-scripts"
+CALL :sub_ProcessFolderFileRename ".\_template"
+REM CALL :sub_ProcessFolderFileRename ".\_tools"
+CALL :sub_ProcessFolderFileRename ".\alias_commands"
+CALL :sub_ProcessFolderFileRename ".\alias_commands.CORE_G2.NPM"
+CALL :sub_ProcessFolderFileRename ".\alias_commands.SAMPLE"
+CALL :sub_ProcessFolderFileRename ".\Common"
+CALL :sub_ProcessFolderFileRename ".\Config"
+CALL :sub_ProcessFolderFileRename ".\GAIA"
+CALL :sub_ProcessFolderFileRename ".\GAIA.SAMPLE"
+CALL :sub_ProcessFolderFileRename ".\GW"
+CALL :sub_ProcessFolderFileRename ".\GW.CORE"
+CALL :sub_ProcessFolderFileRename ".\Health_Check"
+CALL :sub_ProcessFolderFileRename ".\MDM"
+CALL :sub_ProcessFolderFileRename ".\MGMT"
+CALL :sub_ProcessFolderFileRename ".\Patch_HotFix"
+REM CALL :sub_ProcessFolderFileRename ".\Session_Cleanup"
+CALL :sub_ProcessFolderFileRename ".\SmartEvent"
+CALL :sub_ProcessFolderFileRename ".\SMS"
+CALL :sub_ProcessFolderFileRename ".\SMS.migrate_backup"
+CALL :sub_ProcessFolderFileRename ".\UserConfig"
+CALL :sub_ProcessFolderFileRename ".\UserConfig.CORE_G2.NPM"
 
 REM * ===================================================================================
 REM * Log the results

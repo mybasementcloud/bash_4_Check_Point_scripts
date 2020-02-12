@@ -16,8 +16,8 @@
 ScriptDate=2020-02-10
 ScriptVersion=04.24.00
 ScriptRevision=000
+TemplateVersion=04.25.00
 TemplateLevel=006
-TemplateVersion=04.24.00
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|UserConfig|[UserConfig.CORE_G2.NPM]
+# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
@@ -58,8 +58,10 @@ dos2unix *.sh
 dos2unix *.help
 dos2unix *.version
 dos2unix _sub-scripts/*.sh
+dos2unix _sub-scripts/*.version
 dos2unix _sub-scripts/help/*.help
 dos2unix _template/*.sh
+dos2unix _template/*.version
 dos2unix _template/Code_Snipets/*.sh
 dos2unix _template/help/*.help
 dos2unix Common/*.sh
@@ -70,6 +72,8 @@ dos2unix GAIA/*.sh
 dos2unix GAIA/help/*.help
 dos2unix GW/*.sh
 dos2unix GW/help/*.help
+dos2unix GW.CORE/*.sh
+dos2unix GW.CORE/help/*.help
 dos2unix Health_Check/*.sh
 dos2unix Health_Check/help/*.help
 dos2unix MDM/*.sh
@@ -83,6 +87,8 @@ dos2unix SmartEvent/*.sh
 dos2unix SmartEvent/help/*.help
 dos2unix SMS/*.sh
 dos2unix SMS/*.help
+dos2unix SMS.migrate_backup/*.sh
+dos2unix SMS.migrate_backup/*.help
 dos2unix UserConfig/*.sh
 dos2unix UserConfig/help/*.help
 dos2unix UserConfig.CORE_G2.NPM/*.sh

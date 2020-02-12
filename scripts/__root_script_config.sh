@@ -16,10 +16,10 @@
 ScriptDate=2020-02-10
 ScriptVersion=04.24.00
 ScriptRevision=000
+TemplateVersion=04.25.00
 TemplateLevel=006
-TemplateVersion=04.24.00
 SubScriptsLevel=006
-SubScriptsVersion=04.06.00
+SubScriptsVersion=04.07.00
 #
 
 RootScriptVersion=v${RootScriptVersion//./x}

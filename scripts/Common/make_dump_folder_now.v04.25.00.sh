@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT for BASH to generate a dump folder based on the current time and date
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,20 +30,20 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
-export BASHScriptShortName=fix_gaia_webui_login_dot_js.v$ScriptVersion
+export BASHScriptFileNameRoot=make_dump_folder_now
+export BASHScriptShortName="make_dump_folder_now"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription=="Generate a dump folder based on the current time and date"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=Common
 
 export BASHScripttftptargetfolder="_template"
 
@@ -76,9 +76,41 @@ echo
 # JQ and json related
 # -------------------------------------------------------------------------------------------------
 
+# MODIFIED 2020-01-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
 # points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
-    
+if [ -r ${CPDIR}/jq/jq ] ; then
+    export JQ=${CPDIR}/jq/jq
+elif [ -r ${CPDIR_PATH}/jq/jq ] ; then
+    export JQ=${CPDIR_PATH}/jq/jq
+elif [ -r ${MDS_CPDIR}/jq/jq ] ; then
+    export JQ=${MDS_CPDIR}/jq/jq
+else
+    export JQ=
+fi
+
+# points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
+export JQ16PATH=$MYWORKFOLDER/_tools/JQ
+export JQ16FILE=jq-linux64
+export JQ16FQFN=$JQ16PATH$JQ16FILE
+if [ -r $JQ16FQFN ] ; then
+    # OK we have the easy-button alternative
+    export JQ16=$JQ16FQFN
+elif [ -r "./_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the local folder alternative
+    export JQ16=./_tools/JQ/$JQ16FILE
+elif [ -r "../_tools/JQ/$JQ16FILE" ] ; then
+    # OK we have the parent folder alternative
+    export JQ16=../_tools/JQ/$JQ16FILE
+else
+    export JQ16=
+fi
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
+
+
 # -------------------------------------------------------------------------------------------------
 # END:  Basic Configuration
 # -------------------------------------------------------------------------------------------------
@@ -108,8 +140,7 @@ localrootscriptconfiguration () {
     
     export customerpathroot=/var/log/__customer
     export customerworkpathroot=$customerpathroot/upgrade_export
-    export outputpathroot=$customerworkpathroot
-    export dumppathroot=$customerworkpathroot/dump
+    export outputpathroot=$customerworkpathroot/dump
     export changelogpathroot=$customerworkpathroot/Change_Log
     
     echo
@@ -153,18 +184,17 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-export outputpathbase=$changelogpathroot/$DATEDTGS
+export outputpathbase=$dumppathroot/$DATEYMD
 
-if [ ! -r $changelogpathroot ]; then
-    mkdir -pv $changelogpathroot
+if [ ! -r $outputpathroot ] ; then
+    mkdir -pv $outputpathroot
 fi
-if [ ! -r $outputpathbase ]; then
+if [ ! -r $dumppathroot ] ; then
+    mkdir -pv $dumppathroot
+fi
+if [ ! -r $outputpathbase ] ; then
     mkdir -pv $outputpathbase
 fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
-
 
 echo 'Created folder :  '$outputpathbase
 echo
@@ -185,6 +215,5 @@ if [ -r None ] ; then
     rm None
 fi
 
+echo 'Done...'
 echo
-echo 'Script Completed, exiting...';echo
-
