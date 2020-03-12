@@ -1,0 +1,16 @@
+Download Details
+Health Check ToolDetails
+
+Details
+File Name 	healthcheck.sh
+Product 	Security Management, VSX, Multi-Domain Management, Security Gateway
+Version		R80, R77
+Minor Version	R80.10,R77.10,R77.30,R80.20,R80.30,R77.20
+OS 		Gaia
+Build Number 	
+MD5 		93d1f9c2529255ca7b9139aa251629f7
+SHA1 		a4754e243a2cda7da229cb66ea4bd7a5c419c148
+SHA256 		3b2a57408787e214deeaa2dcd088a01c927e3b836fdcd6870bdf53916df2b882
+Size 		402.87 KB
+Date Published 	2020-02-11
+File Revision 	7.09

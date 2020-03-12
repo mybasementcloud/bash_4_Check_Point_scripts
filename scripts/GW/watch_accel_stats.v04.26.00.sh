@@ -1,0 +1,83 @@
+#!/bin/bash
+#
+# Watch Firewall Acceleration Status
+#
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+#
+ScriptDate=2020-03-11
+ScriptVersion=04.26.00
+ScriptRevision=001
+TemplateVersion=04.26.00
+TemplateLevel=006
+SubScriptsLevel=006
+SubScriptsVersion=04.07.00
+#
+
+export BASHScriptVersion=v${ScriptVersion//./x}
+export BASHScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHScriptTemplateLevel=$TemplateLevel.v$TemplateVersion
+
+export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
+
+export BASHScriptName=watch_accel_stats
+export BASHScriptShortName=watch_accel_stats.v$ScriptVersion
+export BASHScriptnohupName=$BASHScriptShortName
+export BASHScriptDescription=="Watch Firewall Acceleration Status"
+
+#export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
+
+export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
+export BASHScriptHelpFilePath="help.v$ScriptVersion"
+export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
+
+# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+export BASHScriptsFolder=GW
+
+export BASHScripttftptargetfolder="_template"
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START: Script
+# -------------------------------------------------------------------------------------------------
+
+watchcommands="echo 'fwaccel stats -s';fwaccel stats -s"
+watchcommands=$watchcommands";echo;echo;echo 'fwaccel stats -p';fwaccel stats -p"
+watchcommands=$watchcommands";echo;echo;echo 'fwaccel templates -S';fwaccel templates -S"
+
+watch -d -n 1 "$watchcommands"
+
+echo 'fwaccel stats -s';fwaccel stats -s
+echo
+echo 'fwaccel stats -p';fwaccel stats -p"
+echo
+echo 'fwaccel templates -S';fwaccel templates -S"
+echo
+
+# -------------------------------------------------------------------------------------------------
+# End of script Operations
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+if [ -r nul ] ; then
+    rm nul
+fi
+
+if [ -r None ] ; then
+    rm None
+fi
+
+echo
+echo 'Script Completed, exiting...';echo
