@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT Configure script link files and copy versioned scripts to generics
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -13,8 +13,8 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-18
-ScriptVersion=04.26.01
+ScriptDate=2020-03-19
+ScriptVersion=04.26.02
 ScriptRevision=000
 TemplateVersion=04.26.00
 TemplateLevel=006
@@ -30,10 +30,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=remove_script_links
-export BASHScriptShortName="remove_links"
+export BASHScriptFileNameRoot=generate_script_links
+export BASHScriptShortName="generate_links"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Remove Script Links"
+export BASHScriptDescription=="Generate Script Links"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -203,10 +203,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
+# START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -232,6 +232,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -285,11 +286,12 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -1216,12 +1218,21 @@ else
     chmod 775 $workingbase | tee -a -i $logfilepath
 fi
 
-chmod 775 $linksbase | tee -a -i $logfilepath
+
+if [ ! -r $linksbase ] ; then
+    mkdir -pv $linksbase | tee -a -i $logfilepath
+    chmod 775 $linksbase | tee -a -i $logfilepath
+else
+    chmod 775 $linksbase | tee -a -i $logfilepath
+fi
+
+if [ -r $workingbase/updatescripts.sh ] ; then
+    chmod 775 $workingbase/updatescripts.sh | tee -a -i $logfilepath
+    cp $workingbase/updatescripts.sh $workingroot | tee -a -i $logfilepath
+fi
 
 
-echo | tee -a -i $logfilepath
-echo 'Start with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+
 
 # =============================================================================
 # =============================================================================
@@ -1232,18 +1243,45 @@ echo | tee -a -i $logfilepath
 export workingdir=Common
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/gaia_version_type | tee -a -i $logfilepath
+file_common_001=determine_gaia_version_and_installation_type.v04.26.00.sh
+file_common_002=do_script_nohup.v04.26.00.sh
 
-rm $workingroot/do_script_nohup | tee -a -i $logfilepath
+file_common_003=go_dump_folder_now.v04.26.00.sh
+file_common_004=go_dump_folder_now_dtg.v04.26.00.sh
+file_common_005=go_change_log_folder_now_dtg.v04.26.00.sh
 
-rm $workingroot/godump | tee -a -i $logfilepath
-rm $workingroot/godtgdump | tee -a -i $logfilepath
+file_common_006=make_dump_folder_now.v04.26.00.sh
+file_common_007=make_dump_folder_now_dtg.v04.26.00.sh
 
-rm $workingroot/goChangeLog | tee -a -i $logfilepath
+ln -sf $sourcefolder/$file_common_001 $linksfolder/gaia_version_type
+ln -sf $sourcefolder/$file_common_001 $workingroot/gaia_version_type
 
-rm $workingroot/mkdump | tee -a -i $logfilepath
-rm $workingroot/mkdtgdump | tee -a -i $logfilepath
+ln -sf $sourcefolder/$file_common_002 $linksfolder/do_script_nohup
+ln -sf $sourcefolder/$file_common_002 $workingroot/do_script_nohup
+
+ln -sf $sourcefolder/$file_common_003 $linksfolder/godump
+ln -sf $sourcefolder/$file_common_004 $linksfolder/godtgdump
+ln -sf $sourcefolder/$file_common_005 $linksfolder/goChangeLog
+
+ln -sf $sourcefolder/$file_common_006 $linksfolder/mkdump
+ln -sf $sourcefolder/$file_common_007 $linksfolder/mkdtgdump
+
+#
+# These have been replaced with alias commands
+#
+#ln -sf $sourcefolder/$file_common_003 $workingroot/godump
+#ln -sf $sourcefolder/$file_common_004 $workingroot/godtgdump
+#ln -sf $sourcefolder/$file_common_005 $workingroot/goChangeLog
+
+#ln -sf $sourcefolder/$file_common_006 $workingroot/mkdump
+#ln -sf $sourcefolder/$file_common_007 $workingroot/mkdtgdump
 
 
 # =============================================================================
@@ -1255,10 +1293,30 @@ rm $workingroot/mkdtgdump | tee -a -i $logfilepath
 export workingdir=Config
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/config_capture | tee -a -i $logfilepath
-rm $workingroot/interface_info | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
+file_config_001=config_capture.v04.26.00.sh
+file_config_002=show_interface_information.v04.26.00.sh
+file_config_003=EPM_config_check.v04.26.00.sh
+
+ln -sf $sourcefolder/$file_config_001 $linksfolder/config_capture
+ln -sf $sourcefolder/$file_config_002 $linksfolder/interface_info
+
+ln -sf $sourcefolder/$file_config_001 $workingroot/config_capture
+ln -sf $sourcefolder/$file_config_002 $workingroot/interface_info
+
+if [ $Check4EPM -gt 0 ]; then
+
+    ln -sf $sourcefolder/$file_config_003 $linksfolder/EPM_config_check
+
+    ln -sf $sourcefolder/$file_config_003 $workingroot/EPM_config_check
+
+fi
 
 
 # =============================================================================
@@ -1270,11 +1328,24 @@ rm $workingroot/EPM_config_check | tee -a -i $logfilepath
 export workingdir=GAIA
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_GAIA_001=update_gaia_rest_api.sh
+file_GAIA_002=update_gaia_dynamic_cli.sh
+
+
+ln -sf $sourcefolder/$file_GAIA_001 $linksfolder/update_gaia_rest_api
+ln -sf $sourcefolder/$file_GAIA_002 $linksfolder/update_gaia_dynamic_cli
 
 if $IsR8XVersion ; then
     
-    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
-    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
+    ln -sf $sourcefolder/$file_GAIA_001 $workingroot/update_gaia_rest_api
+    ln -sf $sourcefolder/$file_GAIA_002 $workingroot/update_gaia_dynamic_cli
     
 fi
 
@@ -1288,14 +1359,52 @@ fi
 export workingdir=GW
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
-rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
-rm $workingroot/cluster_info | tee -a -i $logfilepath
-rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
-rm $workingroot/enable_rad_admin_stats_and_cpview | tee -a -i $logfilepath
-rm $workingroot/vpn_client_operational_info | tee -a -i $logfilepath
+file_GW_001=watch_accel_stats.v04.26.00.sh
+file_GW_002=set_informative_logging_implied_rules_on_R8x.v04.26.00.sh
+file_GW_003=reset_hit_count_with_backup.v04.26.00.sh
+file_GW_004=show_clusterXL_information.v04.26.00.sh
+file_GW_005=watch_cluster_status.v04.26.00.sh
+file_GW_006=enable_rad_admin_stats.v00.01.00.sh
+file_GW_007=vpn_client_operational_info.v04.26.02.000.sh
+file_GW_008=vpn_client_operational_info.standalone.v04.26.02.sh
+file_GW_009=fix_gw_missing_updatable_objects.v04.26.02.sh
+
+ln -sf $sourcefolder/$file_GW_001 $linksfolder/watch_accel_stats
+ln -sf $sourcefolder/$file_GW_002 $linksfolder/set_informative_logging_implied_rules_on_R8x
+ln -sf $sourcefolder/$file_GW_003 $linksfolder/reset_hit_count_with_backup
+ln -sf $sourcefolder/$file_GW_004 $linksfolder/cluster_info
+ln -sf $sourcefolder/$file_GW_005 $linksfolder/watch_cluster_status
+ln -sf $sourcefolder/$file_GW_006 $linksfolder/enable_rad_admin_stats_and_cpview
+ln -sf $sourcefolder/$file_GW_007 $linksfolder/vpn_client_operational_info
+ln -sf $sourcefolder/$file_GW_008 $linksfolder/vpn_client_operational_info.standalone
+ln -sf $sourcefolder/$file_GW_009 $linksfolder/fix_gw_missing_updatable_objects
+
+
+if [ "$sys_type_GW" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_GW_001 $workingroot/watch_accel_stats
+    ln -sf $sourcefolder/$file_GW_002 $workingroot/set_informative_logging_implied_rules_on_R8x
+    ln -sf $sourcefolder/$file_GW_003 $workingroot/reset_hit_count_with_backup
+    
+    if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+        # is a cluster
+        ln -sf $sourcefolder/$file_GW_004 $workingroot/cluster_info
+        ln -sf $sourcefolder/$file_GW_005 $workingroot/watch_cluster_status
+    fi
+    
+    ln -sf $sourcefolder/$file_GW_006 $workingroot/enable_rad_admin_stats_and_cpview
+    ln -sf $sourcefolder/$file_GW_007 $workingroot/vpn_client_operational_info
+    #ln -sf $sourcefolder/$file_GW_008 $workingroot/vpn_client_operational_info.standalone
+    #ln -sf $sourcefolder/$file_GW_009 $workingroot/fix_gw_missing_updatable_objects
+    
+fi
 
 
 # =============================================================================
@@ -1312,8 +1421,25 @@ if [ ! -r $sourcefolder ] ; then
     # This folder is not part of the distribution
     echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
 else
-    $workingroot/fix_smcias_interfaces | tee -a -i $logfilepath
-    $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE | tee -a -i $logfilepath
+    if [ ! -r $linksfolder ] ; then
+        mkdir -pv $linksfolder | tee -a -i $logfilepath
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    else
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    fi
+    
+    file_GW_CORE_001=fix_smcias_interfaces.v04.26.00.sh
+    file_GW_CORE_002=set_fwkern_dot_conf_settings_on_R8x.CORE.v04.26.01.sh
+    
+    ln -sf $sourcefolder/$file_GW_CORE_001 $linksfolder/fix_smcias_interfaces
+    ln -sf $sourcefolder/$file_GW_CORE_002 $linksfolder/set_fwkern_dot_conf_settings_on_R8x.CORE
+    
+    #if [ "$sys_type_GW" == "true" ] ; then
+        
+        #ln -sf $sourcefolder/$file_GW_CORE_001 $workingroot/fix_smcias_interfaces
+        #ln -sf $sourcefolder/$file_GW_CORE_002 $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE
+        
+    #fi
 fi
 
 
@@ -1326,13 +1452,24 @@ fi
 export workingdir=Health_Check
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/healthcheck | tee -a -i $logfilepath
-rm $workingroot/healthdump | tee -a -i $logfilepath
-rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
 
-# Legacy Naming Clean-up
-rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
+file_healthcheck_001=healthcheck.sh
+file_healthcheck_002=run_healthcheck_to_dump_dtg.v04.26.00.sh
+file_healthcheck_003=check_status_checkpoint_services.v04.26.00.sh
+
+ln -sf $sourcefolder/$file_healthcheck_001 $linksfolder/healthcheck
+ln -sf $sourcefolder/$file_healthcheck_001 $workingroot/healthcheck
+ln -sf $sourcefolder/$file_healthcheck_002 $linksfolder/healthdump
+ln -sf $sourcefolder/$file_healthcheck_002 $workingroot/healthdump
+ln -sf $sourcefolder/$file_healthcheck_003 $linksfolder/check_point_service_status_check
+ln -sf $sourcefolder/$file_healthcheck_003 $workingroot/check_point_service_status_check
 
 
 # =============================================================================
@@ -1344,12 +1481,35 @@ rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
 export workingdir=MDM
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/report_mdsstat | tee -a -i $logfilepath
-rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
-rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
+file_MDM_001=backup_mds_ugex.v04.26.00.sh
+file_MDM_002=backup_mds_w_logs_ugex.v04.26.00.sh
+
+file_MDM_003=report_mdsstat.v04.26.00.sh
+file_MDM_004=watch_mdsstat.v04.26.00.sh
+file_MDM_005=show_all_domains_in_array.v04.26.00.sh
+
+ln -sf $sourcefolder/$file_MDM_001 $linksfolder/backup_mds_ugex
+ln -sf $sourcefolder/$file_MDM_002 $linksfolder/backup_mds_w_logs_ugex
+ln -sf $sourcefolder/$file_MDM_003 $linksfolder/report_mdsstat
+ln -sf $sourcefolder/$file_MDM_004 $linksfolder/watch_mdsstat
+ln -sf $sourcefolder/$file_MDM_005 $linksfolder/show_domains_in_array
+
+if [ "$sys_type_MDS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_MDM_001 $workingroot/backup_mds_ugex
+    ln -sf $sourcefolder/$file_MDM_002 $workingroot/backup_mds_w_logs_ugex
+    ln -sf $sourcefolder/$file_MDM_003 $workingroot/report_mdsstat
+    ln -sf $sourcefolder/$file_MDM_004 $workingroot/watch_mdsstat
+    ln -sf $sourcefolder/$file_MDM_005 $workingroot/show_domains_in_array
+    
+fi
 
 
 # =============================================================================
@@ -1361,9 +1521,39 @@ rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
 export workingdir=MGMT
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
-rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
+file_MGMT_001=identify_self_referencing_symbolic_link_files.sh
+file_MGMT_002=identify_self_referencing_symbolic_link_files.Lite.sh
+
+ln -sf $sourcefolder/$file_MGMT_001 $linksfolder/identify_self_referencing_symbolic_link_files
+ln -sf $sourcefolder/$file_MGMT_001 $workingroot/identify_self_referencing_symbolic_link_files
+
+# Done testing, providing this as a stand-alone solution
+#
+#ln -sf $sourcefolder/$file_MGMT_002 $linksfolder/Lite.identify_self_referencing_symbolic_link_files
+#ln -sf $sourcefolder/$file_MGMT_002 $workingroot/Lite.identify_self_referencing_symbolic_link_files
+
+if [ "$sys_type_SMS" == "true" ]; then
+    echo
+    if [ $Check4EPM -gt 0 ]; then
+        echo    
+    fi
+fi
+
+if [ "$sys_type_MDS" == "true" ]; then
+    echo
+fi
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    echo
+fi
+
 
 
 # =============================================================================
@@ -1375,10 +1565,32 @@ rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $
 export workingdir=Patch_HotFix
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_patch_001=fix_gaia_webui_login_dot_js.sh
+file_patch_002=fix_gaia_webui_login_dot_js_generic.sh
 
 export need_fix_webui=false
 
-rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
+if $IsR8XVersion ; then
+    export need_fix_webui=false
+else
+    export need_fix_webui=true
+fi
+
+if [ "$need_fix_webui" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_patch_001 $linksfolder/fix_gaia_webui_login_dot_js
+    ln -sf $sourcefolder/$file_patch_001 $workingroot/fix_gaia_webui_login_dot_js
+    
+    ln -sf $sourcefolder/$file_patch_002 $linksfolder/fix_gaia_webui_login_dot_js_generic
+
+fi
 
 
 # =============================================================================
@@ -1390,15 +1602,43 @@ rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
 export workingdir=Session_Cleanup
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
+file_SESSION_001=remove_zerolocks_sessions.v04.00.00.sh
+file_SESSION_002=remove_zerolocks_web_api_sessions.v04.00.00.sh
+file_SESSION_003=show_zerolocks_sessions.v04.00.00.sh
+file_SESSION_004=show_zerolocks_web_api_sessions.v04.00.00.sh
+
+export do_session_cleanup=false
+
+if $IsR8XVersion ; then
+    export do_session_cleanup=true
+else
+    export do_session_cleanup=false
+fi
+
+if [ "$do_session_cleanup" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SESSION_001 $linksfolder/remove_zerolocks_sessions
+    ln -sf $sourcefolder/$file_SESSION_002 $linksfolder/remove_zerolocks_web_api_sessions
+    ln -sf $sourcefolder/$file_SESSION_003 $linksfolder/show_zerolocks_sessions
+    ln -sf $sourcefolder/$file_SESSION_004 $linksfolder/show_zerolocks_web_api_sessions
+
+    if [ "$sys_type_GW" == "false" ]; then
+        
+        ln -sf $sourcefolder/$file_SESSION_001 $workingroot/remove_zerolocks_sessions
+        ln -sf $sourcefolder/$file_SESSION_002 $workingroot/remove_zerolocks_web_api_sessions
+        ln -sf $sourcefolder/$file_SESSION_003 $workingroot/show_zerolocks_sessions
+        ln -sf $sourcefolder/$file_SESSION_004 $workingroot/show_zerolocks_web_api_sessions
+            
+    fi
+    
+fi
 
 
 # =============================================================================
@@ -1410,12 +1650,31 @@ rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
 export workingdir=SmartEvent
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
+file_SMEV_001=SmartEvent_Backup_R8X.v04.26.00.sh
+file_SMEV_002=SmartEvent_Restore_R8X.v04.26.00-NR.sh
+file_SMEV_003=Reset_SmartLog_Indexing_Back_X_Days.v04.26.00.sh
+file_SMEV_004=NUKE_ALL_LOGS_AND_INDEXES.v04.26.00.sh
+
+ln -sf $sourcefolder/$file_SMEV_001 $linksfolder/SmartEvent_Backup_R8X
+ln -sf $sourcefolder/$file_SMEV_002 $linksfolder/SmartEvent_Restore_R8X
+ln -sf $sourcefolder/$file_SMEV_003 $linksfolder/Reset_SmartLog_Indexing
+ln -sf $sourcefolder/$file_SMEV_004 $linksfolder/SmartEvent_NUKE_Index_and_Logs
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMEV_001 $workingroot/SmartEvent_backup
+    #ln -sf $sourcefolder/$file_SMEV_002 $workingroot/SmartEvent_restore
+    #ln -sf $sourcefolder/$file_SMEV_003 $workingroot/Reset_SmartLog_Indexing
+    #ln -sf $sourcefolder/$file_SMEV_004 $workingroot/SmartEvent_NUKE_Index_and_Logs
+    
+fi
 
 
 # =============================================================================
@@ -1427,11 +1686,39 @@ rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
 export workingdir=SMS
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
+file_SMS_005=report_cpwd_admin_list.v04.26.00.sh
+file_SMS_006=watch_cpwd_admin_list.v04.26.00.sh
+file_SMS_007=restart_mgmt.v04.26.00.sh
+
+file_SMS_008=fix_api_memory.v04.26.00.sh
+
+file_SMS_009=reset_hit_count_on_R80_SMS_commands.001.v00.01.00.sh
+
+ln -sf $sourcefolder/$file_SMS_005 $linksfolder/report_cpwd_admin_list
+ln -sf $sourcefolder/$file_SMS_005 $workingroot/report_cpwd_admin_list
+
+ln -sf $sourcefolder/$file_SMS_006 $linksfolder/watch_cpwd_admin_list
+ln -sf $sourcefolder/$file_SMS_006 $workingroot/watch_cpwd_admin_list
+
+ln -sf $sourcefolder/$file_SMS_007 $linksfolder/restart_mgmt
+
+ln -sf $sourcefolder/$file_SMS_008 $linksfolder/fix_api_memory
+
+ln -sf $sourcefolder/$file_SMS_009 $linksfolder/reset_hit_count_on_R80_SMS_commands
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_007 $workingroot/restart_mgmt
+    ln -sf $sourcefolder/$file_SMS_009 $workingroot/reset_hit_count_on_R80_SMS_commands
+    
+fi
 
 
 # =============================================================================
@@ -1443,10 +1730,20 @@ rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
 export workingdir=SMS.CORE
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMS_CORE_001=CORE-G2_install_policy.v04.26.00.raw.sh
+
+ln -sf $sourcefolder/$file_SMS_CORE_001 $linksfolder/CORE-G2_install_policy
 
 #if [ "$sys_type_SMS" == "true" ]; then
     
-    #rm $workingroot/CORE-G2_install_policy | tee -a -i $logfilepath
+    #ln -sf $sourcefolder/$file_SMS_CORE_001 $workingroot/CORE-G2_install_policy
     
 #fi
 
@@ -1460,16 +1757,52 @@ export linksfolder=$linksbase/$workingdir
 export workingdir=SMS.migrate_backup
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
+file_SMS_Migrate_001=migrate_export_npm_ugex.v04.26.02.sh
+file_SMS_Migrate_002=migrate_export_w_logs_npm_ugex.v04.26.02.sh
+file_SMS_Migrate_003=migrate_export_epm_ugex.v04.26.02.sh
+file_SMS_Migrate_004=migrate_export_w_logs_epm_ugex.v04.26.02.sh
 
-rm $workingroot/migrate_server_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_epm_ugex | tee -a -i $logfilepath
+file_SMS_Migrate_011=migrate_server_export_npm_ugex.v04.26.02.sh
+file_SMS_Migrate_012=migrate_server_export_w_logs_npm_ugex.v04.26.02.sh
+file_SMS_Migrate_013=migrate_server_export_epm_ugex.v04.26.02.sh
+file_SMS_Migrate_014=migrate_server_export_w_logs_epm_ugex.v04.26.02.sh
+
+ln -sf $sourcefolder/$file_SMS_Migrate_001 $linksfolder/migrate_export_npm_ugex
+ln -sf $sourcefolder/$file_SMS_Migrate_002 $linksfolder/migrate_export_w_logs_npm_ugex
+
+if [ $Check4EPM -gt 0 ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_003 $linksfolder/migrate_export_epm_ugex
+    ln -sf $sourcefolder/$file_SMS_Migrate_004 $linksfolder/migrate_export_w_logs_epm_ugex
+    
+fi
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_001 $workingroot/migrate_export_npm_ugex
+    ln -sf $sourcefolder/$file_SMS_Migrate_002 $workingroot/migrate_export_w_logs_npm_ugex
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_011 $workingroot/migrate_server_export_npm_ugex
+    ln -sf $sourcefolder/$file_SMS_Migrate_012 $workingroot/migrate_server_export_w_logs_npm_ugex
+    
+    if [ $Check4EPM -gt 0 ]; then
+        
+        ln -sf $sourcefolder/$file_SMS_Migrate_003 $workingroot/migrate_export_epm_ugex
+        ln -sf $sourcefolder/$file_SMS_Migrate_004 $workingroot/migrate_export_w_logs_epm_ugex
+        
+        ln -sf $sourcefolder/$file_SMS_Migrate_013 $workingroot/migrate_server_export_epm_ugex
+        ln -sf $sourcefolder/$file_SMS_Migrate_014 $workingroot/migrate_server_export_w_logs_epm_ugex
+        
+    fi
+    
+fi
 
 
 # =============================================================================
@@ -1481,16 +1814,29 @@ rm $workingroot/migrate_server_export_w_logs_epm_ugex | tee -a -i $logfilepath
 export workingdir=UserConfig
 export sourcefolder=$workingbase/$workingdir
 export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
 
-rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
+file_USERCONF_001=add_alias_commands.all.v04.26.00.sh
+file_USERCONF_002=add_alias_commands_all_users.all.v04.26.00.sh
+file_USERCONF_003=update_alias_commands.all.v04.26.00.sh
+file_USERCONF_004=update_alias_commands_all_users.all.v04.26.00.sh
 
-# Legacy Naming Clean-up
-rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_001 $linksfolder/alias_commands_add_user
+ln -sf $sourcefolder/$file_USERCONF_001 $workingroot/alias_commands_add_user
+
+ln -sf $sourcefolder/$file_USERCONF_002 $linksfolder/alias_commands_add_all_users
+ln -sf $sourcefolder/$file_USERCONF_002 $workingroot/alias_commands_add_all_users
+
+ln -sf $sourcefolder/$file_USERCONF_003 $linksfolder/alias_commands_update_user
+ln -sf $sourcefolder/$file_USERCONF_003 $workingroot/alias_commands_update_user
+
+ln -sf $sourcefolder/$file_USERCONF_004 $linksfolder/alias_commands_update_all_users
+ln -sf $sourcefolder/$file_USERCONF_004 $workingroot/alias_commands_update_all_users
 
 
 # =============================================================================
@@ -1508,10 +1854,27 @@ if [ ! -r $sourcefolder ] ; then
     echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
 else
     
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
+    if [ ! -r $linksfolder ] ; then
+        mkdir -pv $linksfolder | tee -a -i $logfilepath
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    else
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    fi
+    
+    file_USERCONF_005=add_alias_commands.CORE_G2.NPM.v04.26.00.sh
+    file_USERCONF_006=add_alias_commands_all_users.CORE_G2.NPM.v04.26.00.sh
+    file_USERCONF_007=update_alias_commands.CORE_G2.NPM.v04.26.00.sh
+    file_USERCONF_008=update_alias_commands_all_users.CORE_G2.NPM.v04.26.00.sh
+    
+    ln -sf $sourcefolder/$file_USERCONF_005 $linksfolder/alias_commands_CORE_G2_NPM_add_user
+    ln -sf $sourcefolder/$file_USERCONF_006 $linksfolder/alias_commands_CORE_G2_NPM_add_all_users
+    ln -sf $sourcefolder/$file_USERCONF_007 $linksfolder/alias_commands_CORE_G2_NPM_update_user
+    ln -sf $sourcefolder/$file_USERCONF_008 $linksfolder/alias_commands_CORE_G2_NPM_update_all_users
+    
+    #ln -sf $sourcefolder/$file_USERCONF_005 $workingroot/alias_commands_CORE_G2_NPM_add_user
+    #ln -sf $sourcefolder/$file_USERCONF_006 $workingroot/alias_commands_CORE_G2_NPM_add_all_users
+    #ln -sf $sourcefolder/$file_USERCONF_007 $workingroot/alias_commands_CORE_G2_NPM_update_user
+    #ln -sf $sourcefolder/$file_USERCONF_008 $workingroot/alias_commands_CORE_G2_NPM_update_all_users
     
 fi
 
@@ -1524,8 +1887,6 @@ fi
 # =============================================================================
 # =============================================================================
 
-rm -f -r -d $linksbase | tee -a -i $logfilepath
-
 # =============================================================================
 # =============================================================================
 
@@ -1536,7 +1897,10 @@ echo | tee -a -i $logfilepath
 echo 'List folder : '$workingbase | tee -a -i $logfilepath
 ls -alh $workingbase | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-echo 'Done with links clean-up!' | tee -a -i $logfilepath
+echo 'List folder : '$linksbase | tee -a -i $logfilepath
+ls -alh $linksbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done with links generation!' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 # =============================================================================
@@ -1584,7 +1948,6 @@ echo | tee -a -i $logfilepath
 echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
 echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

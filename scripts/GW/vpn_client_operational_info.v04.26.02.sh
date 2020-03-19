@@ -13,9 +13,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=003
+ScriptDate=2020-03-19
+ScriptVersion=04.26.02
+ScriptRevision=000
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=NA
@@ -446,6 +446,54 @@ echo '--------------------------------------------------------------------------
 echo >> "$logfilepath"
 
 fw tab -t sslt_om_ip_params -f &>> "$outputfilefqfn"
+
+cat "$outputfilefqfn" | tee -a -i $logfilepath
+
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
+
+# number of remote access users (SecuRemote/SecureClient/Endpoint Connect/SNX)
+# sk54641 - SNMP OID for the number Remote Access users (SR/SC/EPC/SNX) currently connected to a VPN-1 gateway
+# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk54641
+
+export command2run=remote_access_vpn_users_all_clients_table
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t userc_users -f -u' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
+
+fw tab -t userc_users -f -u &>> "$outputfilefqfn"
+
+cat "$outputfilefqfn" | tee -a -i $logfilepath
+
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
+
+# number of remote access users (SecuRemote/SecureClient/Endpoint Connect/SNX)
+# sk54641 - SNMP OID for the number Remote Access users (SR/SC/EPC/SNX) currently connected to a VPN-1 gateway
+# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk54641
+
+export command2run=remote_access_vpn_users_all_clients
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t userc_users -s' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
+
+fw tab -t userc_users -s &>> "$outputfilefqfn"
 
 cat "$outputfilefqfn" | tee -a -i $logfilepath
 

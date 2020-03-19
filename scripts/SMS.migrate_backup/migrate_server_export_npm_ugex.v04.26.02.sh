@@ -2,7 +2,7 @@
 #
 # SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
 # using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
-# this scripts export a second file with logs and indexes (if R8X)
+#
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -15,9 +15,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-18
-ScriptVersion=04.26.01
-ScriptRevision=005
+ScriptDate=2020-03-19
+ScriptVersion=04.26.02
+ScriptRevision=000
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=006
@@ -32,10 +32,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=migrate_server_export_w_logs_npm_ugex
-export BASHScriptShortName="migrate_server_export_npm_w_logs"
+export BASHScriptFileNameRoot=migrate_server_export_npm_ugex
+export BASHScriptShortName="migrate_server_export_npm"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="migrate_server export NPM with logs to local folder using version tools"
+export BASHScriptDescription=="migrate_server export NPM to local folder using version tools"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -1670,10 +1670,6 @@ echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
 echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
-echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
 if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
@@ -1702,8 +1698,10 @@ echo | tee -a -i $logfilepath
 #list $CPDIR/log/migrate-2020.03.17*
 #/opt/CPshrd-R80.40/log/migrate-2020.03.17_00.46.19.log
 
-export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
-export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+#export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
+#export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+export migratelogfiledate=`date +%Y.%m.%d_%H`
+export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.*.log
 
 echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
@@ -1724,36 +1722,6 @@ cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
 echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Executing 2...' | tee -a -i $logfilepath
-echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-
-RemoveRemnantTempMigrationFolder
-
-export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
-export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
-
-echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-#if [ $testmode -eq 0 ]; then
-#    # Not test mode
-#    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-#else
-#    # test mode
-#    echo Test Mode! | tee -a -i $logfilepath
-#fi
-
-$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-
-echo 'Copy rough migrate log : '$migratelogfilefqfn' to folder : '$outputfilepath | tee -a -i $logfilepath
-
-cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 ls -alh $outputfilefqdn | tee -a -i $logfilepath
@@ -1785,6 +1753,7 @@ if $CLIparm_NOSTART ; then
     if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
     echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
    
+    
 else
     
     DocumentMgmtcpwdadminlist
@@ -1816,14 +1785,8 @@ else
     echo 'cpstart completed' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
     
-    DocumentMgmtcpwdadminlist
-    
-    echo | tee -a -i $logfilepath
-    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    
-    DocumentMgmtcpwdadminlist
-    
+    WatchMgmtcpwdadminlist    
+
     if $IsR8XVersion ; then
         # R80 version so kick the API on
         #echo | tee -a -i $logfilepath

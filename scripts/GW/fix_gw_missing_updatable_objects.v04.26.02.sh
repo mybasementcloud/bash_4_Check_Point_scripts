@@ -13,9 +13,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=001
+ScriptDate=2020-03-19
+ScriptVersion=04.26.02
+ScriptRevision=000
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=NA
@@ -169,6 +169,19 @@ echo | tee -a -i $logfilepath
 # script plumbing 1
 # -------------------------------------------------------------------------------------------------
 
+CheckAndUnlockGaiaDB
+CheckAndUnlockGaiaDB
+
+
+#export getclishprimarydns=`clish -i -c "show dns primary"`; export currentprimarydns=$getclishprimarydns; echo $currentprimarydns; echo
+
+clish -i -c "show dns primary" | tee -a -i $logfilepath
+export getclishprimarydns=`clish -i -c "show dns primary"`
+export currentprimarydns=$getclishprimarydns
+
+export settempprimarydns=set dns primary 8.8.8.8
+clish -i -c "$settempprimarydns" | tee -a -i $logfilepath
+clish -i -c "show dns primary" | tee -a -i $logfilepath
 
 unified_dl UPDATE ONLINE_SERVICES | tee -a -i $logfilepath
 
@@ -177,6 +190,10 @@ echo | tee -a -i $logfilepath
 cat /opt/CPshrd-R80.40/database/downloads/ONLINE_SERVICES/1.0/Update_Status.dat | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
+
+export setoriginalrimarydns=set dns primary $currentprimarydns
+clish -i -c "$setoriginalrimarydns" | tee -a -i $logfilepath
+clish -i -c "show dns primary" | tee -a -i $logfilepath
 
 
 # -------------------------------------------------------------------------------------------------
