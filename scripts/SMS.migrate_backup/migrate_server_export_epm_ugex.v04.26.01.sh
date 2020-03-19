@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
+# using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
+# EPM export includes standard NPM export and adds export of EP Client MSI files
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -13,9 +15,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=002
+ScriptDate=2020-03-18
+ScriptVersion=04.26.01
+ScriptRevision=005
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=006
@@ -30,10 +32,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=remove_script_links
-export BASHScriptShortName="remove_links"
+export BASHScriptFileNameRoot=migrate_server_export_epm_ugex
+export BASHScriptShortName="migrate_server_export_epm"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Remove Script Links"
+export BASHScriptDescription=="migrate_server export EPM with EP Client MSI to local folder using version tools"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -43,7 +45,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=.
+export BASHScriptsFolder=SMS
 
 export BASHScripttftptargetfolder="_template"
 
@@ -93,13 +95,13 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=migrate_backup
 
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
@@ -203,10 +205,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
+# START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -232,6 +234,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -285,17 +288,33 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
 # -------------------------------------------------------------------------------------------------
 
-#export CLIparm_local1=
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+export CLIparm_l01_toolvername=
+export CLIparm_l02_toolpath=
+export CLIparm_l03_NOCPSTART=false
+export CLIparm_l04_targetversion=
+export CLIparm_l05_forcemigrate=false
+
+export DOCPSTART=true
+export EXPORTVERSIONDIFFERENT=false
+export FORCEUSEMIGRATE=false
+
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -303,6 +322,9 @@ export REMAINS=
 # -------------------------------------------------------------------------------------------------
 # processcliremains - Local command line parameter processor
 # -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
 
 processcliremains () {
     #
@@ -337,14 +359,35 @@ processcliremains () {
                 '-?' | --help )
                     SHOWHELP=true
                     ;;
+                --NOCPSTART )
+                    export CLIparm_l03_NOCPSTART=true
+                    export DOCPSTART=false
+                    ;;
+                --forcemigrate | --FORCEMIGRATE )
+                    export CLIparm_l05_forcemigrate=true
+                    export FORCEUSEMIGRATE=true
+                    ;;
                 # Handle --flag=value opts like this
-                -q=* | --qlocal1=* )
-                    CLIparm_local1="${OPT#*=}"
-                    #shift
+                --toolversion=* )
+                    export CLIparm_l01_toolvername="${OPT#*=}"
+                    ;;
+                --toolpath=* )
+                    export CLIparm_l02_toolpath="${OPT#*=}"
+                    ;;
+                --exportversion=* )
+                    export CLIparm_l04_targetversion="${OPT#*=}"
                     ;;
                 # and --flag value opts like this
-                -q* | --qlocal1 )
-                    CLIparm_local1="$2"
+                --toolversion )
+                    export CLIparm_l01_toolvername="$2"
+                    shift
+                    ;;
+                --toolpath )
+                    export CLIparm_l02_toolpath="$2"
+                    shift
+                    ;;
+                --exportversion )
+                    export CLIparm_l04_targetversion="$2"
                     shift
                     ;;
                 # Anything unknown is recorded for later
@@ -376,6 +419,9 @@ processcliremains () {
 
 }
 
+#
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
+
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -385,7 +431,7 @@ processcliremains () {
 # dumpcliparmparselocalresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2019-12-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparselocalresults () {
@@ -405,10 +451,17 @@ dumpcliparmparselocalresults () {
     echo 'Local CLI Parameters :' >> $workoutputfile
     echo >> $workoutputfile
 
-    #echo 'CLIparm_local1          = '$CLIparm_local1 >> $workoutputfile
-    #echo 'CLIparm_local2          = '$CLIparm_local2 >> $workoutputfile
+    echo 'CLIparm_l01_toolvername   = '$CLIparm_l01_toolvername >> $workoutputfile
+    echo 'CLIparm_l02_toolpath      = '$CLIparm_l02_toolpath >> $workoutputfile
+    echo 'CLIparm_l03_NOCPSTART     = '$CLIparm_l03_NOCPSTART >> $workoutputfile
+    echo 'CLIparm_l04_targetversion = '$CLIparm_l04_targetversion >> $workoutputfile
+    echo 'CLIparm_l05_forcemigrate  = '$CLIparm_l05_forcemigrate >> $workoutputfile
     echo  >> $workoutputfile
-    echo 'LOCALREMAINS            = '$LOCALREMAINS >> $workoutputfile
+    echo 'FORCEUSEMIGRATE           = '$FORCEUSEMIGRATE >> $workoutputfile
+    echo  >> $workoutputfile
+    echo 'DOCPSTART                 = '$DOCPSTART >> $workoutputfile
+    echo  >> $workoutputfile
+    echo 'LOCALREMAINS              = '$LOCALREMAINS >> $workoutputfile
     
 	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
 	    # Verbose mode ON
@@ -450,7 +503,7 @@ dumpcliparmparselocalresults () {
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-12-06
 
 
 # -------------------------------------------------------------------------------------------------
@@ -527,7 +580,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -539,10 +592,26 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-10-03 -
+    # MODIFIED 2018-11-20 -
     
-    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
+    export configured_handler_root=$cli_script_cmdlineparm_handler_root
+    export actual_handler_root=$configured_handler_root
     
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -555,6 +624,8 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
+            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
+            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -965,8 +1036,26 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
+    # MODIFIED 2018-11-20 -
     
+    export configured_handler_root=$gaia_version_type_handler_root
+    export actual_handler_root=$configured_handler_root
+    
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1190,363 +1279,588 @@ fi
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# DocumentMgmtcpwdadminlist - Document the last execution of the cpwd_admin list command
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
-# Scripts link generation and setup
+
+DocumentMgmtcpwdadminlist () {
+    #
+    # Document the last execution of the cpwd_admin list command
+    #
+    
+    echo | tee -a -i $logfilepath
+    echo 'Check Point management services and processes' | tee -a -i $logfilepath
+    if $IsR8XVersion ; then
+        # cpm_status.sh only exists in R8X
+        echo '$MDS_FWDIR/scripts/cpm_status.sh' | tee -a -i $logfilepath
+        $MDS_FWDIR/scripts/cpm_status.sh | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+    fi
+    
+    echo 'cpwd_admin list' | tee -a -i $logfilepath
+    cpwd_admin list | tee -a -i $logfilepath
+
+    echo | tee -a -i $logfilepath
+    
+    return 0
+}
+
 #
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#DocumentMgmtcpwdadminlist
 
 
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
+# -------------------------------------------------------------------------------------------------
+# WatchMgmtcpwdadminlist - Watch and document the last execution of the cpwd_admin list command
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-04-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+WatchMgmtcpwdadminlist () {
+    #
+    # Watch and document the last execution of the cpwd_admin list command
+    #
+    
+    watchcommands="echo 'Check Point management services and processes'"
+    
+    if $IsR8XVersion ; then
+        # cpm_status.sh only exists in R8X
+        watchcommands=$watchcommands";echo;echo;echo '$MDS_FWDIR/scripts/cpm_status.sh';$MDS_FWDIR/scripts/cpm_status.sh"
+    fi
+    
+    watchcommands=$watchcommands";echo;echo;echo 'cpwd_admin list';cpwd_admin list"
+    
+    if $CLIparm_NOWAIT ; then
+        echo 'Not watching and waiting...'
+    else
+        watch -d -n 1 "$watchcommands"
+    fi
+    
+    DocumentMgmtcpwdadminlist
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-04-20
+
+#WatchMgmtcpwdadminlist
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
-if [ ! -r $workingbase ] ; then
+# -------------------------------------------------------------------------------------------------
+# RemoveRemnantTempMigrationFolder - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+RemoveRemnantTempMigrationFolder () {
+    #
+    # repeated procedure description
+    #
+    
+    #export migration_work_folder="/var/log/opt/CPsuite-$gaiaversion/fw1/tmp/migrate"
+    export migration_work_folder="$FWDIR/tmp/migrate"
+    
+    if [ -d $migration_work_folder ] ; then
+        # found previous migrations work folder, that needs to go...
+        echo 'Found Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
+        echo >> $logfilepath
+        ls -Alsh $migration_work_folder >> $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        echo 'Removing Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        rm -R -v -I $migration_work_folder | tee -a -i $logfilepath
+        
+        echo | tee -a -i $logfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+    else
+        
+        echo 'No Previous Migrations work Folder found in '$migration_work_folder | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+    fi
+    
+    
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#RemoveRemnantTempMigrationFolder
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# Validate we are working on a system that handles this operation
+# -------------------------------------------------------------------------------------------------
+if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
+    echo "System is Security Management Server!" | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo Error! | tee -a -i $logfilepath
-    echo Missing folder $workingbase | tee -a -i $logfilepath
+    echo "Continueing with Migrate Export..." | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo Exiting! | tee -a -i $logfilepath
+elif [ $Check4SMS -gt 0 ] && [ $Check4MDS -gt 0 ]; then
+    echo "System is Multi-Domain Management Server!" | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
+    echo "This script is not meant for MDM, exiting!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
     exit 255
 else
-    chmod 775 $workingbase | tee -a -i $logfilepath
-fi
-
-chmod 775 $linksbase | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo 'Start with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/gaia_version_type | tee -a -i $logfilepath
-
-rm $workingroot/do_script_nohup | tee -a -i $logfilepath
-
-rm $workingroot/godump | tee -a -i $logfilepath
-rm $workingroot/godtgdump | tee -a -i $logfilepath
-
-rm $workingroot/goChangeLog | tee -a -i $logfilepath
-
-rm $workingroot/mkdump | tee -a -i $logfilepath
-rm $workingroot/mkdtgdump | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/config_capture | tee -a -i $logfilepath
-rm $workingroot/interface_info | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GAIA
-# =============================================================================
-
-
-export workingdir=GAIA
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if $IsR8XVersion ; then
+    echo "System is a gateway!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo "This script is not meant for gateways, exiting!" | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
     
-    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
-    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
-    
+    exit 255
 fi
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
+# -------------------------------------------------------------------------------------------------
+# Setup script values
+# -------------------------------------------------------------------------------------------------
 
 
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+#export outputfilepath=$outputpathroot/
+export outputfilepath=$logfilepathbase/
+export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
+export outputfilesuffix='_'$DATEDTGS
+export outputfiletype=.tgz
 
-rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
-rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
-rm $workingroot/cluster_info | tee -a -i $logfilepath
-rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
-rm $workingroot/enable_rad_admin_stats_and_cpview | tee -a -i $logfilepath
-rm $workingroot/vpn_client_operational_info | tee -a -i $logfilepath
+export toolsversion=$gaiaversion
 
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW.CORE
-# =============================================================================
-
-
-export workingdir=GW.CORE
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if [ ! -r $sourcefolder ] ; then
-    # This folder is not part of the distribution
-    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
+if [ -z $CLIparm_l04_targetversion ]; then
+    export toolsversion=$gaiaversion
 else
-    $workingroot/fix_smcias_interfaces | tee -a -i $logfilepath
-    $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE | tee -a -i $logfilepath
+    export toolsversion=$CLIparm_l04_targetversion
 fi
 
+if [ $gaiaversion != $toolsversion ] ; then
+    export EXPORTVERSIONDIFFERENT=true
+else
+    export EXPORTVERSIONDIFFERENT=false
+fi
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
+if [ -z $CLIparm_l01_toolvername ]; then
+    if $EXPORTVERSIONDIFFERENT ; then
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion
+    else
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion
+    fi
+else
+    if $EXPORTVERSIONDIFFERENT ; then
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_to_'$toolsversion'_using_'$CLIparm_l01_toolvername
+    else
+        export outputfileprefix=ugex_server_$HOSTNAME'_'$gaiaversion'_export_using_'$CLIparm_l01_toolvername
+    fi
+fi
+
+case "$toolsversion" in
+    R80.20 | R80.20.M1 | R80.20.M2 | R80.30 | R80.40 ) 
+        # /opt/CPsuite-R80.30/fw1/scripts/migrate_server
+        # /opt/CPupgrade-tools-R80.30/scripts/migrate_server
+        # /opt/CPsuite-R80.40/fw1/scripts/migrate_server
+        # /opt/CPupgrade-tools-R80.40/scripts/migrate_server
+        
+        
+        if [ -z $CLIparm_l02_toolpath ]; then
+            if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
+                export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                export migratefilepath=$migratefilefolderroot/scripts/
+            elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
+                export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
+                export migratefilepath=$migratefilefolderroot/scripts/
+            elif [ -r "/opt/CPsuite-$toolsversion" ]; then
+                export migratefilefolderroot=/opt/CPsuite-$toolsversion
+                export migratefilepath=$migratefilefolderroot/fw1/scripts/
+            else
+                export migratefilefolderroot=/opt/CPsuite-$gaiaversion
+                export migratefilepath=$migratefilefolderroot/fw1/scripts/
+            fi
+        else
+            if [ -r $CLIparm_l02_toolpath ]; then
+                export migratefilefolderroot=
+                export migratefilepath=${CLIparm_l02_toolpath%/}/
+            else
+                if [ -r "/opt/CPupgrade-tools-$toolsversion" ]; then
+                    export migratefilefolderroot=/opt/CPupgrade-tools-$toolsversion
+                    export migratefilepath=$migratefilefolderroot/scripts/
+                elif [ -r "/opt/CPupgrade-tools-$gaiaversion" ]; then
+                    export migratefilefolderroot=/opt/CPupgrade-tools-$gaiaversion
+                    export migratefilepath=$migratefilefolderroot/scripts/
+                elif [ -r "/opt/CPsuite-$toolsversion" ]; then
+                    export migratefilefolderroot=/opt/CPsuite-$toolsversion
+                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
+                else
+                    export migratefilefolderroot=/opt/CPsuite-$gaiaversion
+                    export migratefilepath=$migratefilefolderroot/fw1/scripts/
+                fi
+            fi
+        fi
+        
+        export migratefilename=migrate_server
+        ;;
+    *)  
+        echo 'Export Version NOT SUPPORTED:  '$toolsversion | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+        echo ' EXITING...' | tee -a -i $logfilepath
+        echo ' LOGFILE : ' $logfilepath | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        exit 255
+        ;;
+esac
+
+export migratefile=$migratefilepath$migratefilename
+
+if [ ! -r $migratefilepath ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate file folder!' | tee -a -i $logfilepath
+    echo '  Missing folder : '$migratefilepath | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+if [ ! -r $migratefile ]; then
+    echo '!! CRITICAL ERROR!!' | tee -a -i $logfilepath
+    echo '  Missing migrate executable file !' | tee -a -i $logfilepath
+    echo '  Missing executable file : '$migratefile | tee -a -i $logfilepath
+    echo ' EXITING...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+
+    exit 255
+fi
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Execute fw logswitch' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+fw logswitch | tee -a -i $logfilepath
+fw logswitch -audit | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Migration Tools Folder to use:  '$migratefilepath | tee -a -i $logfilepath
+echo 'Migration Export Tools to use:  '$migratefile | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+RemoveRemnantTempMigrationFolder
 
 
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/healthcheck | tee -a -i $logfilepath
-rm $workingroot/healthdump | tee -a -i $logfilepath
-rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
-
-
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/report_mdsstat | tee -a -i $logfilepath
-rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
-rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MGMT
-# =============================================================================
-
-
-export workingdir=MGMT
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
-rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-export need_fix_webui=false
-
-rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
-
-
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
-
-
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
-
-
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS.CORE
-# =============================================================================
-
-
-export workingdir=SMS.CORE
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-#if [ "$sys_type_SMS" == "true" ]; then
+#
+#    [host:0]# /opt/CPupgrade-tools-R80.30/scripts/migrate_server -h
+#    
+#    Use the migrate utility to export and import Check Point
+#    Security Management Server database.
+#    
+#    Usage: /opt/CPupgrade-tools-R80.30/scripts/migrate_server <ACTION> [OPTIONS] <FILE>
+#    
+#            ACTION (required parameter):
+#    
+#            export - exports database of Management Server or Multi-Domain Server.
+#            import - imports database of Management Server or Multi-Domain Server.
+#            verify - verifies database of Management Server or Multi-Domain Server.
+#    
+#            Options (optional parameters):
+#            '-h'                           show this message.
+#            '-v <target version>'          Import version.
+#            '-skip_upgrade_tools_check'    does not check for updated upgrade tools.
+#            '-l'                           Export/import logs without log indexes.
+#            '-x'                           Export/import logs with log indexes.
+#                                           Note: only closed logs are exported/imported.
+#            '-n'                           Run non-interactively.
+#            '--exclude-uepm-postgres-db'   skip over backup/restore of PostgreSQL.
+#            '--include-uepm-msi-files'     export/import the uepm msi files.
+#    
+#            <FILE> (required parameter only for import):
+#    
+#            Name of archived file to export/import database to/from.
+#            Path to archive should exist.
+#    
+#    Note:
+#    Run the utility either from the current directory or using
+#    an absolute path.
+#
     
-    #rm $workingroot/CORE-G2_install_policy | tee -a -i $logfilepath
-    
+case "$gaiaversion" in
+    R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
+        export IsMigrateWIndexes=true
+        ;;
+    *)
+        export IsMigrateWIndexes=false
+        ;;
+esac
+
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run='export -n -x'
+    export command2run='export -n'
+else
+    # Migrate does not supports export of indexes
+    #export command2run='export -n -l'
+    export command2run='export -n'
+fi
+
+export command2run=$command2run' -v '$gaiaversion
+
+export outputfile=$outputfileprefix$outputfilesuffix$outputfiletype
+export outputfilefqdn=$outputfilepath$outputfile
+
+if $IsMigrateWIndexes ; then
+    # Migrate supports export of indexes
+    #export command2run2='export -n -x --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+else
+    # Migrate does not supports export of indexes
+    #export command2run2='export -n -l --include-uepm-msi-files'
+    export command2run2='export -n --include-uepm-msi-files'
+fi
+
+export command2run2=$command2run2' -v '$gaiaversion
+
+export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
+export outputfilefqdn2=$outputfilepath$outputfile2
+
+echo | tee -a -i $logfilepath
+echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
+echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+fi
+
+if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Preparing ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+DocumentMgmtcpwdadminlist
+
+echo | tee -a -i $logfilepath
+echo 'cpstop ...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+cpstop | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'cpstop completed' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#list $CPDIR/log/migrate-2020.03.17*
+#/opt/CPshrd-R80.40/log/migrate-2020.03.17_00.46.19.log
+
+export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
+export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+
+echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
+#else
+#    # test mode
+#    echo Test Mode! | tee -a -i $logfilepath
 #fi
 
+$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS.migrate_backup
-# =============================================================================
+echo 'Copy rough migrate log : '$migratelogfilefqfn' to folder : '$outputfilepath | tee -a -i $logfilepath
 
+cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
 
-export workingdir=SMS.migrate_backup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
+echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
-
-rm $workingroot/migrate_server_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_epm_ugex | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
-
-
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig.CORE_G2.NPM
-# =============================================================================
-
-
-export workingdir=UserConfig.CORE_G2.NPM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if [ ! -r $sourcefolder ] ; then
-    # This folder is not part of the distribution
-    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
-else
+if [ $Check4EPM -gt 0 ]; then
+    echo | tee -a -i $logfilepath
+    echo 'Executing 2...' | tee -a -i $logfilepath
+    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
     
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
+    RemoveRemnantTempMigrationFolder
     
+    export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
+    export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+    
+    echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    #if [ $testmode -eq 0 ]; then
+    #    # Not test mode
+    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    #else
+    #    # test mode
+    #    echo Test Mode! | tee -a -i $logfilepath
+    #fi
+    
+    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+    
+    echo 'Copy rough migrate log : '$migratelogfilefqfn' to folder : '$outputfilepath | tee -a -i $logfilepath
+    
+    cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
 fi
 
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
-
-rm -f -r -d $linksbase | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-
 echo | tee -a -i $logfilepath
-echo 'List folder : '$workingroot | tee -a -i $logfilepath
-ls -alh $workingroot | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingbase | tee -a -i $logfilepath
-ls -alh $workingbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done with links clean-up!' | tee -a -i $logfilepath
+ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-# =============================================================================
-# =============================================================================
+DocumentMgmtcpwdadminlist
 
+echo | tee -a -i $logfilepath
+if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
+echo | tee -a -i $logfilepath
+echo 'Clean-up, stop, and [re-]start services...' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
+if $CLIparm_NOSTART ; then
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstop ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    cpstop | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstop completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
+    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+   
+    
+else
+    
+    DocumentMgmtcpwdadminlist
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstop ...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    cpstop | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstop completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
+    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+    
+    echo "Short $WAITTIME second nap..." | tee -a -i $logfilepath
+    sleep $WAITTIME
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstart...' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    cpstart | tee -a -i $logfilepath
+    
+    echo | tee -a -i $logfilepath
+    echo 'cpstart completed' | tee -a -i $logfilepath
+    echo | tee -a -i $logfilepath
+    
+    WatchMgmtcpwdadminlist    
+
+    if $IsR8XVersion ; then
+        # R80 version so kick the API on
+        #echo | tee -a -i $logfilepath
+        #echo 'api start ...' | tee -a -i $logfilepath
+        #echo | tee -a -i $logfilepath
+        #
+        #api start | tee -a -i $logfilepath
+        #
+        echo | tee -a -i $logfilepath
+        echo 'api status' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+    
+        api status | tee -a -i $logfilepath
+    
+        echo | tee -a -i $logfilepath
+    else
+        # not R80 version so no API
+        echo | tee -a -i $logfilepath
+    fi
+
+fi
+
+    
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Done!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Backup Folder : '$outputfilepath | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+ls -alh $outputfilepath/*.tgz | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 
 
 #==================================================================================================

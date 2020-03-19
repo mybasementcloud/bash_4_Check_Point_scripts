@@ -2,7 +2,7 @@
 #
 # SCRIPT for BASH to execute migrate export to /var/log/__customer/upgrade_export folder
 # using /var/log/__customer/upgrade_export/migration_tools/<version>/migrate file
-# EPM export includes standard NPM export and adds export of EP Client MSI files
+# this scripts export a second file with logs and indexes (if R8X)
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -15,9 +15,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=001
+ScriptDate=2020-03-18
+ScriptVersion=04.26.01
+ScriptRevision=005
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=006
@@ -32,10 +32,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=migrate_export_epm_ugex
-export BASHScriptShortName="migrate_export_epm"
+export BASHScriptFileNameRoot=migrate_export_w_logs_npm_ugex
+export BASHScriptShortName="migrate_export_npm_w_logs"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="migrate export EPM with EP Client MSI to local folder using version tools"
+export BASHScriptDescription=="migrate export NPM with logs to local folder using version tools"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
@@ -1357,10 +1357,68 @@ WatchMgmtcpwdadminlist () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+
+# -------------------------------------------------------------------------------------------------
+# RemoveRemnantTempMigrationFolder - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+RemoveRemnantTempMigrationFolder () {
+    #
+    # repeated procedure description
+    #
+    
+    #export migration_work_folder="/var/log/opt/CPsuite-$gaiaversion/fw1/tmp/migrate"
+    export migration_work_folder="$FWDIR/tmp/migrate"
+    
+    if [ -d $migration_work_folder ] ; then
+        # found previous migrations work folder, that needs to go...
+        echo 'Found Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
+        echo >> $logfilepath
+        ls -Alsh $migration_work_folder >> $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        echo 'Removing Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        rm -R -v -I $migration_work_folder | tee -a -i $logfilepath
+        
+        echo | tee -a -i $logfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+    else
+        
+        echo 'No Previous Migrations work Folder found in '$migration_work_folder | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+    fi
+    
+    
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#RemoveRemnantTempMigrationFolder
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------------------
 # Validate we are working on a system that handles this operation
 # -------------------------------------------------------------------------------------------------
-
 if [ $Check4SMS -gt 0 ] && [ $Check4MDS -eq 0 ]; then
     echo "System is Security Management Server!"
     echo
@@ -1384,7 +1442,8 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-export outputfilepath=$outputpathroot/
+#export outputfilepath=$outputpathroot/
+export outputfilepath=$logfilepathbase/
 export outputfileprefix=ugex_$HOSTNAME'_'$gaiaversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.tgz
@@ -1458,6 +1517,16 @@ echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+echo 'Execute fw logswitch' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+fw logswitch | tee -a -i $logfilepath
+fw logswitch -audit | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
 echo 'Migration Tools Folder to use:  '$migratefilepath | tee -a -i $logfilepath
 echo 'Migration Export Tools to use:  '$migratefile | tee -a -i $logfilepath
 
@@ -1465,32 +1534,8 @@ echo | tee -a -i $logfilepath
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-export migration_work_folder="/var/log/opt/CPsuite-$gaiaversion/fw1/tmp/migrate"
+RemoveRemnantTempMigrationFolder
 
-if [ -d $migration_work_folder ] ; then
-    # found previous migrations work folder, that needs to go...
-    echo 'Found Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
-    echo >> $logfilepath
-    ls -Alsh $migration_work_folder >> $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo 'Removing Previous Migrations work Folder :  '$migration_work_folder | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    rm -R -v -I $migration_work_folder | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-else
-    
-    echo 'No Previous Migrations work Folder found in '$migration_work_folder | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-fi
 
 case "$gaiaversion" in
     R80.20.M1 | R80.20.M2 | R80.20 | R80.30.M1 | R80.30.M2 | R80.30 | R80.40.M1 | R80.40.M2 | R80.40 ) 
@@ -1516,15 +1561,15 @@ export outputfilefqdn=$outputfilepath$outputfile
 
 if $IsMigrateWIndexes ; then
     # Migrate supports export of indexes
-    export command2run2='export -n -x --include-uepm-msi-files'
-    #export command2run2='export -n --include-uepm-msi-files'
+    export command2run2='export -n -x'
+    #export command2run2='export -n'
 else
     # Migrate does not supports export of indexes
-    export command2run2='export -n -l --include-uepm-msi-files'
-    #export command2run2='export -n --include-uepm-msi-files'
+    export command2run2='export -n -l'
+    #export command2run2='export -n'
 fi
 
-export outputfile2=$outputfileprefix'_msi_logs'$outputfilesuffix$outputfiletype
+export outputfile2=$outputfileprefix'_logs'$outputfilesuffix$outputfiletype
 export outputfilefqdn2=$outputfilepath$outputfile2
 
 echo | tee -a -i $logfilepath
@@ -1532,11 +1577,9 @@ echo 'Execute command : '$migratefile $command2run | tee -a -i $logfilepath
 echo ' with ouptut to : '$outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-if [ $Check4EPM -gt 0 ]; then
-    echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
-    echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-fi
+echo 'Execute command 2 : '$migratefile $command2run2 | tee -a -i $logfilepath
+echo ' with ouptut 2 to : '$outputfilefqdn2 | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
 if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
 echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
@@ -1563,6 +1606,15 @@ echo 'Executing...' | tee -a -i $logfilepath
 echo '-> '$migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+#list $CPDIR/log/migrate-2020.03.17*
+#/opt/CPshrd-R80.40/log/migrate-2020.03.17_00.46.19.log
+
+export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
+export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+
+echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
 #if [ $testmode -eq 0 ]; then
 #    # Not test mode
 #    $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
@@ -1573,31 +1625,44 @@ echo | tee -a -i $logfilepath
 
 $migratefile $command2run $outputfilefqdn | tee -a -i $logfilepath
 
+echo 'Copy rough migrate log : '$migratelogfilefqfn' to folder : '$outputfilepath | tee -a -i $logfilepath
+
+cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
+
 echo | tee -a -i $logfilepath
 echo 'Done performing '$migratefile $command2run | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-if [ $Check4EPM -gt 0 ]; then
-    echo | tee -a -i $logfilepath
-    echo 'Executing 2...' | tee -a -i $logfilepath
-    echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Executing 2...' | tee -a -i $logfilepath
+echo '-> '$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
 
-    #if [ $testmode -eq 0 ]; then
-    #    # Not test mode
-    #    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
-    #else
-    #    # test mode
-    #    echo Test Mode! | tee -a -i $logfilepath
-    #fi
-    
-    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+RemoveRemnantTempMigrationFolder
 
-    echo | tee -a -i $logfilepath
-    echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-fi
+export migratelogfiledate=`date +%Y.%m.%d_%H.%M`
+export migratelogfilefqfn=/var/log$CPDIR/migrate-$migratelogfiledate.*.log
+
+echo 'Rough migrate log file :  '$migratelogfilefqfn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+#if [ $testmode -eq 0 ]; then
+#    # Not test mode
+#    $migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+#else
+#    # test mode
+#    echo Test Mode! | tee -a -i $logfilepath
+#fi
+
+$migratefile $command2run2 $outputfilefqdn2 | tee -a -i $logfilepath
+
+echo 'Copy rough migrate log : '$migratelogfilefqfn' to folder : '$outputfilepath | tee -a -i $logfilepath
+
+cp $migratelogfilefqfn $outputfilepath | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
+echo 'Done performing '$migratefile $command2run2 | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
 ls -alh $outputfilefqdn | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
@@ -1627,7 +1692,6 @@ if $CLIparm_NOSTART ; then
     if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
     echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
    
-    
 else
     
     DocumentMgmtcpwdadminlist
@@ -1659,8 +1723,14 @@ else
     echo 'cpstart completed' | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
     
-    WatchMgmtcpwdadminlist    
-
+    DocumentMgmtcpwdadminlist
+    
+    echo | tee -a -i $logfilepath
+    if ! $CLIparm_NOWAIT ; then read -t $WAITTIME -n 1 -p "Any key to continue : " anykey ; fi
+    echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+    
+    DocumentMgmtcpwdadminlist
+    
     if $IsR8XVersion ; then
         # R80 version so kick the API on
         #echo | tee -a -i $logfilepath
