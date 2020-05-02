@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Remove script link files
+# SCRIPT Template for bash scripts, level - 006
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -13,9 +13,9 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-19
-ScriptVersion=04.26.02
-ScriptRevision=000
+ScriptDate=2020-04-15
+ScriptVersion=04.26.00
+ScriptRevision=002
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=006
@@ -30,20 +30,20 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=remove_script_links
-export BASHScriptShortName="remove_links"
+export BASHScriptFileNameRoot=_template_bash_scripts
+export BASHScriptShortName=_template_bash_scripts.$TemplateLevel.v$ScriptVersion
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Remove Script Links"
+export BASHScriptDescription="Template for bash scripts"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
+export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=.
+export BASHScriptsFolder=_template
 
 export BASHScripttftptargetfolder="_template"
 
@@ -203,10 +203,10 @@ fi
 
 # =================================================================================================
 # =================================================================================================
-# START:  Local Command Line Parameter Handling and Help Configuration and Local Handling
+# START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-11-22 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -232,6 +232,7 @@ fi
 # --RESTART
 #
 # --NOHUP
+# --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
 #
 
 export SHOWHELP=false
@@ -285,11 +286,12 @@ else
 fi
 
 export CLIparm_NOHUP=false
+export CLIparm_NOHUPScriptName=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-11-22
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -527,7 +529,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -539,10 +541,26 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-10-03 -
+    # MODIFIED 2018-11-20 -
     
-    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
+    export configured_handler_root=$cli_script_cmdlineparm_handler_root
+    export actual_handler_root=$configured_handler_root
     
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
     # Check that we can finde the command line parameter handler file
@@ -555,6 +573,8 @@ CommandLineParameterHandler () {
             echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
+            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
+            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
@@ -965,8 +985,26 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
+    # MODIFIED 2018-11-20 -
     
+    export configured_handler_root=$gaia_version_type_handler_root
+    export actual_handler_root=$configured_handler_root
+    
+    if [ "$configured_handler_root" == "." ] ; then
+        if [ $ScriptSourceFolder != $localdotpath ] ; then
+            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
+            # to be relative to the script source folder, use the identified script source folder instead
+            export actual_handler_root=$ScriptSourceFolder
+        else
+            # Script is running from it's source folder
+            export actual_handler_root=$configured_handler_root
+        fi
+    else
+        # handler root path is not period (.), so stipulating fully qualified path
+        export actual_handler_root=$configured_handler_root
+    fi
+    
+    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1184,366 +1222,90 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# shell meat
+# START:  script shell operations description
 #
 #==================================================================================================
 #==================================================================================================
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-#
-# Scripts link generation and setup
-#
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# script plumbing 1
+# -------------------------------------------------------------------------------------------------
 
-
-export workingroot=$customerworkpathroot
-export workingbase=$workingroot/scripts
-export linksbase=$workingbase/.links
-
-
-if [ ! -r $workingbase ] ; then
-    echo | tee -a -i $logfilepath
-    echo Error! | tee -a -i $logfilepath
-    echo Missing folder $workingbase | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo Exiting! | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    exit 255
-else
-    chmod 775 $workingbase | tee -a -i $logfilepath
-fi
-
-chmod 775 $linksbase | tee -a -i $logfilepath
-
-
-echo | tee -a -i $logfilepath
-echo 'Start with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Common
-# =============================================================================
-
-
-export workingdir=Common
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/gaia_version_type | tee -a -i $logfilepath
-
-rm $workingroot/do_script_nohup | tee -a -i $logfilepath
-
-rm $workingroot/godump | tee -a -i $logfilepath
-rm $workingroot/godtgdump | tee -a -i $logfilepath
-
-rm $workingroot/goChangeLog | tee -a -i $logfilepath
-
-rm $workingroot/mkdump | tee -a -i $logfilepath
-rm $workingroot/mkdtgdump | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Config
-# =============================================================================
-
-
-export workingdir=Config
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/config_capture | tee -a -i $logfilepath
-rm $workingroot/interface_info | tee -a -i $logfilepath
-rm $workingroot/EPM_config_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GAIA
-# =============================================================================
-
-
-export workingdir=GAIA
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
 
 if $IsR8XVersion ; then
+    # Do something because R8X
     
-    rm $workingroot/update_gaia_rest_api | tee -a -i $logfilepath
-    rm $workingroot/update_gaia_dynamic_cli | tee -a -i $logfilepath
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW
-# =============================================================================
-
-
-export workingdir=GW
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/watch_accel_stats | tee -a -i $logfilepath
-rm $workingroot/set_informative_logging_implied_rules_on_R8x | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_with_backup | tee -a -i $logfilepath
-rm $workingroot/cluster_info | tee -a -i $logfilepath
-rm $workingroot/watch_cluster_info | tee -a -i $logfilepath
-rm $workingroot/enable_rad_admin_stats_and_cpview | tee -a -i $logfilepath
-rm $workingroot/vpn_client_operational_info | tee -a -i $logfilepath
-rm $workingroot/vpn_client_operational_info.standalone | tee -a -i $logfilepath
-rm $workingroot/fix_gw_missing_updatable_objects | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  GW.CORE
-# =============================================================================
-
-
-export workingdir=GW.CORE
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if [ ! -r $sourcefolder ] ; then
-    # This folder is not part of the distribution
-    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
+    echo
 else
-    $workingroot/fix_smcias_interfaces | tee -a -i $logfilepath
-    $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE | tee -a -i $logfilepath
+    # Do something else because not R8X
+    
+    echo
 fi
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  Health_Check
-# =============================================================================
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Example framework for executing bash commands and documenting those specifically
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
+#----------------------------------------------------------------------------------------
+# Configure specific parameters
+#----------------------------------------------------------------------------------------
 
-export workingdir=Health_Check
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/healthcheck | tee -a -i $logfilepath
-rm $workingroot/healthdump | tee -a -i $logfilepath
-rm $workingroot/check_point_service_status_check | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm $workingroot/checkpoint_service_status_check | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MDM
-# =============================================================================
-
-
-export workingdir=MDM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/backup_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/backup_w_logs_mds_ugex | tee -a -i $logfilepath
-rm $workingroot/report_mdsstat | tee -a -i $logfilepath
-rm $workingroot/watch_mdsstat | tee -a -i $logfilepath
-rm $workingroot/show_domains_in_array | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  MGMT
-# =============================================================================
-
-
-export workingdir=MGMT
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
-rm $workingroot/Lite.identify_self_referencing_symbolic_link_files | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Patch_HotFix
-# =============================================================================
-
-
-export workingdir=Patch_HotFix
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-export need_fix_webui=false
-
-rm $workingroot/fix_gaia_webui_login_dot_js | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  Session_Cleanup
-# =============================================================================
-
-
-export workingdir=Session_Cleanup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/mdm_show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/mdm_remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/show_zerolocks_web_api_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_sessions | tee -a -i $logfilepath
-rm $workingroot/remove_zerolocks_web_api_sessions | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SmartEvent
-# =============================================================================
-
-
-export workingdir=SmartEvent
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/SmartEvent_backup | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_restore | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartLog_Indexing | tee -a -i $logfilepath
-#rm $workingroot/Reset_SmartEvent_Indexing | tee -a -i $logfilepath
-#rm $workingroot/SmartEvent_NUKE_Index_and_Logs | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS
-# =============================================================================
-
-
-export workingdir=SMS
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/report_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/watch_cpwd_admin_list | tee -a -i $logfilepath
-rm $workingroot/restart_mgmt | tee -a -i $logfilepath
-rm $workingroot/reset_hit_count_on_R80_SMS_commands | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS.CORE
-# =============================================================================
-
-
-export workingdir=SMS.CORE
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-#if [ "$sys_type_SMS" == "true" ]; then
-    
-    #rm $workingroot/CORE-G2_install_policy | tee -a -i $logfilepath
-    
+#export targetversion=$gaiaversion
+#
+#export outputfilepath=$outputpathbase/
+#export outputfileprefix=$HOSTNAME'_'$targetversion
+#export outputfilesuffix='_'$DATEDTGS
+#export outputfiletype=.txt
+#
+#if [ ! -r $outputfilepath ] ; then
+#    mkdir -pv $outputfilepath
+#    chmod 775 $outputfilepath
+#else
+#    chmod 775 $outputfilepath
 #fi
+#
+
+#case "$gaiaversion" in
+#    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
+#        export do_session_cleanup=true
+#        ;;
+#    *)
+#        export do_session_cleanup=false
+#        ;;
+#esac
+#
+#if [ "$do_session_cleanup" == "true" ]; then
+#
+
+echo '! doing something !' 
 
 
-# =============================================================================
-# =============================================================================
-# FOLDER:  SMS.migrate_backup
-# =============================================================================
+#----------------------------------------------------------------------------------------
+# bash - ?what next?
+#----------------------------------------------------------------------------------------
 
 
-export workingdir=SMS.migrate_backup
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/migrate_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_export_w_logs_epm_ugex | tee -a -i $logfilepath
-
-rm $workingroot/migrate_server_export_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_npm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_epm_ugex | tee -a -i $logfilepath
-rm $workingroot/migrate_server_export_w_logs_epm_ugex | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig
-# =============================================================================
-
-
-export workingdir=UserConfig
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-rm $workingroot/alias_commands_add_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_add_all_users | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_user | tee -a -i $logfilepath
-rm $workingroot/alias_commands_update_all_users | tee -a -i $logfilepath
-
-# Legacy Naming Clean-up
-rm -f $workingroot/add_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands | tee -a -i $logfilepath
-rm -f $workingroot/update_alias_commands_all_users | tee -a -i $logfilepath
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  UserConfig.CORE_G2.NPM
-# =============================================================================
-
-
-export workingdir=UserConfig.CORE_G2.NPM
-export sourcefolder=$workingbase/$workingdir
-export linksfolder=$linksbase/$workingdir
-
-if [ ! -r $sourcefolder ] ; then
-    # This folder is not part of the distribution
-    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
-else
-    
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_add_all_users
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_user
-    rm $workingroot/alias_commands_CORE_G2_NPM_update_all_users
-    
-fi
-
-
-# =============================================================================
-# =============================================================================
-# FOLDER:  
-# =============================================================================
-
-# =============================================================================
-# =============================================================================
-
-rm -f -r -d $linksbase | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingroot | tee -a -i $logfilepath
-ls -alh $workingroot | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'List folder : '$workingbase | tee -a -i $logfilepath
-ls -alh $workingbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Done with links clean-up!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# =============================================================================
-# =============================================================================
-
+#export command2run=command
+#export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+#export outputfilefqdn=$outputfilepath$outputfile
+#
+#echo
+#echo 'Execute '$command2run' with output to : '$outputfilefqdn
+#command > "$outputfilefqdn"
+#
+#echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#echo 'fwacell stats -s' >> "$outputfilefqdn"
+#echo >> "$outputfilefqdn"
+#
+#fwaccel stats -s >> "$outputfilefqdn"
+#
 
 
 #----------------------------------------------------------------------------------------
@@ -1551,10 +1313,17 @@ echo | tee -a -i $logfilepath
 #
 
 
+#echo 'CLI Operations Completed'
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+
 #==================================================================================================
 #==================================================================================================
 #
-# end shell meat
+# END:  script shell operations description
 #
 #==================================================================================================
 #==================================================================================================

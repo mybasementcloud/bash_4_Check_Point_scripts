@@ -11,11 +11,11 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-# Version created 2020-03-31 1700 hrs CDT
+# Version created 2020-03-11 1130 hrs CDT
 #
-ScriptDate=2020-04-01
-ScriptVersion=04.26.05
-ScriptRevision=000
+ScriptDate=2020-04-15
+ScriptVersion=04.26.00
+ScriptRevision=002
 TemplateVersion=04.26.00
 TemplateLevel=006
 SubScriptsLevel=006
