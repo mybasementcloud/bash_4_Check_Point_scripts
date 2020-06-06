@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=001
-TemplateVersion=04.26.00
+ScriptDate=2020-06-05
+ScriptVersion=04.27.00
+ScriptRevision=004
+TemplateVersion=04.27.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
@@ -93,7 +93,7 @@ fi
 # points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
 export JQ16PATH=$MYWORKFOLDER/_tools/JQ
 export JQ16FILE=jq-linux64
-export JQ16FQFN=$JQ16PATH$JQ16FILE
+export JQ16FQFN=$JQ16PATH/$JQ16FILE
 if [ -r $JQ16FQFN ] ; then
     # OK we have the easy-button alternative
     export JQ16=$JQ16FQFN

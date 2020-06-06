@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-03-11
-ScriptVersion=04.26.00
-ScriptRevision=001
-TemplateVersion=04.26.00
+ScriptDate=2020-06-05
+ScriptVersion=04.27.00
+ScriptRevision=004
+mplateVersion=04.27.00
 TemplateLevel=006
 SubScriptsLevel=006
-SubScriptsVersion=04.07.00
+SubScriptsVersion=04.08.00
 #
 
 RootScriptVersion=v${RootScriptVersion//./x}
@@ -51,6 +51,11 @@ export WAITTIME=15
 # =============================================================================
 
 export customerpathroot=/var/log/__customer
+export customerdownloadpathroot=$customerpathroot/download
+export downloadpathroot=$customerdownloadpathroot
+export customerscriptspathroot=$customerpathroot/_scripts
+export scriptspathmain=$customerscriptspathroot
+export scriptspathb4CP=$scriptspathmain/bash_4_Check_Point
 export customerworkpathroot=$customerpathroot/upgrade_export
 export outputpathroot=$customerworkpathroot
 export dumppathroot=$customerworkpathroot/dump
@@ -112,7 +117,7 @@ export UseJSONJQ16=false
 # As of template version v04.21.00 we also added jq version 1.6 to the mix and it lives in the customer path root /tools/JQ folder by default
 export JQ16PATH=$customerpathroot/_tools/JQ
 export JQ16FILE=jq-linux64
-export JQ16FQFN=$JQ16PATH$JQ16FILE
+export JQ16FQFN=$JQ16PATH/$JQ16FILE
 
 if [ -r $JQ16FQFN ] ; then
     # OK we have the easy-button alternative
