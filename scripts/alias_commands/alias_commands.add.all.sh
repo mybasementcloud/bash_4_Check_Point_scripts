@@ -1,13 +1,18 @@
 # !! SAMPLE !!
 #
-# Version :  v04.27.00.004
-# Date    :  2020-06-05
+# Version :  v04.28.02.000
+# Date    :  2020-06-30
 #
 #========================================================================================
 #========================================================================================
 # start of alias.commands.<action>.<scope>.sh
 #========================================================================================
 #========================================================================================
+
+
+echo
+echo 'Configuration User Environment'
+echo
 
 
 alias DTGDATE='date +%Y-%m-%d-%H%M%Z'
@@ -58,6 +63,17 @@ alias gochangelog='cd "$MYWORKFOLDERCHANGE";echo Current path = `pwd`;echo'
 alias godump='cd "$MYWORKFOLDERDUMP";echo Current path = `pwd`;echo'
 alias godownload='cd "$MYWORKFOLDERDOWNLOADS";echo Current path = `pwd`;echo'
 alias goscripts='cd "$MYWORKFOLDERSCRIPTS";echo Current path = `pwd`;echo'
+alias gob4cp='cd "$MYWORKFOLDERSCRIPTSB4CP";echo Current path = `pwd`;echo'
+alias gob4CP='cd "$MYWORKFOLDERSCRIPTSB4CP";echo Current path = `pwd`;echo'
+
+if [ -r $MYWORKFOLDER/cli_api_ops ] ; then
+    alias goapi='cd $MYWORKFOLDER/cli_api_ops;echo Current path = `pwd`;echo'
+    alias goapiexport='cd $MYWORKFOLDER/cli_api_ops/export_import;echo Current path = `pwd`;echo'
+fi
+if [ -r $MYWORKFOLDER/cli_api_ops.wip ] ; then
+    alias goapiwip='cd $MYWORKFOLDER/cli_api_ops.wip;echo Current path = `pwd`;echo'
+    alias goapiwipexport='cd $MYWORKFOLDER/cli_api_ops.wip/export_import.wip;echo Current path = `pwd`;echo'
+fi
 
 # Testing
 #alias gochangelognow='DTGSNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDER/upgrade_export/Change_Log/$DTGSNOW";list "$MYWORKFOLDER/upgrade_export/Change_Log/";cd "$MYWORKFOLDER/upgrade_export/Change_Log/$DTGSNOW";echo;echo Current path = `pwd`;echo'
@@ -72,13 +88,8 @@ alias gochangelogdtg='DTGNOW=`DTGDATE`;mkdir -pv "$MYWORKFOLDERCHANGE/$DTGNOW";l
 
 alias makedumpnow='DTGSNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGSNOW";list "$MYWORKFOLDERDUMP/";echo;echo Current path = `pwd`;echo'
 alias godumpnow='DTGSNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGSNOW";list "$MYWORKFOLDERDUMP/";echo;cd "$MYWORKFOLDERDUMP/$DTGSNOW";echo;echo Current path = `pwd`;echo'
-alias makedumpdtg='DTGNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGNOW";list "$MYWORKFOLDERDUMP/";echo;echo Current path = `pwd`;echo'
-alias godumpdtg='DTGNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGNOW";list "$MYWORKFOLDERDUMP/";echo;cd "$MYWORKFOLDERDUMP/$DTGNOW";echo;echo Current path = `pwd`;echo'
-
-alias goapi='cd $MYWORKFOLDER/cli_api_ops;echo Current path = `pwd`;echo'
-alias goapiexport='cd $MYWORKFOLDER/cli_api_ops/export_import;echo Current path = `pwd`;echo'
-alias goapiwip='cd $MYWORKFOLDER/cli_api_ops.wip;echo Current path = `pwd`;echo'
-alias goapiwipexport='cd $MYWORKFOLDER/cli_api_ops.wip/export_import.wip;echo Current path = `pwd`;echo'
+alias makedumpdtg='DTGNOW=`DTGDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGNOW";list "$MYWORKFOLDERDUMP/";echo;echo Current path = `pwd`;echo'
+alias godumpdtg='DTGNOW=`DTGDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGNOW";list "$MYWORKFOLDERDUMP/";echo;cd "$MYWORKFOLDERDUMP/$DTGNOW";echo;echo Current path = `pwd`;echo'
 
 # 2019-02-01
 
@@ -92,6 +103,27 @@ alias configdump='echo;gougex;pwd;echo;echo;config_capture;echo;echo;healthdump;
 alias braindump='echo;gougex;pwd;echo;echo;config_capture;echo;echo;healthdump;echo;echo;interface_info;echo;echo;check_point_service_status_check;echo;echo'
 
 alias checkFTW='echo; echo "Check if FTW completed!  TRUE if .wizard_accepted found"; echo; ls -alh /etc/.wizard_accepted; echo; tail -n 10 /var/log/ftw_install.log; echo'
+
+# 2020-06-30
+
+if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats ] ; then
+    # GW related aliases
+    
+    alias dumpzdebugnow='DTGSNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGSNOW";list "$MYWORKFOLDERDUMP/";echo;cd "$MYWORKFOLDERDUMP/$DTGSNOW";echo;echo Current path = `pwd`;echo;fw ctl zdebug drop | tee -a zdebug_drop.$DTGSNOW.txt'
+    
+fi
+
+# 2020-06-30
+
+export MYWORKFOLDERCCC=$MYWORKFOLDER/_scripts/ccc
+alias installccc="mkdir $MYWORKFOLDERCCC; curl_cli -k https://dannyjung.de/ccc | zcat > $MYWORKFOLDERCCC/ccc && chmod +x $MYWORKFOLDERCCC/ccc; alias ccc='$MYWORKFOLDERCCC/ccc'"
+
+if [ -r $MYWORKFOLDERCCC/ccc ] ; then
+    # ccc related aliases
+    
+    alias ccc='$MYWORKFOLDERCCC/ccc'
+    
+fi
 
 # 2019-11-21 Updated
 
@@ -155,14 +187,13 @@ fi
 
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats ] ; then
     # GW scripts set
-    alias watch_accel_stats='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats'
-    alias show_cluster_info='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/show_cluster_info'
-    if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_cluster_status ] ; then
-        alias watch_cluster_status='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_cluster_status'
-        alias watch_accel_stats='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats'
-    fi
     alias enable_rad_admin_stats_and_cpview='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/enable_rad_admin_stats_and_cpview'
     alias vpn_client_operational_info='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/vpn_client_operational_info'
+    alias watch_accel_stats='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats'
+    if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_cluster_status ] ; then
+        alias watch_cluster_status='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_cluster_status'
+        alias show_cluster_info='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/show_cluster_info'
+    fi
 fi
 
 alias healthcheck='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/healthcheck'
@@ -189,12 +220,14 @@ fi
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/SmartEvent_backup ] ; then
     alias SmartEvent_backup='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/SmartEvent_backup'
     #alias SmartEvent_restore='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/SmartEvent_restore'
-    #alias Reset_SmartLog_Indexing='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/Reset_SmartLog_Indexing'
+    alias Reset_SmartLog_Indexing='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/Reset_SmartLog_Indexing'
     #alias SmartEvent_NUKE_Index_and_Logs='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/SmartEvent_NUKE_Index_and_Logs'
 fi
 
 alias report_cpwd_admin_list='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/report_cpwd_admin_list'
+alias report_admin_status='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/report_cpwd_admin_list'
 alias watch_cpwd_admin_list='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_cpwd_admin_list'
+alias admin_status='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_cpwd_admin_list'
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/restart_mgmt ] ; then
     alias restart_mgmt='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/restart_mgmt'
 fi
