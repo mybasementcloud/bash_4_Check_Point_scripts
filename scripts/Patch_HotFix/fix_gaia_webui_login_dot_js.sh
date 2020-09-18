@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-06-29
-ScriptVersion=04.28.00
+ScriptDate=2020-09-17
+ScriptVersion=04.33.00
 ScriptRevision=000
-TemplateVersion=04.28.00
+TemplateVersion=04.33.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
@@ -33,7 +33,7 @@ export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
 export BASHScriptShortName=fix_gaia_webui_login_dot_js.v$ScriptVersion
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=Patch_Hotfix
 
 export BASHScripttftptargetfolder="_template"
@@ -64,13 +64,22 @@ export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-echo 'Date Time Group   :  '$DATE $DATEDTG $DATEDTGS
-echo 'Date (YYYY-MM-DD) :  '$DATEYMD
-echo
-    
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# Script intro
+# -------------------------------------------------------------------------------------------------
+
+
+echo
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate
+echo
+
+echo 'Date Time Group   :  '$DATEDTGS
+echo
+
 
 # -------------------------------------------------------------------------------------------------
 # JQ and json related
@@ -95,7 +104,7 @@ export customerworkpathroot=$customerpathroot/upgrade_export
 
 export scriptspathroot=$customerworkpathroot/scripts
 
-export subscriptsfolder=_sub-scripts
+export subscriptsfolder=_subscripts
 
 
 # -------------------------------------------------------------------------------------------------
@@ -106,7 +115,7 @@ localrootscriptconfiguration () {
     #
     # Local Root Script Configuration setup
     #
-
+    
     # WAITTIME in seconds for read -t commands
     export WAITTIME=60
     
@@ -127,25 +136,25 @@ localrootscriptconfiguration () {
 if [ -r "$scriptspathroot/$rootscriptconfigfile" ] ; then
     # Found the Root Script Configuration File in the folder for scripts
     # So let's call that script to configure what we need
-
-    . $scriptspathroot/$rootscriptconfigfile "$@"
+    
+        . $scriptspathroot/$rootscriptconfigfile "$@"
     errorreturn=$?
 elif [ -r "../$rootscriptconfigfile" ] ; then
     # Found the Root Script Configuration File in the folder above the executiong script
     # So let's call that script to configure what we need
-
+    
     . ../$rootscriptconfigfile "$@"
     errorreturn=$?
 elif [ -r "$rootscriptconfigfile" ] ; then
     # Found the Root Script Configuration File in the folder with the executiong script
     # So let's call that script to configure what we need
-
+    
     . $rootscriptconfigfile "$@"
     errorreturn=$?
 else
     # Did not the Root Script Configuration File
     # So let's call local configuration
-
+    
     localrootscriptconfiguration "$@"
     errorreturn=$?
 fi

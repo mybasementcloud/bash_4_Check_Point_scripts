@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-06-30
-ScriptVersion=04.28.02
+ScriptDate=2020-09-17
+ScriptVersion=04.33.00
 ScriptRevision=000
-TemplateVersion=04.28.00
+TemplateVersion=04.33.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
@@ -33,7 +33,7 @@ export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptFileNameRoot=updatescripts
 export BASHScriptShortName="updatescripts"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Update scripts from NAS storage via tftp pull, clear, and replace"
+export BASHScriptDescription="Update scripts from NAS storage via tftp pull, clear, and replace"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
@@ -64,10 +64,6 @@ export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
 export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
 export DATEYMD=`date +%Y-%m-%d`
 
-echo 'Date Time Group   :  '$DATE $DATEDTG $DATEDTGS
-echo 'Date (YYYY-MM-DD) :  '$DATEYMD
-echo
-    
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------

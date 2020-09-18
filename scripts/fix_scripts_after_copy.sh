@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-06-29
-ScriptVersion=04.28.00
+ScriptDate=2020-09-17
+ScriptVersion=04.33.00
 ScriptRevision=000
-TemplateVersion=04.28.00
+TemplateVersion=04.33.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
@@ -33,7 +33,7 @@ export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptFileNameRoot=fix_scripts_after_copy
 export BASHScriptShortName=$BASHScriptFileNameRoot
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Fix Scripts After Copy"
+export BASHScriptDescription="Fix Scripts After Copy"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot
@@ -42,57 +42,73 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
 
+
+# UPDATED 2020-09-17 -
+# -------------------------------------------------------------------------------------------------
+# Announce Script, this should also be the first log entry!
+# -------------------------------------------------------------------------------------------------
+
+echo
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate
+echo
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 # =============================================================================
 # =============================================================================
 # 
 # =============================================================================
-
 dos2unix *.sh
 dos2unix *.help
 dos2unix *.version
-dos2unix _sub-scripts/*.sh
-dos2unix _sub-scripts/*.version
-dos2unix _sub-scripts/help/*.help
+dos2unix _subscripts/*.sh
+dos2unix _subscripts/*.version
+dos2unix _subscripts/help.$BASHScriptVersion/*.help
 dos2unix _template/*.sh
 dos2unix _template/*.version
 dos2unix _template/Code_Snipets/*.sh
-dos2unix _template/help/*.help
+dos2unix _template/help.$BASHScriptVersion/*.help
+dos2unix alias_commands/*.sh
+dos2unix alias_commands.CORE_G2.NPM/*.sh
+dos2unix alias_commands.SAMPLE/*.sh
 dos2unix Common/*.sh
-dos2unix Common/help/*.help
+dos2unix Common/help.$BASHScriptVersion/*.help
 dos2unix Config/*.sh
-dos2unix Config/help/*.help
+dos2unix Config/help.$BASHScriptVersion/*.help
 dos2unix GAIA/*.sh
-dos2unix GAIA/help/*.help
+dos2unix GAIA/help.$BASHScriptVersion/*.help
 dos2unix GW/*.sh
-dos2unix GW/help/*.help
+dos2unix GW/help.$BASHScriptVersion/*.help
 dos2unix GW.CORE/*.sh
-dos2unix GW.CORE/help/*.help
+dos2unix GW.CORE/help.$BASHScriptVersion/*.help
 dos2unix Health_Check/*.sh
-dos2unix Health_Check/help/*.help
+dos2unix Health_Check/help.$BASHScriptVersion/*.help
+dos2unix help.$BASHScriptVersion/*.help
 dos2unix MDM/*.sh
-dos2unix MDM/help/*.help
+dos2unix MDM/help.$BASHScriptVersion/*.help
 dos2unix MGMT/*.sh
-dos2unix MGMT/help/*.help
+dos2unix MGMT/help.$BASHScriptVersion/*.help
 dos2unix Patch_HotFix/*.sh
 dos2unix Session_Cleanup/*.sh
 dos2unix Session_Cleanup/common/*.sh
 dos2unix SmartEvent/*.sh
-dos2unix SmartEvent/help/*.help
+dos2unix SmartEvent/help.$BASHScriptVersion/*.help
 dos2unix SMS/*.sh
-dos2unix SMS/*.help
+dos2unix SMS/help.$BASHScriptVersion/*.help
 dos2unix SMS.migrate_backup/*.sh
-dos2unix SMS.migrate_backup/*.help
+dos2unix SMS.migrate_backup/help.$BASHScriptVersion/*.help
 dos2unix UserConfig/*.sh
-dos2unix UserConfig/help/*.help
+dos2unix UserConfig/help.$BASHScriptVersion/*.help
 dos2unix UserConfig.CORE_G2.NPM/*.sh
-dos2unix UserConfig.CORE_G2.NPM/help/*.help
+dos2unix UserConfig.CORE_G2.NPM/help.$BASHScriptVersion/*.help
 
 # =============================================================================
 # =============================================================================

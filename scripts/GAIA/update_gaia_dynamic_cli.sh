@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-06-29
-ScriptVersion=04.28.00
+ScriptDate=2020-09-17
+ScriptVersion=04.33.00
 ScriptRevision=000
-TemplateVersion=04.28.00
+TemplateVersion=04.33.00
 TemplateLevel=006
 SubScriptsLevel=006
-SubScriptsVersion=04.09.00
+SubScriptsVersion=04.10.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -33,7 +33,7 @@ export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 export BASHScriptFileNameRoot=update_gaia_dynamic_cli
 export BASHScriptShortName=Update_GAIA_Dynamic_CLI
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription=="Update GAIA Dynamic CLI Installation with latest package from tftp server"
+export BASHScriptDescription="Update GAIA Dynamic CLI Installation with latest package from tftp server"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _sub-scripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=GAIA
 
 export BASHScripttftptargetfolder="_template"
@@ -72,7 +72,7 @@ export customerworkpathroot=$customerpathroot/upgrade_export
 
 export scriptspathroot=$customerworkpathroot/scripts
 
-export subscriptsfolder=_sub-scripts
+export subscriptsfolder=_subscripts
 
 export rootscriptconfigfile=__root_script_config.sh
 
@@ -82,6 +82,21 @@ export rootscriptconfigfile=__root_script_config.sh
 # -------------------------------------------------------------------------------------------------
 
 export WAITTIME=60
+
+# MODIFIED 2020-09-11 -
+# R80       version 1.0
+# R80.10    version 1.1
+# R80.20.M1 version 1.2
+# R80.20 GA version 1.3
+# R80.20.M2 version 1.4
+# R80.30    version 1.5
+# R80.40    version 1.6
+# R80.40 JHF 78 version 1.6.1
+#
+# For common scripts minimum API version at 1.1 should suffice, otherwise get explicit
+# To enable use of API Key authentication, at least version 1.6 is required
+#
+export MinAPIVersionRequired=1.1
 
 export R8XRequired=true
 export UseR8XAPI=false
@@ -123,6 +138,20 @@ export UseGaiaVersionAndInstallation=true
 export ShowGaiaVersionResults=true
 export KeepGaiaVersionResultsFile=false
 
+
+# MOVED 2020-09-17 -
+# -------------------------------------------------------------------------------------------------
+# Announce Script, this should also be the first log entry!
+# -------------------------------------------------------------------------------------------------
+
+echo | tee -a -i $logfilepath
+echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
@@ -135,7 +164,7 @@ export KeepGaiaVersionResultsFile=false
 #
 export cli_script_cmdlineparm_handler_root=$scriptspathroot
 export cli_script_cmdlineparm_handler_folder=$subscriptsfolder
-export cli_script_cmdlineparm_handler_file=cmd_line_parameters_handler.sub-script.$SubScriptsLevel.v$SubScriptsVersion.sh
+export cli_script_cmdlineparm_handler_file=cmd_line_parameters_handler.subscript.$SubScriptsLevel.v$SubScriptsVersion.sh
 
 
 # Configure basic information for formation of file path for configure script output paths and folders handler script
@@ -146,7 +175,7 @@ export cli_script_cmdlineparm_handler_file=cmd_line_parameters_handler.sub-scrip
 #
 export script_output_paths_and_folders_handler_root=$scriptspathroot
 export script_output_paths_and_folders_handler_folder=$subscriptsfolder
-export script_output_paths_and_folders_handler_file=script_output_paths_and_folders.sub-script.$SubScriptsLevel.v$SubScriptsVersion.sh
+export script_output_paths_and_folders_handler_file=script_output_paths_and_folders.subscript.$SubScriptsLevel.v$SubScriptsVersion.sh
 
 
 # Configure basic information for formation of file path for gaia version and type handler script
@@ -157,14 +186,26 @@ export script_output_paths_and_folders_handler_file=script_output_paths_and_fold
 #
 export gaia_version_type_handler_root=$scriptspathroot
 export gaia_version_type_handler_folder=$subscriptsfolder
-export gaia_version_type_handler_file=gaia_version_installation_type.sub-script.$SubScriptsLevel.v$SubScriptsVersion.sh
+export gaia_version_type_handler_file=gaia_version_installation_type.subscript.$SubScriptsLevel.v$SubScriptsVersion.sh
+
+
+# Configure basic information for API mgmt_cli operations handler script
+#
+# mgmt_cli_api_ops_handler_root - root path to API mgmt_cli operations handler script
+# mgmt_cli_api_ops_handler_folder - folder for under root path to API mgmt_cli operations handler script
+# mgmt_cli_api_ops_handler_file - filename, without path, for API mgmt_cli operations handler script
+#
+export mgmt_cli_api_ops_handler_root=$scriptspathroot
+export mgmt_cli_api_ops_handler_folder=$subscriptsfolder
+export mgmt_cli_api_ops_handler_file=mgmt_cli_api_operations.subscript.$SubScriptsLevel.v$SubScriptsVersion.sh
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2019-01-30 -
+
+# MODIFIED 2020-09-11 -
 
 export checkR77version=`echo "${FWDIR}" | grep -i "R77"`
 export checkifR77version=`test -z $checkR77version; echo $?`
@@ -175,27 +216,27 @@ else
 fi
 #echo $isitR77version
 
-export checkR80version=`echo "${FWDIR}" | grep -i "R80"`
-export checkifR80version=`test -z $checkR80version; echo $?`
-if [ $checkifR80version -eq 1 ] ; then
-    export isitR80version=true
+export checkR8Xversion=`echo "${FWDIR}" | grep -i "R8"`
+export checkifR8Xversion=`test -z $checkR8Xversion; echo $?`
+if [ $checkifR8Xversion -eq 1 ] ; then
+    export isitR8Xversion=true
 else
-    export isitR80version=false
+    export isitR8Xversion=false
 fi
-#echo $isitR80version
+#echo $isitR8Xversion
 
 if $isitR77version; then
-    echo "This is an R77.X version..."
+    echo "This is an R77.X version..." >> $logfilepath
     export UseR8XAPI=false
     export UseJSONJQ=false
     export UseJSONJQ16=false
-elif $isitR80version; then
-    echo "This is an R80.X version..."
+elif $isitR8Xversion; then
+    echo "This is an R8X version..." >> $logfilepath
     export UseR8XAPI=$UseR8XAPI
     export UseJSONJQ=$UseJSONJQ
     export UseJSONJQ16=$UseJSONJQ16
 else
-    echo "This is not an R77.X or R80.X version ????"
+    echo "This is not an R77.X or R8X version ????" >> $logfilepath
 fi
 
 
@@ -210,7 +251,7 @@ fi
 # START:  Command Line Parameter Handling and Help
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-01-05 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 
@@ -223,6 +264,7 @@ fi
 # -r | --root
 # -u <admin_name> | --user <admin_name> | -u=<admin_name> | --user=<admin_name>
 # -p <password> | --password <password> | -p=<password> | --password=<password>
+# --api-key "<api_key_value>" | --api-key="<api_key_value>" 
 # -m <server_IP> | --management <server_IP> | -m=<server_IP> | --management=<server_IP>
 # -d <domain> | --domain <domain> | -d=<domain> | --domain=<domain>
 # -s <session_file_filepath> | --session-file <session_file_filepath> | -s=<session_file_filepath> | --session-file=<session_file_filepath>
@@ -237,6 +279,7 @@ fi
 #
 # --NOHUP
 # --NOHUP-Script <NOHUP_SCRIPT_NAME> | --NOHUP-Script=<NOHUP_SCRIPT_NAME>
+# --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>
 #
 
 export SHOWHELP=false
@@ -254,6 +297,10 @@ export CLIparm_logpath=
 export CLIparm_outputpath=
 
 export CLIparm_NOWAIT=
+
+# ADDED 2020-08-19 -
+export CLIparm_api_key=
+export CLIparm_use_api_key=false
 
 # --NOWAIT
 #
@@ -291,11 +338,12 @@ fi
 
 export CLIparm_NOHUP=false
 export CLIparm_NOHUPScriptName=
+export CLIparm_NOHUPDTG=
 
 export REMAINS=
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-05
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-11
 
 # -------------------------------------------------------------------------------------------------
 # Define local command line parameter CLIparm values
@@ -320,7 +368,7 @@ processcliremains () {
     while [ -n "$1" ]; do
         # Copy so we can modify it (can't modify $1)
         OPT="$1"
-    
+        
         # testing
         echo 'OPT = '$OPT
         #
@@ -391,41 +439,41 @@ processcliremains () {
 # dumpcliparmparselocalresults
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-03-08 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-11 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 dumpcliparmparselocalresults () {
-
-	#
-	# Testing - Dump acquired local values
-	#
+    
+    #
+    # Testing - Dump acquired local values
+    #
     #
     workoutputfile=/var/tmp/workoutputfile.2.$DATEDTGS.txt
     echo > $workoutputfile
-
+    
     # Screen width template for sizing, default width of 80 characters assumed
     #
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
+    
     echo 'Local CLI Parameters :' >> $workoutputfile
     echo >> $workoutputfile
-
+    
     #echo 'CLIparm_local1          = '$CLIparm_local1 >> $workoutputfile
     #echo 'CLIparm_local2          = '$CLIparm_local2 >> $workoutputfile
     echo  >> $workoutputfile
     echo 'LOCALREMAINS            = '$LOCALREMAINS >> $workoutputfile
     
-	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
-	    # Verbose mode ON
-	    
-	    echo | tee -a -i $logfilepath
-	    cat $workoutputfile | tee -a -i $logfilepath
-	    echo | tee -a -i $logfilepath
-	    for i ; do echo - $i | tee -a -i $logfilepath ; done
-	    echo | tee -a -i $logfilepath
-	    echo CLI parms - number "$#" parms "$@" | tee -a -i $logfilepath
-	    echo | tee -a -i $logfilepath
+    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        
+        echo | tee -a -i $logfilepath
+        cat $workoutputfile | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        for i ; do echo - $i | tee -a -i $logfilepath ; done
+        echo | tee -a -i $logfilepath
+        echo CLI parms - number "$#" parms "$@" | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
         
         if [ "$NOWAIT" != "true" ] ; then
             read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
@@ -437,26 +485,26 @@ dumpcliparmparselocalresults () {
         echo | tee -a -i $logfilepath
         echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
-
+    
     else
-	    # Verbose mode OFF
-	    
-	    echo >> $logfilepath
-	    cat $workoutputfile >> $logfilepath
-	    echo >> $logfilepath
-	    for i ; do echo - $i >> $logfilepath ; done
-	    echo >> $logfilepath
-	    echo CLI parms - number "$#" parms "$@" >> $logfilepath
-	    echo >> $logfilepath
+        # Verbose mode OFF
         
-	fi
-
+        echo >> $logfilepath
+        cat $workoutputfile >> $logfilepath
+        echo >> $logfilepath
+        for i ; do echo - $i >> $logfilepath ; done
+        echo >> $logfilepath
+        echo CLI parms - number "$#" parms "$@" >> $logfilepath
+        echo >> $logfilepath
+        
+    fi
+    
     rm $workoutputfile
 }
 
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2019-03-08
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-11
 
 
 # -------------------------------------------------------------------------------------------------
@@ -489,39 +537,39 @@ dumpcliparmparselocalresults () {
 
 dumprawcliremains () {
     #
-	if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
-	    # Verbose mode ON
-	    
+    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+        # Verbose mode ON
+        
         echo | tee -a -i $logfilepath
         echo "Command line parameters remains : " | tee -a -i $logfilepath
         echo "Number parms $#" | tee -a -i $logfilepath
         echo "remains raw : \> $@ \<" | tee -a -i $logfilepath
-
+        
         parmnum=0
         for k ; do
             echo -e "$parmnum \t ${k}" | tee -a -i $logfilepath
             parmnum=`expr $parmnum + 1`
         done
-
+        
         echo | tee -a -i $logfilepath
         
     else
-	    # Verbose mode OFF
-	    
+        # Verbose mode OFF
+        
         echo >> $logfilepath
         echo "Command line parameters remains : " >> $logfilepath
         echo "Number parms $#" >> $logfilepath
         echo "remains raw : \> $@ \<" >> $logfilepath
-
+        
         parmnum=0
         for k ; do
             echo -e "$parmnum \t ${k}" >> $logfilepath
             parmnum=`expr $parmnum + 1`
         done
-
+        
         echo >> $logfilepath
         
-	fi
+    fi
 
 }
 
@@ -597,7 +645,7 @@ CommandLineParameterHandler () {
             echo "Log output in file $logfilepath" | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
         fi
-    
+        
         exit 251
     fi
     
@@ -690,7 +738,7 @@ fi
 # CheckAndUnlockGaiaDB - Check and Unlock Gaia database
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2019-01-31 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAndUnlockGaiaDB () {
@@ -699,14 +747,14 @@ CheckAndUnlockGaiaDB () {
     #
     
     echo -n 'Unlock gaia database : '
-
+    
     export gaiadbunlocked=false
-
+    
     until $gaiadbunlocked ; do
-
+        
         export checkgaiadblocked=`clish -i -c "lock database override" | grep -i "owned"`
         export isclishowned=`test -z $checkgaiadblocked; echo $?`
-
+        
         if [ $isclishowned -eq 1 ]; then 
             echo -n '.'
             export gaiadbunlocked=false
@@ -714,16 +762,16 @@ CheckAndUnlockGaiaDB () {
             echo -n '!'
             export gaiadbunlocked=true
         fi
-
+    
     done
-
+    
     echo; echo
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-14
 
 #CheckAndUnlockGaiaDB
 
@@ -732,16 +780,16 @@ CheckAndUnlockGaiaDB () {
 # GetScriptSourceFolder - Get the actual source folder for the running script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 GetScriptSourceFolder () {
     #
     # repeated procedure description
     #
-
+    
     echo >> $logfilepath
-
+    
     SOURCE="${BASH_SOURCE[0]}"
     while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
         TARGET="$(readlink "$SOURCE")"
@@ -754,9 +802,9 @@ GetScriptSourceFolder () {
             SOURCE="$DIR/$TARGET" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
         fi
     done
-
+    
     echo "SOURCE is '$SOURCE'" >> $logfilepath
-
+    
     RDIR="$( dirname "$SOURCE" )"
     DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
     if [ "$DIR" != "$RDIR" ]; then
@@ -765,21 +813,21 @@ GetScriptSourceFolder () {
     echo "DIR is '$DIR'" >> $logfilepath
     
     export ScriptSourceFolder=$DIR
-
+    
     echo >> $logfilepath
     
     return 0
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-11-20
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-14
 
 
 # -------------------------------------------------------------------------------------------------
 # ConfigureJQforJSON - Configure JQ variable value for JSON parsing
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-01-03 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-14 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 ConfigureJQforJSON () {
@@ -789,11 +837,11 @@ ConfigureJQforJSON () {
     # variable JQ points to where jq is installed
     #
     # Apparently MDM, MDS, and Domains don't agree on who sets CPDIR, so better to check!
-
+    
     #export JQ=${CPDIR}/jq/jq
-
+    
     export JQNotFound=false
-
+    
     # points to where jq is installed
     if [ -r ${CPDIR}/jq/jq ] ; then
         export JQ=${CPDIR}/jq/jq
@@ -811,7 +859,7 @@ ConfigureJQforJSON () {
         export JQ=
         export JQNotFound=true
         export UseJSONJQ=false
-
+        
         if $UseR8XAPI ; then
             # to use the R8X API, JQ is required!
             echo "Missing jq, not found in ${CPDIR}/jq/jq, ${CPDIR_PATH}/jq/jq, or ${MDS_CPDIR}/jq/jq !" | tee -a -i $logfilepath
@@ -831,7 +879,7 @@ ConfigureJQforJSON () {
     export JQ16PATH=$customerpathroot/_tools/JQ
     export JQ16FILE=jq-linux64
     export JQ16FQFN=$JQ16PATH/$JQ16FILE
-
+    
     if [ -r $JQ16FQFN ] ; then
         # OK we have the easy-button alternative
         export JQ16=$JQ16FQFN
@@ -873,7 +921,7 @@ ConfigureJQforJSON () {
 }
 
 #
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-01-03
+# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-14
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -927,7 +975,7 @@ SetScriptOutputPathsAndFolders () {
             echo "Log output in file $logfilepath" | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
         fi
-    
+        
         exit 251
     fi
     
@@ -1043,7 +1091,7 @@ GetGaiaVersionAndInstallationType () {
             echo "Log output in file $logfilepath" | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
         fi
-    
+        
         exit 251
     fi
     
@@ -1096,7 +1144,7 @@ GetGaiaVersionAndInstallationType () {
         cat $gaiaversionoutputfile >> $logfilepath
         echo >> $logfilepath
     fi
-
+    
     # now remove the working file
     if ! $KeepGaiaVersionResultsFile ; then
         # not keeping version results file
@@ -1125,12 +1173,7 @@ GetGaiaVersionAndInstallationType () {
 # -------------------------------------------------------------------------------------------------
 
 
-echo | tee -a -i $logfilepath
-echo $BASHScriptDescription', script version '$ScriptVersion', revision '$ScriptRevision' from '$ScriptDate | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Date Time Group   :  '$DATEDTGS | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# MOVED 2020-09-14 -
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1184,7 +1227,7 @@ SetScriptOutputPathsAndFolders "$@"
 # -------------------------------------------------------------------------------------------------
 
 case "$gaiaversion" in
-    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 ) 
+    R80 | R80.10 | R80.20.M1 | R80.20.M2 | R80.20 | R80.30 | R80.40 | R81 ) 
         export IsR8XVersion=true
         ;;
     *)
