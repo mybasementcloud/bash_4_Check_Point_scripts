@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Update GAIA Dynamic CLI Installation with latest package from tftp server - SAMPLE
+# SCRIPT Configure script link files and copy versioned scripts to generics
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,20 +30,20 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=update_gaia_dynamic_cli
-export BASHScriptShortName=Update_GAIA_Dynamic_CLI
+export BASHScriptFileNameRoot=generate_script_links
+export BASHScriptShortName="generate_links"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription="Update GAIA Dynamic CLI Installation with latest package from tftp server"
+export BASHScriptDescription="Generate Script Links"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=GAIA
+export BASHScriptsFolder=.
 
 export BASHScripttftptargetfolder="_template"
 
@@ -106,7 +106,7 @@ WAITTIME=20
 #
 export MinAPIVersionRequired=1.1
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
@@ -126,8 +126,8 @@ touch $logfilepath
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
-export OutputToChangeLog=true
+export OutputToDump=true
+export OutputToChangeLog=false
 export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
@@ -606,7 +606,7 @@ dumprawcliremains () {
 # CommandLineParameterHandler - Command Line Parameter Handler calling routine
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-11-20 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-09-11 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CommandLineParameterHandler () {
@@ -618,57 +618,38 @@ CommandLineParameterHandler () {
     # Check Command Line Parameter Handlerr action script exists
     # -------------------------------------------------------------------------------------------------
     
-    # MODIFIED 2018-11-20 -
+    # MODIFIED 2020-09-11 -
     
-    export configured_handler_root=$cli_script_cmdlineparm_handler_root
-    export actual_handler_root=$configured_handler_root
+    export cli_script_cmdlineparm_handler_path=$cli_script_cmdlineparm_handler_root/$cli_script_cmdlineparm_handler_folder
     
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export cli_script_cmdlineparm_handler_path=$actual_handler_root/$cli_script_cmdlineparm_handler_folder
     export cli_script_cmdlineparm_handler=$cli_script_cmdlineparm_handler_path/$cli_script_cmdlineparm_handler_file
     
-    # Check that we can finde the command line parameter handler file
+    # Check that we can find the command line parameter handler file
     #
     if [ ! -r $cli_script_cmdlineparm_handler ] ; then
         # no file found, that is a problem
+        
+        echo | tee -a -i $logfilepath
+        echo 'Command Line Parameter handler script file missing' | tee -a -i $logfilepath
+        echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
         if [ "$SCRIPTVERBOSE" = "true" ] ; then
-            echo | tee -a -i $logfilepath
-            echo 'Command Line Parameter handler script file missing' | tee -a -i $logfilepath
-            echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
             echo 'Other parameter elements : ' | tee -a -i $logfilepath
-            echo '  Configured Root path    : '$configured_handler_root | tee -a -i $logfilepath
-            echo '  Actual Script Root path : '$actual_handler_root | tee -a -i $logfilepath
             echo '  Root of folder path : '$cli_script_cmdlineparm_handler_root | tee -a -i $logfilepath
             echo '  Folder in Root path : '$cli_script_cmdlineparm_handler_folder | tee -a -i $logfilepath
             echo '  Folder Root path    : '$cli_script_cmdlineparm_handler_path | tee -a -i $logfilepath
             echo '  Script Filename     : '$cli_script_cmdlineparm_handler_file | tee -a -i $logfilepath
             echo | tee -a -i $logfilepath
-            echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-        else
-            echo | tee -a -i $logfilepath
-            echo 'Command Line Parameter handler script file missing' | tee -a -i $logfilepath
-            echo '  File not found : '$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
-            echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
+        fi
+        echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        echo "Log output in file $logfilepath" | tee -a -i $logfilepath
+        echo | tee -a -i $logfilepath
+        
+        if [ "$NOWAIT" != "true" ] ; then
+            read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
+            echo
         fi
         
         exit 251
@@ -709,7 +690,7 @@ CommandLineParameterHandler () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2018-10-03
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-11
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
@@ -718,8 +699,8 @@ CommandLineParameterHandler () {
 # Call command line parameter handler action script
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2018-10-03 -
-    
+# MODIFIED 2020-09-11 -
+
 CommandLineParameterHandler "$@"
 
 # -------------------------------------------------------------------------------------------------
@@ -1062,26 +1043,8 @@ GetGaiaVersionAndInstallationType () {
     # Setup and call gaia version and type handler action script
     #
     
-    # MODIFIED 2018-11-20 -
+    export gaia_version_type_handler_path=$gaia_version_type_handler_root/$gaia_version_type_handler_folder
     
-    export configured_handler_root=$gaia_version_type_handler_root
-    export actual_handler_root=$configured_handler_root
-    
-    if [ "$configured_handler_root" == "." ] ; then
-        if [ $ScriptSourceFolder != $localdotpath ] ; then
-            # Script is not running from it's source folder, might be linked, so since we expect the handler folder
-            # to be relative to the script source folder, use the identified script source folder instead
-            export actual_handler_root=$ScriptSourceFolder
-        else
-            # Script is running from it's source folder
-            export actual_handler_root=$configured_handler_root
-        fi
-    else
-        # handler root path is not period (.), so stipulating fully qualified path
-        export actual_handler_root=$configured_handler_root
-    fi
-    
-    export gaia_version_type_handler_path=$actual_handler_root/$gaia_version_type_handler_folder
     export gaia_version_type_handler=$gaia_version_type_handler_path/$gaia_version_type_handler_file
     
     # -------------------------------------------------------------------------------------------------
@@ -1294,383 +1257,1071 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Download and if necessary, upgrade GAIA Dynamic CLI
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
 
-# -------------------------------------------------------------------------------------------------
-# local script variables
-# -------------------------------------------------------------------------------------------------
-
-
-if [ ! -z $MYTFTPSERVER1 ] && [ $MYTFTPSERVER1 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER1
-elif [ ! -z $MYTFTPSERVER2 ] && [ $MYTFTPSERVER2 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER2
-elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER3
-elif [ ! -z $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER
-else
-    export sourcetftpserver=192.169.1.1
-fi
-
-
-export remoterootfolder=/__gaia
-export remotefilefolder=gaia_dynamic_cli
-export remotefilename=Check_Point_gaia_dynamic_cli.tgz
-export fqpnremotefile=$remoterootfolder/$remotefilefolder/$remotefilename
-
-#export remotescriptfolder=gaia_dynamic_cli
-#export remotescriptname=update_gaia_dynamic_cli.sh
-#export fqpnremotescript=$remoterootfolder/$remotescriptfolder/$remotescriptname
-
-export rootworkpath=/var/log/__customer/download
-export workfolder=gaia_dynamic_cli
-export workfoldercurrent=current
-export workfoldernew=new
-
-export workfilename=$remotefilename
-export installerfilename=install_dynamic_cli.sh
-
-export fqpnworkfolder=$rootworkpath/$workfolder
-export fqpncurrentfolder=$fqpnworkfolder/$workfoldercurrent
-export fqpnnewfolder=$fqpnworkfolder/$workfoldernew
-
-export fqfpworkfile=$fqpnworkfolder/$workfilename
-export fqfpcurrentfile=$fqpncurrentfolder/$workfilename
-export fqfpnewfile=$fqpnnewfolder/$workfilename
-
-
 #----------------------------------------------------------------------------------------
-# Check for working folders
 #----------------------------------------------------------------------------------------
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo ' Folder path check and creation! ' >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-if [ ! -r $rootworkpath ] ; then
-    mkdir -pv $rootworkpath >> $logfilepath
-    chmod 775 $rootworkpath
-else
-    chmod 775 $rootworkpath
-fi
-
-if [ ! -r $fqpnworkfolder ] ; then
-    mkdir -pv $fqpnworkfolder
-    chmod 775 $fqpnworkfolder
-else
-    chmod 775 $fqpnworkfolder
-fi
-
-if [ ! -r $fqpncurrentfolder ] ; then
-    mkdir -pv $fqpncurrentfolder
-    chmod 775 $fqpncurrentfolder
-else
-    chmod 775 $fqpncurrentfolder
-fi
-
-if [ ! -r $fqpnnewfolder ] ; then
-    mkdir -pv $fqpnnewfolder
-    chmod 775 $fqpnnewfolder
-else
-    chmod 775 $fqpnnewfolder
-fi
-
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
-
-
+#
+# Scripts link generation and setup
+#
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Drop into folder and make sure we can write! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo 'Wait until the target folder is available : '$fqpnworkfolder; echo
-echo -n '!'
-until [ -r $fqpnworkfolder ]
-do
-    echo -n '.'
-done
-echo
-
-echo | tee -a -i $logfilepath
-echo 'pushd to '$fqpnworkfolder | tee -a -i $logfilepath
-pushd "$fqpnworkfolder"
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Current content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-rm  $fqpnworkfolder/* | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Post clean-up content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+export workingroot=$customerworkpathroot
+export workingbase=$workingroot/scripts
+export linksbase=$workingbase/.links
+export scriptsbase=$scriptspathb4CP
+export scriptsrepository=$scriptsbase/scripts_repository
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Get remote files! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Fetch latest $remotefilename from tftp repository on $sourcetftpserver..." | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-tftp -v -m binary $sourcetftpserver -c get $fqpnremotefile | tee -a -i $logfilepath
-#tftp -v -m binary $sourcetftpserver -c get $fqpnremotescript | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check File transfer OK! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Check that we got it." | tee -a -i $logfilepath
-if [ ! -r $workfilename ]; then
-    # Oh, oh, we didn't get the $workfilename file
+if [ ! -r $workingbase ] ; then
     echo | tee -a -i $logfilepath
-    echo 'Critical Error!!! Did not obtain '$workfilename' file from tftp!!!' | tee -a -i $logfilepath
+    echo Error! | tee -a -i $logfilepath
+    echo Missing folder $workingbase | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
+    echo Exiting! | tee -a -i $logfilepath
     echo | tee -a -i $logfilepath
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
     exit 255
 else
-    # we have the $workfilename file and can work with it
-    echo | tee -a -i $logfilepath
-    ls -alh $workfilename | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # copy the new file to the new folder
-    cp $workfilename $fqpnnewfolder >> $logfilepath
+    chmod 775 $workingbase | tee -a -i $logfilepath
 fi
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
 
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check if this is the first run or if we need to verify downloaded file is newer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# check installation of Dynamic CLI
-rpm -q os_dynamic_cli &> /dev/null
-if [ $? -ne 0 ]; then
-    # Dynamic CLI is not currently installed
-    echo "Dynamic CLI is not currently installed!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # Not sure of current file, so copy new file to current
-    echo "Overwrite the current file : $fqfpcurrentfile with $workfilename" | tee -a -i $logfilepath
-    echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # copy the new file to the current folder
-    cp $workfilename $fqpncurrentfolder >> $logfilepath
+if [ ! -r $linksbase ] ; then
+    mkdir -pv $linksbase | tee -a -i $logfilepath
+    chmod 775 $linksbase | tee -a -i $logfilepath
 else
-    if [ -r $fqfpcurrentfile ]; then
-        # we have a current file to check
-        echo "We have an existing current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+    chmod 775 $linksbase | tee -a -i $logfilepath
+fi
+
+
+if [ ! -r $scriptsbase ] ; then
+    mkdir -pv $scriptsbase | tee -a -i $logfilepath
+    chmod 775 $scriptsbase | tee -a -i $logfilepath
+else
+    chmod 775 $scriptsbase | tee -a -i $logfilepath
+fi
+
+
+if [ ! -r $scriptsrepository ] ; then
+    mkdir -pv $scriptsrepository | tee -a -i $logfilepath
+    chmod 775 $scriptsrepository | tee -a -i $logfilepath
+else
+    chmod 775 $scriptsrepository | tee -a -i $logfilepath
+fi
+
+
+if [ -r $workingbase/updatescripts.sh ] ; then
+    chmod 775 $workingbase/updatescripts.sh | tee -a -i $logfilepath
+    cp $workingbase/updatescripts.sh $workingroot | tee -a -i $logfilepath
+fi
+
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# CopyToB4CPScriptsAndLink - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+CopyToB4CPScriptsAndLink () {
+    #
+    # repeated procedure description
+    #
     
-        # md5sum current/Check_Point_gaia_dynamic_cli.tgz
-        export md5current=$(md5sum $fqfpcurrentfile | cut -d " " -f 1)
-        echo 'md5 of current : '$md5current | tee -a -i $logfilepath
-        
-        # md5sum Check_Point_gaia_dynamic_cli.tgz
-        export md5new=$(md5sum $fqfpnewfile | cut -d " " -f 1)
-        echo 'md5 of     new : '$md5new | tee -a -i $logfilepath
-        
-        if [ $md5new == $md5current ]; then 
-            echo "Files are the same" | tee -a -i $logfilepath
-            echo 'No reason to update the existing installation!' | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'returning to script starting folder' | tee -a -i $logfilepath
-            popd
-            pwd | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'Exiting...' | tee -a -i $logfilepath
-            
-            echo | tee -a -i $logfilepath
-            echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-            echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            
-            exit 255
-        else 
-            echo "Files are different, moving right along..." | tee -a -i $logfilepath
-        fi
-        echo | tee -a -i $logfilepath
-        
+    fileFQFP=$1
+    targetFQPN=$2
+    repositoryFQPN=$3
+    scriptaliasname=$4
+    
+    repositoryfileFQFP=$repositoryFQPN/$scriptaliasname
+    
+    cp -f -v $fileFQFP $repositoryfileFQFP | tee -a -i $logfilepath
+    
+    ln -sf $repositoryfileFQFP $targetFQPN/$scriptaliasname >> $logfilepath
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#CopyToB4CPScriptsAndLink $fileFQFP $targetFQPN $repositoryFQPN $scriptaliasname
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# LinkInB4CPScripts - repeated proceedure
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED YYYY-MM-DD -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+LinkInB4CPScripts () {
+    #
+    # repeated procedure description
+    #
+    
+    fileFQFP=$1
+    targetFQPN=$2
+    scriptaliasname=$4
+    
+    ln -sf $fileFQFP $targetFQPN/$scriptaliasname >> $logfilepath
+    
+    echo
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED YYYY-MM-DD
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#LinkInB4CPScripts $fileFQFP $targetFQPN $scriptaliasname
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Scripts root
+# =============================================================================
+
+export sourcefolder=$workingbase
+export folderstdversion=v04.36.00
+
+file_root_001=generate_script_links.$folderstdversion.sh
+file_root_002=remove_script_links.$folderstdversion.sh
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_root_001 $scriptsbase $scriptsrepository generate_script_links
+CopyToB4CPScriptsAndLink $sourcefolder/$file_root_002 $scriptsbase $scriptsrepository remove_script_links
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Scripts _subscripts
+# =============================================================================
+
+#
+# Handle the scripts _subscripts folder
+#
+subscripts_folder=_subscripts
+export subscriptsstdversion=v04.12.00
+source_subscripts_folder=$workingbase/$subscripts_folder
+target_subscripts_folder=$scriptsrepository/$subscripts_folder
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo 'Handle Scripts subscripts folder' | tee -a -i $logfilepath
+echo ' - subsscripts folder        : '$subscripts_folder | tee -a -i $logfilepath
+echo ' - source subsscripts folder : '$source_subscripts_folder | tee -a -i $logfilepath
+echo ' - target subsscripts folder : '$target_subscripts_folder | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+if [ ! -r $target_subscripts_folder ] ; then
+    mkdir -pv $target_subscripts_folder | tee -a -i $logfilepath
+    chmod 775 $target_subscripts_folder | tee -a -i $logfilepath
+else
+    chmod 775 $target_subscripts_folder | tee -a -i $logfilepath
+fi
+
+#cp -a -f -v $source_subscripts_folder/ $target_subscripts_folder/ | tee -a -i $logfilepath
+cp -a -f -v $source_subscripts_folder/ $scriptsrepository/ | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Common
+# =============================================================================
+
+
+export workingdir=Common
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_common_001=determine_gaia_version_and_installation_type.$folderstdversion.sh
+file_common_002=do_script_nohup.$folderstdversion.sh
+
+# REMOVED 2020-09-17 -
+#file_common_003=go_dump_folder_now.$folderstdversion.sh
+#file_common_004=go_dump_folder_now_dtg.$folderstdversion.sh
+#file_common_005=go_change_log_folder_now_dtg.$folderstdversion.sh
+#file_common_006=make_dump_folder_now.$folderstdversion.sh
+#file_common_007=make_dump_folder_now_dtg.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_common_001 $linksfolder/gaia_version_type >> $logfilepath
+ln -sf $sourcefolder/$file_common_002 $linksfolder/do_script_nohup >> $logfilepath
+
+# REMOVED 2020-09-17 -
+#ln -sf $sourcefolder/$file_common_003 $linksfolder/godump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_004 $linksfolder/godtgdump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_005 $linksfolder/goChangeLog >> $logfilepath
+#ln -sf $sourcefolder/$file_common_006 $linksfolder/mkdump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_007 $linksfolder/mkdtgdump >> $logfilepath
+
+#
+# These have been replaced with alias commands or alias links
+#
+#ln -sf $sourcefolder/$file_common_001 $workingroot/gaia_version_type >> $logfilepath
+ln -sf $sourcefolder/$file_common_002 $workingroot/do_script_nohup >> $logfilepath
+#
+# REMOVED 2020-09-17 -
+#ln -sf $sourcefolder/$file_common_003 $workingroot/godump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_004 $workingroot/godtgdump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_005 $workingroot/goChangeLog >> $logfilepath
+#ln -sf $sourcefolder/$file_common_006 $workingroot/mkdump >> $logfilepath
+#ln -sf $sourcefolder/$file_common_007 $workingroot/mkdtgdump >> $logfilepath
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_common_001 $scriptsbase $scriptsrepository gaia_version_type
+CopyToB4CPScriptsAndLink $sourcefolder/$file_common_002 $scriptsbase $scriptsrepository do_script_nohup
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Config
+# =============================================================================
+
+
+export workingdir=Config
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_config_001=config_capture.$folderstdversion.sh
+file_config_002=show_interface_information.$folderstdversion.sh
+file_config_003=EPM_config_check.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_config_001 $linksfolder/config_capture >> $logfilepath
+ln -sf $sourcefolder/$file_config_002 $linksfolder/interface_info >> $logfilepath
+
+# These have been replaced with alias commands or alias links
+#
+#ln -sf $sourcefolder/$file_config_001 $workingroot/config_capture >> $logfilepath
+#ln -sf $sourcefolder/$file_config_002 $workingroot/interface_info >> $logfilepath
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_config_001 $scriptsbase $scriptsrepository config_capture
+CopyToB4CPScriptsAndLink $sourcefolder/$file_config_002 $scriptsbase $scriptsrepository interface_info
+
+if [ $Check4EPM -gt 0 ]; then
+    
+    ln -sf $sourcefolder/$file_config_003 $linksfolder/EPM_config_check >> $logfilepath
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_config_003 $workingroot/EPM_config_check >> $logfilepath
+    
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_config_003 $scriptsbase $scriptsrepository EPM_config_check
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GAIA
+# =============================================================================
+
+
+export workingdir=GAIA
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_GAIA_001=update_gaia_rest_api.sh
+file_GAIA_002=update_gaia_dynamic_cli.sh
+
+
+ln -sf $sourcefolder/$file_GAIA_001 $linksfolder/update_gaia_rest_api >> $logfilepath
+ln -sf $sourcefolder/$file_GAIA_002 $linksfolder/update_gaia_dynamic_cli >> $logfilepath
+
+if $IsR8XVersion ; then
+    
+    ln -sf $sourcefolder/$file_GAIA_001 $workingroot/update_gaia_rest_api >> $logfilepath
+    ln -sf $sourcefolder/$file_GAIA_002 $workingroot/update_gaia_dynamic_cli >> $logfilepath
+    
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_GAIA_001 $scriptsbase $scriptsrepository update_gaia_rest_api
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_GAIA_002 $scriptsbase $scriptsrepository update_gaia_dynamic_cli
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW
+# =============================================================================
+
+
+export workingdir=GW
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_GW_001=watch_accel_stats.$folderstdversion.sh
+file_GW_002=set_informative_logging_implied_rules_on_R8x.$folderstdversion.sh
+file_GW_003=reset_hit_count_with_backup.$folderstdversion.sh
+file_GW_004=show_clusterXL_information.$folderstdversion.sh
+file_GW_005=watch_cluster_status.$folderstdversion.sh
+file_GW_006=enable_rad_admin_stats.v00.01.00.sh
+file_GW_007=vpn_client_operational_info.$folderstdversion.sh
+file_GW_008=vpn_client_operational_info.standalone.$folderstdversion.sh
+file_GW_009=fix_gw_missing_updatable_objects.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_GW_001 $linksfolder/watch_accel_stats >> $logfilepath
+ln -sf $sourcefolder/$file_GW_002 $linksfolder/set_informative_logging_implied_rules_on_R8x >> $logfilepath
+ln -sf $sourcefolder/$file_GW_003 $linksfolder/reset_hit_count_with_backup >> $logfilepath
+ln -sf $sourcefolder/$file_GW_004 $linksfolder/show_cluster_info >> $logfilepath
+ln -sf $sourcefolder/$file_GW_005 $linksfolder/watch_cluster_status >> $logfilepath
+ln -sf $sourcefolder/$file_GW_006 $linksfolder/enable_rad_admin_stats_and_cpview >> $logfilepath
+ln -sf $sourcefolder/$file_GW_007 $linksfolder/vpn_client_operational_info >> $logfilepath
+ln -sf $sourcefolder/$file_GW_008 $linksfolder/vpn_client_operational_info.standalone >> $logfilepath
+ln -sf $sourcefolder/$file_GW_009 $linksfolder/fix_gw_missing_updatable_objects >> $logfilepath
+
+
+if [ "$sys_type_GW" == "true" ]; then
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_GW_001 $workingroot/watch_accel_stats >> $logfilepath
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_GW_001 $scriptsbase $scriptsrepository watch_accel_stats
+    
+    ln -sf $sourcefolder/$file_GW_002 $workingroot/set_informative_logging_implied_rules_on_R8x >> $logfilepath
+    ln -sf $sourcefolder/$file_GW_003 $workingroot/reset_hit_count_with_backup >> $logfilepath
+    
+    if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+        # is a cluster
+        # These have been replaced with alias commands or alias links
+        #
+        #ln -sf $sourcefolder/$file_GW_004 $workingroot/show_cluster_info >> $logfilepath
+        #ln -sf $sourcefolder/$file_GW_005 $workingroot/watch_cluster_status >> $logfilepath
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_GW_004 $scriptsbase $scriptsrepository show_cluster_info
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_GW_005 $scriptsbase $scriptsrepository watch_cluster_status
+    fi
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_GW_006 $workingroot/enable_rad_admin_stats_and_cpview >> $logfilepath
+    #ln -sf $sourcefolder/$file_GW_007 $workingroot/vpn_client_operational_info >> $logfilepath
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_GW_006 $scriptsbase $scriptsrepository enable_rad_admin_stats_and_cpview
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_GW_007 $scriptsbase $scriptsrepository vpn_client_operational_info
+    #ln -sf $sourcefolder/$file_GW_008 $workingroot/vpn_client_operational_info.standalone >> $logfilepath
+    #ln -sf $sourcefolder/$file_GW_009 $workingroot/fix_gw_missing_updatable_objects >> $logfilepath
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  GW.CORE
+# =============================================================================
+
+
+export workingdir=GW.CORE
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ ! -r $sourcefolder ] ; then
+    # This folder is not part of the distribution
+    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
+else
+    if [ ! -r $linksfolder ] ; then
+        mkdir -pv $linksfolder | tee -a -i $logfilepath
+        chmod 775 $linksfolder | tee -a -i $logfilepath
     else
-        # no current file, so copy new file to current
-        echo "There is no current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    fi
+    
+    file_GW_CORE_001=fix_smcias_interfaces.$folderstdversion.sh
+    file_GW_CORE_002=set_fwkern_dot_conf_settings_on_R8x.CORE.$folderstdversion.sh
+    file_GW_CORE_003=SK106251/SK106251_IPv4_InstallSetup.v02.00.00.sh
+    
+    ln -sf $sourcefolder/$file_GW_CORE_001 $linksfolder/fix_smcias_interfaces >> $logfilepath
+    ln -sf $sourcefolder/$file_GW_CORE_002 $linksfolder/set_fwkern_dot_conf_settings_on_R8x.CORE >> $logfilepath
+    
+    ln -sf $sourcefolder/$file_GW_CORE_003 $linksfolder/setup_sk106251_check_point_dynamic_objects >> $logfilepath
+    
+    if [ "$sys_type_GW" == "true" ] ; then
         
-        # copy the new file to the current folder
-        cp $workfilename $fqpncurrentfolder >> $logfilepath
+        #ln -sf $sourcefolder/$file_GW_CORE_001 $workingroot/fix_smcias_interfaces >> $logfilepath
+        #ln -sf $sourcefolder/$file_GW_CORE_002 $workingroot/set_fwkern_dot_conf_settings_on_R8x.CORE >> $logfilepath
+        
+        ln -sf $sourcefolder/$file_GW_CORE_003 $workingroot/setup_sk106251_check_point_dynamic_objects >> $logfilepath
+        
     fi
 fi
 
 
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+# =============================================================================
+# =============================================================================
+# FOLDER:  Health_Check
+# =============================================================================
 
 
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Untar the '$workfilename' and execute the installer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ -r $workfilename ]; then
-    # OK now that we are clear on doing the work, let's extract this file and make it happen
-
-    # now unzip existing scripts folder
-    echo "Extract $workfilename file..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    tar -zxvf $workfilename | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    ls -alh | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # now execute installer script in local folder
-    echo "Execute installer file $installerfilename ..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    ./$installerfilename | tee -a -i $logfilepath
-
-    cp $workfilename $fqpncurrentfolder | tee -a -i $logfilepath
-
-    #echo 'Reboot to get operational!' | tee -a -i $logfilepath
-
+export workingdir=Health_Check
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
 else
-    # Heh????
-    
-    echo | tee -a -i $logfilepath
-    echo 'Files and folders:' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    ls -alhR | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    exit 255
+    chmod 775 $linksfolder | tee -a -i $logfilepath
 fi
 
 
-echo | tee -a -i $logfilepath
-echo 'returning to script starting folder' | tee -a -i $logfilepath
-popd
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+file_healthcheck_001=healthcheck.sh
+file_healthcheck_002=run_healthcheck_to_dump_dtg.$folderstdversion.sh
+file_healthcheck_003=check_status_checkpoint_services.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_healthcheck_001 $linksfolder/healthcheck >> $logfilepath
+ln -sf $sourcefolder/$file_healthcheck_002 $linksfolder/healthdump >> $logfilepath
+ln -sf $sourcefolder/$file_healthcheck_003 $linksfolder/check_point_service_status_check >> $logfilepath
+
+# These have been replaced with alias commands or alias links
+#
+#ln -sf $sourcefolder/$file_healthcheck_001 $workingroot/healthcheck >> $logfilepath
+#ln -sf $sourcefolder/$file_healthcheck_002 $workingroot/healthdump >> $logfilepath
+#ln -sf $sourcefolder/$file_healthcheck_003 $workingroot/check_point_service_status_check >> $logfilepath
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_healthcheck_001 $scriptsbase $scriptsrepository healthcheck
+CopyToB4CPScriptsAndLink $sourcefolder/$file_healthcheck_002 $scriptsbase $scriptsrepository healthdump
+CopyToB4CPScriptsAndLink $sourcefolder/$file_healthcheck_003 $scriptsbase $scriptsrepository check_point_service_status_check
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MDM
+# =============================================================================
+
+
+export workingdir=MDM
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_MDM_001=backup_mds_ugex.$folderstdversion.sh
+file_MDM_002=backup_mds_w_logs_ugex.$folderstdversion.sh
+
+file_MDM_003=report_mdsstat.$folderstdversion.sh
+file_MDM_004=watch_mdsstat.$folderstdversion.sh
+file_MDM_005=show_all_domains_in_array.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_MDM_001 $linksfolder/backup_mds_ugex >> $logfilepath
+ln -sf $sourcefolder/$file_MDM_002 $linksfolder/backup_mds_w_logs_ugex >> $logfilepath
+ln -sf $sourcefolder/$file_MDM_003 $linksfolder/report_mdsstat >> $logfilepath
+ln -sf $sourcefolder/$file_MDM_004 $linksfolder/watch_mdsstat >> $logfilepath
+ln -sf $sourcefolder/$file_MDM_005 $linksfolder/show_domains_in_array >> $logfilepath
+
+if [ "$sys_type_MDS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_MDM_001 $workingroot/backup_mds_ugex >> $logfilepath
+    ln -sf $sourcefolder/$file_MDM_002 $workingroot/backup_mds_w_logs_ugex >> $logfilepath
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_MDM_003 $workingroot/report_mdsstat >> $logfilepath
+    #ln -sf $sourcefolder/$file_MDM_004 $workingroot/watch_mdsstat >> $logfilepath
+    #ln -sf $sourcefolder/$file_MDM_005 $workingroot/show_domains_in_array >> $logfilepath
+    
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_MDM_003 $scriptsbase $scriptsrepository report_mdsstat
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_MDM_004 $scriptsbase $scriptsrepository watch_mdsstat
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_MDM_005 $scriptsbase $scriptsrepository show_domains_in_array
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  MGMT
+# =============================================================================
+
+
+export workingdir=MGMT
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_MGMT_001=identify_self_referencing_symbolic_link_files.sh
+file_MGMT_002=identify_self_referencing_symbolic_link_files.Lite.sh
+file_MGMT_003=check_status_of_scheduled_ips_updates_on_management.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_MGMT_001 $linksfolder/identify_self_referencing_symbolic_link_files >> $logfilepath
+#ln -sf $sourcefolder/$file_MGMT_002 $linksfolder/Lite.identify_self_referencing_symbolic_link_files >> $logfilepath
+ln -sf $sourcefolder/$file_MGMT_003 $linksfolder/check_status_of_scheduled_ips_updates_on_management >> $logfilepath
+
+# These have been replaced with alias commands or alias links
+#
+#ln -sf $sourcefolder/$file_MGMT_001 $workingroot/identify_self_referencing_symbolic_link_files >> $logfilepath
+#ln -sf $sourcefolder/$file_MGMT_002 $workingroot/Lite.identify_self_referencing_symbolic_link_files >> $logfilepath
+#ln -sf $sourcefolder/$file_MGMT_003 $workingroot/check_status_of_scheduled_ips_updates_on_management >> $logfilepath
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_MGMT_001 $scriptsbase $scriptsrepository identify_self_referencing_symbolic_link_files >> $logfilepath
+#CopyToB4CPScriptsAndLink $sourcefolder/$file_MGMT_002 $scriptsbase $scriptsrepository Lite.identify_self_referencing_symbolic_link_files >> $logfilepath
+CopyToB4CPScriptsAndLink $sourcefolder/$file_MGMT_003 $scriptsbase $scriptsrepository check_status_of_scheduled_ips_updates_on_management >> $logfilepath
+
+if [ "$sys_type_SMS" == "true" ]; then
+    echo
+    if [ $Check4EPM -gt 0 ]; then
+        echo    
+    fi
+fi
+
+if [ "$sys_type_MDS" == "true" ]; then
+    echo
+fi
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    echo
+fi
+
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Patch_HotFix
+# =============================================================================
+
+
+export workingdir=Patch_HotFix
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_patch_001=fix_gaia_webui_login_dot_js.sh
+file_patch_002=fix_gaia_webui_login_dot_js_generic.sh
+
+export need_fix_webui=false
+
+if $IsR8XVersion ; then
+    export need_fix_webui=false
+else
+    export need_fix_webui=true
+fi
+
+if [ "$need_fix_webui" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_patch_001 $linksfolder/fix_gaia_webui_login_dot_js >> $logfilepath
+    ln -sf $sourcefolder/$file_patch_001 $workingroot/fix_gaia_webui_login_dot_js >> $logfilepath
+    
+    ln -sf $sourcefolder/$file_patch_002 $linksfolder/fix_gaia_webui_login_dot_js_generic >> $logfilepath
+
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  Session_Cleanup
+# =============================================================================
+
+
+export workingdir=Session_Cleanup
+export folderstdversion=v04.50.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SESSION_001=remove_zerolocks_sessions.$folderstdversion.sh
+file_SESSION_002=remove_zerolocks_web_api_sessions.$folderstdversion.sh
+file_SESSION_003=show_zerolocks_sessions.$folderstdversion.sh
+file_SESSION_004=show_zerolocks_web_api_sessions.$folderstdversion.sh
+
+export do_session_cleanup=false
+
+if $IsR8XVersion ; then
+    export do_session_cleanup=true
+else
+    export do_session_cleanup=false
+fi
+
+if [ "$do_session_cleanup" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SESSION_001 $linksfolder/remove_zerolocks_sessions >> $logfilepath
+    ln -sf $sourcefolder/$file_SESSION_002 $linksfolder/remove_zerolocks_web_api_sessions >> $logfilepath
+    ln -sf $sourcefolder/$file_SESSION_003 $linksfolder/show_zerolocks_sessions >> $logfilepath
+    ln -sf $sourcefolder/$file_SESSION_004 $linksfolder/show_zerolocks_web_api_sessions >> $logfilepath
+
+    if [ "$sys_type_GW" == "false" ]; then
+        
+        # These have been replaced with alias commands or alias links
+        #
+        #ln -sf $sourcefolder/$file_SESSION_001 $workingroot/remove_zerolocks_sessions >> $logfilepath
+        #ln -sf $sourcefolder/$file_SESSION_002 $workingroot/remove_zerolocks_web_api_sessions >> $logfilepath
+        #ln -sf $sourcefolder/$file_SESSION_003 $workingroot/show_zerolocks_sessions >> $logfilepath
+        #ln -sf $sourcefolder/$file_SESSION_004 $workingroot/show_zerolocks_web_api_sessions >> $logfilepath
+        
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_SESSION_001 $scriptsbase $scriptsrepository remove_zerolocks_sessions
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_SESSION_002 $scriptsbase $scriptsrepository remove_zerolocks_web_api_sessions
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_SESSION_003 $scriptsbase $scriptsrepository show_zerolocks_sessions
+        CopyToB4CPScriptsAndLink $sourcefolder/$file_SESSION_004 $scriptsbase $scriptsrepository show_zerolocks_web_api_sessions
+    fi
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SmartEvent
+# =============================================================================
+
+
+export workingdir=SmartEvent
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMEV_001=SmartEvent_Backup_R8X.$folderstdversion.sh
+file_SMEV_002=SmartEvent_Restore_R8X.$folderstdversion-NR.sh
+file_SMEV_003=Reset_SmartLog_Indexing_Back_X_Days.$folderstdversion.sh
+file_SMEV_004=NUKE_ALL_LOGS_AND_INDEXES.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_SMEV_001 $linksfolder/SmartEvent_Backup_R8X >> $logfilepath
+ln -sf $sourcefolder/$file_SMEV_002 $linksfolder/SmartEvent_Restore_R8X >> $logfilepath
+ln -sf $sourcefolder/$file_SMEV_003 $linksfolder/Reset_SmartLog_Indexing >> $logfilepath
+ln -sf $sourcefolder/$file_SMEV_004 $linksfolder/SmartEvent_NUKE_Index_and_Logs >> $logfilepath
+
+if [ "$sys_type_SmartEvent" == "true" ]; then
+    
+    # These have been replaced with alias commands or alias links
+    #
+    ln -sf $sourcefolder/$file_SMEV_001 $workingroot/SmartEvent_backup >> $logfilepath
+    #ln -sf $sourcefolder/$file_SMEV_002 $workingroot/SmartEvent_restore >> $logfilepath
+    #ln -sf $sourcefolder/$file_SMEV_003 $workingroot/Reset_SmartLog_Indexing >> $logfilepath
+    #ln -sf $sourcefolder/$file_SMEV_004 $workingroot/SmartEvent_NUKE_Index_and_Logs >> $logfilepath
+    
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_SMEV_001 $scriptsbase $scriptsrepository SmartEvent_backup >> $logfilepath
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_SMEV_002 $scriptsbase $scriptsrepository SmartEvent_restore >> $logfilepath
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_SMEV_003 $scriptsbase $scriptsrepository Reset_SmartLog_Indexing >> $logfilepath
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_SMEV_004 $scriptsbase $scriptsrepository SmartEvent_NUKE_Index_and_Logs >> $logfilepath
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS
+# =============================================================================
+
+
+export workingdir=SMS
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMS_005=report_cpwd_admin_list.$folderstdversion.sh
+file_SMS_006=watch_cpwd_admin_list.$folderstdversion.sh
+file_SMS_007=restart_mgmt.$folderstdversion.sh
+
+file_SMS_008=fix_api_memory.$folderstdversion.sh
+
+file_SMS_009=reset_hit_count_on_R80_SMS_commands.001.v00.01.00.bash
+
+ln -sf $sourcefolder/$file_SMS_005 $linksfolder/report_cpwd_admin_list >> $logfilepath
+ln -sf $sourcefolder/$file_SMS_006 $linksfolder/watch_cpwd_admin_list >> $logfilepath
+
+# These have been replaced with alias commands or alias links
+#
+#ln -sf $sourcefolder/$file_SMS_005 $workingroot/report_cpwd_admin_list >> $logfilepath
+#ln -sf $sourcefolder/$file_SMS_006 $workingroot/watch_cpwd_admin_list >> $logfilepath
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_SMS_005 $scriptsbase $scriptsrepository report_cpwd_admin_list
+CopyToB4CPScriptsAndLink $sourcefolder/$file_SMS_006 $scriptsbase $scriptsrepository watch_cpwd_admin_list
+
+ln -sf $sourcefolder/$file_SMS_007 $linksfolder/restart_mgmt >> $logfilepath
+
+ln -sf $sourcefolder/$file_SMS_008 $linksfolder/fix_api_memory >> $logfilepath
+
+ln -sf $sourcefolder/$file_SMS_009 $linksfolder/reset_hit_count_on_R80_SMS_commands >> $logfilepath
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_SMS_007 $workingroot/restart_mgmt >> $logfilepath
+    
+    CopyToB4CPScriptsAndLink $sourcefolder/$file_SMS_007 $scriptsbase $scriptsrepository restart_mgmt
+    
+    ln -sf $sourcefolder/$file_SMS_009 $workingroot/reset_hit_count_on_R80_SMS_commands >> $logfilepath
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS.CORE
+# =============================================================================
+
+
+export workingdir=SMS.CORE
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMS_CORE_001=CORE-G2_install_policy.$folderstdversion.raw.sh
+
+ln -sf $sourcefolder/$file_SMS_CORE_001 $linksfolder/CORE-G2_install_policy >> $logfilepath
+
+#if [ "$sys_type_SMS" == "true" ]; then
+    
+    # These have been replaced with alias commands or alias links
+    #
+    #ln -sf $sourcefolder/$file_SMS_CORE_001 $workingroot/CORE-G2_install_policy >> $logfilepath
+    
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_SMS_CORE_001 $scriptsbase $scriptsrepository CORE-G2_install_policy
+    
+#fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  SMS.migrate_backup
+# =============================================================================
+
+
+export workingdir=SMS.migrate_backup
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_SMS_Migrate_001=migrate_export_npm_ugex.$folderstdversion.sh
+file_SMS_Migrate_002=migrate_export_w_logs_npm_ugex.$folderstdversion.sh
+file_SMS_Migrate_003=migrate_export_epm_ugex.$folderstdversion.sh
+file_SMS_Migrate_004=migrate_export_w_logs_epm_ugex.$folderstdversion.sh
+
+file_SMS_Migrate_011=migrate_server_export_npm_ugex.$folderstdversion.sh
+file_SMS_Migrate_012=migrate_server_export_w_logs_npm_ugex.$folderstdversion.sh
+file_SMS_Migrate_013=migrate_server_export_epm_ugex.$folderstdversion.sh
+file_SMS_Migrate_014=migrate_server_export_w_logs_epm_ugex.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_SMS_Migrate_001 $linksfolder/migrate_export_npm_ugex >> $logfilepath
+ln -sf $sourcefolder/$file_SMS_Migrate_002 $linksfolder/migrate_export_w_logs_npm_ugex >> $logfilepath
+
+if [ $Check4EPM -gt 0 ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_003 $linksfolder/migrate_export_epm_ugex >> $logfilepath
+    ln -sf $sourcefolder/$file_SMS_Migrate_004 $linksfolder/migrate_export_w_logs_epm_ugex >> $logfilepath
+    
+fi
+
+if [ "$sys_type_SMS" == "true" ]; then
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_001 $workingroot/migrate_export_npm_ugex >> $logfilepath
+    ln -sf $sourcefolder/$file_SMS_Migrate_002 $workingroot/migrate_export_w_logs_npm_ugex >> $logfilepath
+    
+    ln -sf $sourcefolder/$file_SMS_Migrate_011 $workingroot/migrate_server_export_npm_ugex >> $logfilepath
+    ln -sf $sourcefolder/$file_SMS_Migrate_012 $workingroot/migrate_server_export_w_logs_npm_ugex >> $logfilepath
+    
+    if [ $Check4EPM -gt 0 ]; then
+        
+        ln -sf $sourcefolder/$file_SMS_Migrate_003 $workingroot/migrate_export_epm_ugex >> $logfilepath
+        ln -sf $sourcefolder/$file_SMS_Migrate_004 $workingroot/migrate_export_w_logs_epm_ugex >> $logfilepath
+        
+        ln -sf $sourcefolder/$file_SMS_Migrate_013 $workingroot/migrate_server_export_epm_ugex >> $logfilepath
+        ln -sf $sourcefolder/$file_SMS_Migrate_014 $workingroot/migrate_server_export_w_logs_epm_ugex >> $logfilepath
+        
+    fi
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig
+# =============================================================================
+
+
+export workingdir=UserConfig
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+if [ ! -r $linksfolder ] ; then
+    mkdir -pv $linksfolder | tee -a -i $logfilepath
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+else
+    chmod 775 $linksfolder | tee -a -i $logfilepath
+fi
+
+file_USERCONF_001=add_alias_commands.all.$folderstdversion.sh
+file_USERCONF_002=add_alias_commands_all_users.all.$folderstdversion.sh
+file_USERCONF_003=update_alias_commands.all.$folderstdversion.sh
+file_USERCONF_004=update_alias_commands_all_users.all.$folderstdversion.sh
+
+ln -sf $sourcefolder/$file_USERCONF_001 $linksfolder/alias_commands_add_user >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_002 $linksfolder/alias_commands_add_all_users >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_003 $linksfolder/alias_commands_update_user >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_004 $linksfolder/alias_commands_update_all_users >> $logfilepath
+
+# These have been replaced with alias commands or alias links
+#
+ln -sf $sourcefolder/$file_USERCONF_001 $workingroot/alias_commands_add_user >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_002 $workingroot/alias_commands_add_all_users >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_003 $workingroot/alias_commands_update_user >> $logfilepath
+ln -sf $sourcefolder/$file_USERCONF_004 $workingroot/alias_commands_update_all_users >> $logfilepath
+
+#LinkInB4CPScripts $sourcefolder/$file_USERCONF_001 $scriptsbase alias_commands_add_user
+#LinkInB4CPScripts $sourcefolder/$file_USERCONF_002 $scriptsbase alias_commands_add_all_users
+#LinkInB4CPScripts $sourcefolder/$file_USERCONF_003 $scriptsbase alias_commands_update_user
+#LinkInB4CPScripts $sourcefolder/$file_USERCONF_004 $scriptsbase alias_commands_update_all_users
+
+CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_001 $scriptsbase $scriptsrepository alias_commands_add_user
+CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_002 $scriptsbase $scriptsrepository alias_commands_add_all_users
+CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_003 $scriptsbase $scriptsrepository alias_commands_update_user
+CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_004 $scriptsbase $scriptsrepository alias_commands_update_all_users
+
+#
+# Handle the UserConfig alias_commands[.x] folder
+#
+alias_commands_folder=alias_commands
+source_alias_commands_folder=$workingbase/$alias_commands_folder
+target_alias_commands_folder=$scriptsrepository/$alias_commands_folder
 
 echo | tee -a -i $logfilepath
-clish -c "show commands" >> $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo 'Handle UserConfig alias_commands folder' | tee -a -i $logfilepath
+echo ' - alias_commands folder        : '$alias_commands_folder | tee -a -i $logfilepath
+echo ' - source alias_commands folder : '$source_alias_commands_folder | tee -a -i $logfilepath
+echo ' - target alias_commands folder : '$target_alias_commands_folder | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
+if [ ! -r $target_alias_commands_folder ] ; then
+    mkdir -pv $target_alias_commands_folder | tee -a -i $logfilepath
+    chmod 775 $target_alias_commands_folder | tee -a -i $logfilepath
+else
+    chmod 775 $target_alias_commands_folder | tee -a -i $logfilepath
+fi
+
+if [ -r $target_alias_commands_folder ] ; then
+    echo 'Remove existing alias_commands...' | tee -a -i $logfilepath
+    rm -f -v $target_alias_commands_folder/*.* | tee -a -i $logfilepath
+fi
+
+#cp -a -f -v $source_alias_commands_folder/ $target_alias_commands_folder/ | tee -a -i $logfilepath
+cp -a -f -v $source_alias_commands_folder/ $scriptsrepository/ | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
-echo 'Files and folders:' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alhR "$fqpnworkfolder" | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  UserConfig.CORE_G2.NPM
+# =============================================================================
+
+
+export workingdir=UserConfig.CORE_G2.NPM
+export folderstdversion=v04.36.00
+export sourcefolder=$workingbase/$workingdir
+export linksfolder=$linksbase/$workingdir
+
+if [ ! -r $sourcefolder ] ; then
+    # This folder is not part of the distribution
+    echo 'Skipping folder '$sourcefolder | tee -a -i $logfilepath
+else
+    
+    if [ ! -r $linksfolder ] ; then
+        mkdir -pv $linksfolder | tee -a -i $logfilepath
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    else
+        chmod 775 $linksfolder | tee -a -i $logfilepath
+    fi
+    
+    file_USERCONF_005=add_alias_commands.CORE_G2.NPM.$folderstdversion.sh
+    file_USERCONF_006=add_alias_commands_all_users.CORE_G2.NPM.$folderstdversion.sh
+    file_USERCONF_007=update_alias_commands.CORE_G2.NPM.$folderstdversion.sh
+    file_USERCONF_008=update_alias_commands_all_users.CORE_G2.NPM.$folderstdversion.sh
+    
+    ln -sf $sourcefolder/$file_USERCONF_005 $linksfolder/alias_commands_CORE_G2_NPM_add_user >> $logfilepath
+    ln -sf $sourcefolder/$file_USERCONF_006 $linksfolder/alias_commands_CORE_G2_NPM_add_all_users >> $logfilepath
+    ln -sf $sourcefolder/$file_USERCONF_007 $linksfolder/alias_commands_CORE_G2_NPM_update_user >> $logfilepath
+    ln -sf $sourcefolder/$file_USERCONF_008 $linksfolder/alias_commands_CORE_G2_NPM_update_all_users >> $logfilepath
+    
+    # These have been replaced with alias commands or alias links
+    
+    #ln -sf $sourcefolder/$file_USERCONF_005 $workingroot/alias_commands_CORE_G2_NPM_add_user >> $logfilepath
+    #ln -sf $sourcefolder/$file_USERCONF_006 $workingroot/alias_commands_CORE_G2_NPM_add_all_users >> $logfilepath
+    #ln -sf $sourcefolder/$file_USERCONF_007 $workingroot/alias_commands_CORE_G2_NPM_update_user >> $logfilepath
+    #ln -sf $sourcefolder/$file_USERCONF_008 $workingroot/alias_commands_CORE_G2_NPM_update_all_users >> $logfilepath
+    
+    #LinkInB4CPScripts $sourcefolder/$file_USERCONF_005 $scriptsbase alias_commands_CORE_G2_NPM_add_user
+    #LinkInB4CPScripts $sourcefolder/$file_USERCONF_006 $scriptsbase alias_commands_CORE_G2_NPM_add_all_users
+    #LinkInB4CPScripts $sourcefolder/$file_USERCONF_007 $scriptsbase alias_commands_CORE_G2_NPM_update_user
+    #LinkInB4CPScripts $sourcefolder/$file_USERCONF_008 $scriptsbase alias_commands_CORE_G2_NPM_update_all_users
+    
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_005 $scriptsbase $scriptsrepository alias_commands_CORE_G2_NPM_add_user
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_006 $scriptsbase $scriptsrepository alias_commands_CORE_G2_NPM_add_all_users
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_007 $scriptsbase $scriptsrepository alias_commands_CORE_G2_NPM_update_user
+    #CopyToB4CPScriptsAndLink $sourcefolder/$file_USERCONF_008 $scriptsbase $scriptsrepository alias_commands_CORE_G2_NPM_update_all_users
+    
+    #
+    # Handle the UserConfig alias_commands[.x] folder
+    #
+    #alias_commands_folder=alias_commands.CORE_G2.NPM
+    #source_alias_commands_folder=$workingbase/$alias_commands_folder
+    #target_alias_commands_folder=$scriptsrepository/$alias_commands_folder
+    
+    #echo | tee -a -i $logfilepath
+    #echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+    #echo 'Handle UserConfig alias_commands folder' | tee -a -i $logfilepath
+    #echo ' - alias_commands folder        : '$alias_commands_folder | tee -a -i $logfilepath
+    #echo ' - source alias_commands folder : '$source_alias_commands_folder | tee -a -i $logfilepath
+    #echo ' - target alias_commands folder : '$target_alias_commands_folder | tee -a -i $logfilepath
+    #echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+    #echo | tee -a -i $logfilepath
+    
+    #if [ ! -r $target_alias_commands_folder ] ; then
+        #mkdir -pv $target_alias_commands_folder | tee -a -i $logfilepath
+        #chmod 775 $target_alias_commands_folder | tee -a -i $logfilepath
+    #else
+        #chmod 775 $target_alias_commands_folder | tee -a -i $logfilepath
+    #fi
+    
+    ##cp -a -f -v $source_alias_commands_folder/ $target_alias_commands_folder/ | tee -a -i $logfilepath
+    #cp -a -f -v $source_alias_commands_folder/ $scriptsrepository/ | tee -a -i $logfilepath
+    
+    #echo | tee -a -i $logfilepath
+    #echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+    #echo | tee -a -i $logfilepath
+    
+fi
+
+
+# =============================================================================
+# =============================================================================
+# FOLDER:  
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+
 echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo 'List folder : '$workingroot | tee -a -i $logfilepath
+ls -alh $workingroot | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
+echo 'List folder : '$workingbase | tee -a -i $logfilepath
+ls -alh $workingbase | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'List folder : '$linksbase | tee -a -i $logfilepath
+ls -alh $linksbase | tee -a -i $logfilepath
+echo 'List folder : '$scriptsbase | tee -a -i $logfilepath
+ls -alh $scriptsbase | tee -a -i $logfilepath
+echo 'List folder : '$scriptsrepository | tee -a -i $logfilepath
+ls -alh $scriptsrepository | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo 'Done with links generation!' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+# =============================================================================
+# =============================================================================
+
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
-
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+#
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Download and if necessary, upgrade GAIA Dynamic CLI
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================
@@ -1702,7 +2353,6 @@ echo | tee -a -i $logfilepath
 echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
 echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
-
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------

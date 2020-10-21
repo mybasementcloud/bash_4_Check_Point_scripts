@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Identify Self Referencing Symbolic Link Files (Lite) - All combined, no dependent scripts
+# SCRIPT Template for bash scripts, level - 006
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,10 +30,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=identify_self_referencing_symbolic_link_files.Lite
-export BASHScriptShortName=id_self_referencing_symlinks
+export BASHScriptFileNameRoot=_template_bash_scripts_light_with_version
+export BASHScriptShortName=_template_light_with_version.$TemplateLevel.v$ScriptVersion
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription="Identify Self Referencing Symbolic Link Files (Lite)"
+export BASHScriptDescription="Template Light for bash scripts with Version Info"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
@@ -87,7 +87,6 @@ WAITTIME=20
 # R80.30    version 1.5
 # R80.40    version 1.6
 # R80.40 JHF 78 version 1.6.1
-# R81.00    version 1.7
 #
 # For common scripts minimum API version at 1.1 should suffice, otherwise get explicit
 # To enable use of API Key authentication, at least version 1.6 is required
@@ -102,11 +101,42 @@ export JQ16Required=false
 
 
 # -------------------------------------------------------------------------------------------------
-# local scripts variables configuration
+# END: Basic Configuration
+# -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-targetfolder=/var/log/tmp/scripts
+# -------------------------------------------------------------------------------------------------
+# logfile naming control variables
+# -------------------------------------------------------------------------------------------------
+
+
+# MODIFIED 2020-10-20 -
+# if we are date-time stamping the output location as a subfolder of the 
+# output folder set this to true,  otherwise it needs to be false
+#
+# OutputYearSubfolder             : true|false : Add a folder level with just the year (YYYY)
+# OutputYMSubfolder               : true|false : Add a folder level with the year-month (YYYY-MM)
+# OutputDTGSSubfolder             : true|false : Add a folder level with Date Time Group with Seconds (YYYY-MM-DD-HHmmSS)
+# Append script name to output subfolder, only one of these should be true, ignored if both are false
+# OutputSubfolderScriptName       : true|false : Add full script name to folder name of output folder
+#                                 :: setting this value true will override OutputSubfolderScriptShortName
+# OutputSubfolderScriptShortName  : true|false : Add short script name to folder name of output folder
+#
+export OutputYearSubfolder=true
+export OutputYMSubfolder=true
+export OutputDTGSSubfolder=true
+export OutputSubfolderScriptName=false
+export OutputSubfolderScriptShortName=true
+
+
+# -------------------------------------------------------------------------------------------------
+# Local logfile variables
+# -------------------------------------------------------------------------------------------------
+
+
+export logfilefolderroot=/var/log/__customer/upgrade_export
+export logfilefoldername=dump
 
 
 # -------------------------------------------------------------------------------------------------
@@ -115,7 +145,23 @@ targetfolder=/var/log/tmp/scripts
 
 
 # setup initial log file for output logging
-export logfilefolder=$targetfolder/dump/$DATEDTGS.$BASHScriptShortName
+DATEYear=`date +%Y`
+DATEYM=`date +%Y-%m`
+export logfilefolder=$logfilefolderroot/$logfilefoldername
+if $OutputYearSubfolder ; then
+    export logfilefolder=$logfilefolder/$DATEYear
+fi
+if $OutputYMSubfolder ; then
+    export logfilefolder=$logfilefolder/$DATEYM
+fi
+if $OutputDTGSSubfolder ; then
+    export logfilefolder=$logfilefolder/$DATEDTGS
+fi
+if $OutputSubfolderScriptName ; then
+    export logfilefolder=$logfilefolder.$BASHScriptName
+elif  $OutputSubfolderScriptShortName ; then
+    export logfilefolder=$logfilefolder.$BASHScriptShortName
+fi
 export logfilepath=$logfilefolder/$BASHScriptName.$DATEDTGS.log
 
 if [ ! -w $logfilefolder ]; then
@@ -387,174 +433,11 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
-# local command line parameter variables configuration
+# Local Operations variables
 # -------------------------------------------------------------------------------------------------
 
 
-export CLIparm_l01_StartFolder=
-export CLIparm_l02_KillCircLinks=
-
-export KillCircularSymLinks=false
-
-export SHOWHELP=false
-
-# -------------------------------------------------------------------------------------------------
-# processlocalcliparms - Local command line parameter processor
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-processlocalcliparms () {
-    #
-    
-    echo
-    
-    # -------------------------------------------------------------------------------------------------
-    # Process command line parameters from the REMAINS returned from the standard handler
-    # -------------------------------------------------------------------------------------------------
-    
-    while [ -n "$1" ]; do
-        # Copy so we can modify it (can't modify $1)
-        OPT="$1"
-        
-        # testing
-        echo 'OPT = '$OPT
-        #
-            
-        # Detect argument termination
-        if [ x"$OPT" = x"--" ]; then
-            
-            shift
-            for OPT ; do
-                # MODIFIED 2019-03-08
-                #LOCALREMAINS="$LOCALREMAINS \"$OPT\""
-                LOCALREMAINS="$LOCALREMAINS $OPT"
-            done
-            break
-        fi
-        # Parse current opt
-        while [ x"$OPT" != x"-" ] ; do
-            case "$OPT" in
-                # Help and Standard Operations
-                '-?' | --help )
-                    SHOWHELP=true
-                    ;;
-                --KILL | --kill )
-                    export CLIparm_l02_KillCircLinks=true
-                    export KillCircularSymLinks=true
-                    ;;
-                # Handle --flag=value opts like this
-                --Path=* )
-                    CLIparm_l01_StartFolder="${OPT#*=}"
-                    #shift
-                    ;;
-                # and --flag value opts like this
-                --Path )
-                    CLIparm_l01_StartFolder="$2"
-                    shift
-                    ;;
-                # Anything unknown is recorded for later
-                * )
-                    # MODIFIED 2019-03-08
-                    #LOCALREMAINS="$LOCALREMAINS \"$OPT\""
-                    LOCALREMAINS="$LOCALREMAINS $OPT"
-                    break
-                    ;;
-            esac
-            # Check for multiple short options
-            # NOTICE: be sure to update this pattern to match valid options
-            # Remove any characters matching "-", and then the values between []'s
-            #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
-            NEXTOPT="${OPT#-[vrf?]}" # try removing single short opt
-            if [ x"$OPT" != x"$NEXTOPT" ] ; then
-                OPT="-$NEXTOPT"  # multiple short opts, keep going
-            else
-                break  # long form, exit inner loop
-            fi
-        done
-        # Done with that param. move to next
-        shift
-    done
-    # Set the non-parameters back into the positional parameters ($1 $2 ..)
-    eval set -- $LOCALREMAINS
-    
-    export CLIparm_l01_StartFolder=$CLIparm_l01_StartFolder
-    export CLIparm_l02_KillCircLinks=$CLIparm_l02_KillCircLinks
-    export KillCircularSymLinks=$KillCircularSymLinks
-
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-02-06
-
-# -------------------------------------------------------------------------------------------------
-# END:  Common Help display proceedure
-# -------------------------------------------------------------------------------------------------
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-
-# -------------------------------------------------------------------------------------------------
-# Help display proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# Show help information
-
-doshowhelp () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    echo
-    echo ' Script:  '$0'  Script Version:  '$BASHScriptVersion'  Date:  '$ScriptDate'  Revision:  '$ScriptRevision
-    echo
-    echo ' Standard Command Line Parameters: '
-    echo
-    echo '  Show Help                  -? | --help'
-    echo
-    echo '  Starting Folder Path       --Path <Starting_Folder_Path> | --Path=<Starting_Folder_Path>'
-    echo
-    echo '  Remove Circular SymLinks   --KILL | --kill'
-    echo
-    echo '  Example:  '
-    echo ' ]# '$0' --Path "${RTDIR}/log_indexes/" --KILL'
-    
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
-    echo
-    return 1
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-02-06
-
-# -------------------------------------------------------------------------------------------------
-# END:  Common Help display proceedure
-# -------------------------------------------------------------------------------------------------
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-processlocalcliparms "$@"
-
-if $SHOWHELP ; then
-    # Show Help
-    doshowhelp "$@"
-    # don't want a log file for showing help
-    #rm $logfilepath
-    # this is done now, so exit hard
-    exit 255 
-fi
+targetfolder=/var/log/__customer/upgrade_export
 
 
 # -------------------------------------------------------------------------------------------------
@@ -574,191 +457,17 @@ echo | tee -a -i $logfilepath
 # script plumbing 1
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 
-export outputpathbase=$logfilefolder
-
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
-
-export targetversion=$gaiaversion
-
-export outputfilepath=$outputpathbase/
-export outputfileprefix=$HOSTNAME'_'$targetversion
-export outputfilesuffix='_'$DATEDTGS
-export outputfiletype=.txt
-
-if [ ! -r $outputfilepath ] ; then
-    mkdir -pv $outputfilepath
-    chmod 775 $outputfilepath
+if $IsR8XVersion ; then
+    # Do something because R8X
+    
+    echo
 else
-    chmod 775 $outputfilepath
+    # Do something else because not R8X
+    
+    echo
 fi
 
-
-export command2run=id_self_ref_symlinks
-export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
-
-export command2run2=files_with_self_ref_symlinks
-export outputfile2=$outputfileprefix'_'$command2run2$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
-
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-echo 'Files with Self-referencing SymLinks:' >> "$outputfilefqdn2"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-
-
-#----------------------------------------------------------------------------------------
-# Loop through target folder root to identify all symbolic link files
-#----------------------------------------------------------------------------------------
-
-#sourcerootfolder=${RTDIR}/log_indexes/
-
-if [ -z $CLIparm_l01_StartFolder ]; then
-    export sourcerootfolder=.
-else
-    if [ -r $CLIparm_l01_StartFolder ]; then
-        export sourcerootfolder=
-        export sourcerootfolder=${CLIparm_l01_StartFolder%/}/
-    else
-        export sourcerootfolder=.
-    fi
-fi
-
-
-targetfile=
-targetactualfile=
-
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo 'Starting operations in this folder:  '$sourcerootfolder | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-
-pushd $sourcerootfolder >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-
-echo 'Starting Work path :  '`pwd` | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-ls -alhi >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
-
-for f in $(find . -type l); do 
-    
-    targetlinktype=`stat -L -c %F $f`
-    targetfile=$f
-    targetactualfile=`readlink $f`
-    
-    echo 'Target Link Type = '$targetlinktype'  Target Link File :  '$targetfile'  Target Actual File :  '$targetactualfile | tee -a -i "$outputfilefqdn"
-    
-    if [ "$targetlinktype" = "directory" ]; then
-        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-        echo 'Drop in to actual link folder: '$targetactualfile >> "$outputfilefqdn"
-        
-        pushd $targetactualfile >> "$outputfilefqdn"
-        
-        echo >> "$outputfilefqdn"
-        
-        echo 'Current path :  '`pwd` >> "$outputfilefqdn"
-        ls -alhi >> "$outputfilefqdn"
-        echo >> "$outputfilefqdn"
-        
-        for g in $(find . -type l); do 
-            
-            locallinktype=`stat -L -c %F $g`
-            
-            if [ "$locallinktype" = "directory" ]; then
-                localfile=$g
-                localactualpath=`pwd`
-                localactualfile=`readlink $g`
-                localfilename=${g##*/}
-                
-                echo 'Local Link Type = '$locallinktype'  Local Link File Name (as found):  '$localfilename '('$localfile')  Local Actual File :  '$localactualfile | tee -a -i "$outputfilefqdn"
-                ls -alhi $g >> "$outputfilefqdn"
-                
-                echo >> "$outputfilefqdn"
-                
-                tempdumpfile=/var/log/tmp/dumpfile.$DATEDTGS.txt
-                find . -type l -follow -print 2>> "$tempdumpfile" >> "$outputfilefqdn"
-                cat $tempdumpfile >> "$outputfilefqdn"
-                localactuallinkloops=`cat $tempdumpfile | grep -i "$g"`
-                localactuallinkloopscheck=`test -z localactuallinkloops; echo $?`
-                localactuallinkloopscheckresult=$localactuallinkloopscheck
-                echo 'Loop Check Result ('$localactuallinkloopscheck'):  '$localactuallinkloops | tee -a -i "$outputfilefqdn"
-                rm $tempdumpfile
-                
-                if [ $localactuallinkloopscheckresult ] ; then 
-                    echo 'Loop Check True - Link points to itself!!!!'
-                    
-                    echo $targetactualfile$localfilename >> "$outputfilefqdn2"
-                    
-                    if $KillCircularSymLinks ; then
-                        echo 'Remove Circular SymLink File!' | tee -a -i "$outputfilefqdn"
-                        #echo 'testing....'
-                        rm $g >> "$outputfilefqdn"
-                    else
-                        echo 'Keep Circular SymLink File!' >> "$outputfilefqdn"
-                    fi
-                else
-                    echo 'Loop Check false - Not directly self referencing'
-                fi
-                
-                if [ $localactualpath/ = $localactualfile ]; then 
-                    echo 'Link points to itself!!!!'
-                else
-                    echo 'Not directly self referencing, but may still represent a loop!'
-                fi
-                
-            else
-                echo 'Not A directory!' $g >> "$outputfilefqdn"
-            fi
-            
-            echo >> "$outputfilefqdn"
-            
-        done;
-        
-        popd >> "$outputfilefqdn"
-        
-        echo 'Returned path :  '`pwd` >> "$outputfilefqdn"
-        
-        echo >> "$outputfilefqdn"
-        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-        
-    else
-        echo 'Not a directory!  '$f'  Skipping...' >> "$outputfilefqdn"
-    fi
-    
-done;
-echo >> "$outputfilefqdn"
-
-popd >> "$outputfilefqdn"
-
-echo 'Returned path :  '`pwd` >> "$outputfilefqdn"
-
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-
-
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------
 # Closing operations and log file information
@@ -774,13 +483,7 @@ if [ -r None ] ; then
 fi
 
 echo | tee -a -i $logfilepath
-echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
-ls -alh $outputpathbase | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
+echo 'Log File : '$logfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 

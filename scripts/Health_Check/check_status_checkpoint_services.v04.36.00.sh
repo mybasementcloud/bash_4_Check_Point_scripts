@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT Update GAIA Dynamic CLI Installation with latest package from tftp server - SAMPLE
+# SCRIPT Check Status of Check Point Services IAW sk83520 (https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk83520)
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,22 +30,22 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=update_gaia_dynamic_cli
-export BASHScriptShortName=Update_GAIA_Dynamic_CLI
+export BASHScriptFileNameRoot=check_status_checkpoint_services
+export BASHScriptShortName="CP_services_status"
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription="Update GAIA Dynamic CLI Installation with latest package from tftp server"
+export BASHScriptDescription="Check Status of Check Point Services"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=GAIA
+export BASHScriptsFolder=Health_Check
 
-export BASHScripttftptargetfolder="_template"
+export BASHScripttftptargetfolder="CP_status_check"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ WAITTIME=20
 #
 export MinAPIVersionRequired=1.1
 
-export R8XRequired=true
+export R8XRequired=false
 export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
@@ -127,12 +127,12 @@ touch $logfilepath
 #
 export OutputToRoot=false
 export OutputToDump=false
-export OutputToChangeLog=true
-export OutputToOther=false
+export OutputToChangeLog=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./healthchecks
 
 # MODIFIED 2020-10-20 -
 # if we are date-time stamping the output location as a subfolder of the 
@@ -680,7 +680,7 @@ CommandLineParameterHandler () {
     
     if [ "$SCRIPTVERBOSE" = "true" ] ; then
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
         echo "Calling external Command Line Paramenter Handling Script" | tee -a -i $logfilepath
         echo " - External Script : "$cli_script_cmdlineparm_handler | tee -a -i $logfilepath
@@ -702,7 +702,7 @@ CommandLineParameterHandler () {
         echo | tee -a -i $logfilepath
         echo "Starting local execution" | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
     fi
     
@@ -1014,7 +1014,7 @@ SetScriptOutputPathsAndFolders () {
     
     if [ "$SCRIPTVERBOSE" = "true" ] ; then
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
         echo "Calling external Configure script output paths and folders Handling Script" | tee -a -i $logfilepath
         echo " - External Script : "$script_output_paths_and_folders_handler | tee -a -i $logfilepath
@@ -1036,7 +1036,7 @@ SetScriptOutputPathsAndFolders () {
         echo | tee -a -i $logfilepath
         echo "Continueing local execution" | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
     fi
     
@@ -1130,7 +1130,7 @@ GetGaiaVersionAndInstallationType () {
     
     if [ "$SCRIPTVERBOSE" = "true" ] ; then
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
         echo "Calling external Gaia Version and Installation Type Handling Script" | tee -a -i $logfilepath
         echo " - External Script : "$gaia_version_type_handler | tee -a -i $logfilepath
@@ -1152,7 +1152,7 @@ GetGaiaVersionAndInstallationType () {
         echo | tee -a -i $logfilepath
         echo "Continueing local execution" | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
-        echo '--------------------------------------------------------------------------' | tee -a -i $logfilepath
+        echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
         echo | tee -a -i $logfilepath
     fi
     
@@ -1294,383 +1294,376 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Download and if necessary, upgrade GAIA Dynamic CLI
+# shell meat
 #
 #==================================================================================================
 #==================================================================================================
 
 
 # -------------------------------------------------------------------------------------------------
-# local script variables
+# Document_curl - Document curl command with log of error response (the actual response)
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+Document_curl () {
+    #
+    # Document_curl - Document curl command with log of error response (the actual response)
+    #
+
+    templogfile=$logfilepathbase/$BASHScriptName.$DATEDTGS.curl_ops.log
+    templogerrorfile=$logfilepathbase/$BASHScriptName.$DATEDTGS.curl_ops.errout.log
+
+    curl_cli "$@" 2> $templogerrorfile >> $templogfile
+    curlerror=$?
+
+    echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+    echo '| curl command | result = '$curlerror | tee -a -i $logfilepath
+    echo '| # curl_cli '$@ | tee -a -i $logfilepath
+    echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+    cat $templogfile >> $logfilepath
+    echo >> $logfilepath
+    rm $templogfile >> $logfilepath
+
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -' >> $logfilepath
+
+    cat $templogerrorfile >> $logfilepath
+    echo >> $logfilepath
+    rm $templogerrorfile >> $logfilepath
+
+    echo '-----------------------------------------------------------------------------------------' >> $logfilepath
+    echo >> $logfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-19
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# Document_curl
+
+# -------------------------------------------------------------------------------------------------
+# Document_wget - Document wget command with log of error response (the actual response)
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-01-19 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+Document_wget () {
+    #
+    # Document_wget - Document wget command with log of error response (the actual response)
+    #
+
+    templogfile=$logfilepathbase/$BASHScriptName.$DATEDTGS.wget_ops.log
+    templogerrorfile=$logfilepathbase/$BASHScriptName.$DATEDTGS.wget_ops.errout.log
+
+    rm index.html
+    wget "$@" 2> $templogerrorfile >> $templogfile
+    rm index.html
+    wgeterror=$?
+
+    echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+    echo '| wget command | result = '$wgeterror | tee -a -i $logfilepath
+    echo '| # wget '$@ | tee -a -i $logfilepath
+    echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+
+    cat $templogfile >> $logfilepath
+    echo >> $logfilepath
+    rm $templogfile >> $logfilepath
+
+    echo '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ' >> $logfilepath
+
+    cat $templogerrorfile >> $logfilepath
+    echo >> $logfilepath
+    rm $templogerrorfile >> $logfilepath
+
+    echo '-----------------------------------------------------------------------------------------' >> $logfilepath
+    echo >> $logfilepath
+
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-19
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+# Document_wget
+
+
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+#
+# Verify Check Point services access
+#
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START: Verify Check Point services access
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -z $MYTFTPSERVER1 ] && [ $MYTFTPSERVER1 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER1
-elif [ ! -z $MYTFTPSERVER2 ] && [ $MYTFTPSERVER2 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER2
-elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER3
-elif [ ! -z $MYTFTPSERVER ]; then
-    export sourcetftpserver=$MYTFTPSERVER
-else
-    export sourcetftpserver=192.169.1.1
-fi
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Proxy settings implemented :' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+clish -i -c "show proxy" | tee -a -i $logfilepath
 
-export remoterootfolder=/__gaia
-export remotefilefolder=gaia_dynamic_cli
-export remotefilename=Check_Point_gaia_dynamic_cli.tgz
-export fqpnremotefile=$remoterootfolder/$remotefilefolder/$remotefilename
+# curl_cli -v -k ...
 
-#export remotescriptfolder=gaia_dynamic_cli
-#export remotescriptname=update_gaia_dynamic_cli.sh
-#export fqpnremotescript=$remoterootfolder/$remotescriptfolder/$remotescriptname
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'cws.checkpoint.com : Application Control, URLF, AV, Malware' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-export rootworkpath=/var/log/__customer/download
-export workfolder=gaia_dynamic_cli
-export workfoldercurrent=current
-export workfoldernew=new
+Document_curl -v http://cws.checkpoint.com/APPI/SystemStatus/type/short
+Document_curl -v http://cws.checkpoint.com/URLF/SystemStatus/type/short
+Document_curl -v http://cws.checkpoint.com/AntiVirus/SystemStatus/type/short
+Document_curl -v http://cws.checkpoint.com/Malware/SystemStatus/type/short
 
-export workfilename=$remotefilename
-export installerfilename=install_dynamic_cli.sh
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'updates.checkpoint.com : IPS Updates' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-export fqpnworkfolder=$rootworkpath/$workfolder
-export fqpncurrentfolder=$fqpnworkfolder/$workfoldercurrent
-export fqpnnewfolder=$fqpnworkfolder/$workfoldernew
+Document_curl -v -k https://updates.checkpoint.com/
 
-export fqfpworkfile=$fqpnworkfolder/$workfilename
-export fqfpcurrentfile=$fqpncurrentfolder/$workfilename
-export fqfpnewfile=$fqpnnewfolder/$workfilename
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'dl3.checkpoint.com : Download Service updates' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+Document_curl -v -k http://dl3.checkpoint.com
 
-#----------------------------------------------------------------------------------------
-# Check for working folders
-#----------------------------------------------------------------------------------------
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'usercenter.checkpoint.com : Contract Entitlement : IPS, Traditional AV, Traditional URLF' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo ' Folder path check and creation! ' >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
+Document_curl -v -k https://usercenter.checkpoint.com/usercenter/services/ProductCoverageService
 
-if [ ! -r $rootworkpath ] ; then
-    mkdir -pv $rootworkpath >> $logfilepath
-    chmod 775 $rootworkpath
-else
-    chmod 775 $rootworkpath
-fi
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'usercenter.checkpoint.com : Contract Entitlement : Software Blades Manager Service' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-if [ ! -r $fqpnworkfolder ] ; then
-    mkdir -pv $fqpnworkfolder
-    chmod 775 $fqpnworkfolder
-else
-    chmod 775 $fqpnworkfolder
-fi
+Document_curl -v --cacert $CPDIR/conf/ca-bundle.crt https://usercenter.checkpoint.com/usercenter/services/BladesManagerService
 
-if [ ! -r $fqpncurrentfolder ] ; then
-    mkdir -pv $fqpncurrentfolder
-    chmod 775 $fqpncurrentfolder
-else
-    chmod 775 $fqpncurrentfolder
-fi
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'resolver[1-5].chkp.ctmail.com : Suspicious Mail Outbreaks' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
-if [ ! -r $fqpnnewfolder ] ; then
-    mkdir -pv $fqpnnewfolder
-    chmod 775 $fqpnnewfolder
-else
-    chmod 775 $fqpnnewfolder
-fi
+Document_curl -v http://resolver1.chkp.ctmail.com
+Document_curl -v http://resolver2.chkp.ctmail.com
+Document_curl -v http://resolver3.chkp.ctmail.com
+Document_curl -v http://resolver4.chkp.ctmail.com
+Document_curl -v http://resolver5.chkp.ctmail.com
 
-echo >> $logfilepath
-echo '----------------------------------------------------------------------------------------' >> $logfilepath
-echo >> $logfilepath
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'download.ctmail.com : Anti-Spam' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
 
+Document_curl -v http://download.ctmail.com
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'te.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://te.checkpoint.com
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'teadv.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://teadv.checkpoint.com
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'threat-emulation.checkpoint.com : Threat Emulation' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://threat-emulation.checkpoint.com
+Document_curl -v http://threat-emulation.checkpoint.com/tecloud/Ping
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'kav8.zonealarm.com : Archive Scanning and Deep Inspection' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://kav8.zonealarm.com/version.txt
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'kav8.checkpoint.com : Traditional AV' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://kav8.checkpoint.com
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'avupdates.checkpoint.com : Traditional AV, Legacy URLF' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://avupdates.checkpoint.com/UrlList.txt
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'sigcheck.checkpoint.com : Traditional AV, Legacy URLF, edge devices' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://sigcheck.checkpoint.com/Siglist2.txt
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'smbmgmtservice.checkpoint.com : Manage SMB Gateways' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+smp_connectivity_test smbmgmtservice.checkpoint.com | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'zerotouch.checkpoint.com : ZeroTouch Deployment (SMB)' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+test zero-touch-request | tee -a -i $logfilepath
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'secureupdates.checkpoint.com : General updates server for Check Points gateways' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_wget http://secureupdates.checkpoint.com
+Document_curl -v secureupdates.checkpoint.com
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://productcoverage.checkpoint.com/ProductCoverageService : Contract Check' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v https://productcoverage.checkpoint.com/ProductCoverageService
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://sc[1-5].checkpoint.com : Download of icons and screenshots from Check Point media storage servers' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v https://sc1.checkpoint.com/sc/images/checkmark.gif
+Document_curl -v https://sc1.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png
+Document_curl -v https://sc1.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png
+
+Document_curl -v https://sc2.checkpoint.com/sc/images/checkmark.gif
+Document_curl -v https://sc2.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png
+Document_curl -v https://sc2.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png
+
+Document_curl -v https://sc3.checkpoint.com/sc/images/checkmark.gif
+Document_curl -v https://sc3.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png
+Document_curl -v https://sc3.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png
+
+Document_curl -v https://sc4.checkpoint.com/sc/images/checkmark.gif
+Document_curl -v https://sc4.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png
+Document_curl -v https://sc4.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png
+
+Document_curl -v https://sc5.checkpoint.com/sc/images/checkmark.gif
+Document_curl -v https://sc5.checkpoint.com/za/images/facetime/large_png/60342479_lrg.png
+Document_curl -v https://sc5.checkpoint.com/za/images/facetime/large_png/60096017_lrg.png
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'https://push.checkpoint.com : Push Notifications (since R77.10) for incoming e-mails and meeting requests on hand held devices, while the Capsule Workspace Mail app is in the background' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -vk https://push.checkpoint.com/push/ping
+
+echo | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'http://downloads.checkpoint.com : Download of Endpoint Compliance Updates (Endpoint Security On Demand (ESOD) database)' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+
+Document_curl -v http://downloads.checkpoint.com
 
 
 echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Drop into folder and make sure we can write! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo '-----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'http://productservices.checkpoint.com : Next Generation Licensing uses this service. (Entitlement/Licensing Updates)' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
-echo 'Wait until the target folder is available : '$fqpnworkfolder; echo
-echo -n '!'
-until [ -r $fqpnworkfolder ]
-do
-    echo -n '.'
-done
-echo
-
-echo | tee -a -i $logfilepath
-echo 'pushd to '$fqpnworkfolder | tee -a -i $logfilepath
-pushd "$fqpnworkfolder"
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo 'Current content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-rm  $fqpnworkfolder/* | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-echo 'Post clean-up content of working folder : '$fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alh $fqpnworkfolder | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+Document_curl -v http://productservices.checkpoint.com
 
 
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Get remote files! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Fetch latest $remotefilename from tftp repository on $sourcetftpserver..." | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-tftp -v -m binary $sourcetftpserver -c get $fqpnremotefile | tee -a -i $logfilepath
-#tftp -v -m binary $sourcetftpserver -c get $fqpnremotescript | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check File transfer OK! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo "Check that we got it." | tee -a -i $logfilepath
-if [ ! -r $workfilename ]; then
-    # Oh, oh, we didn't get the $workfilename file
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error!!! Did not obtain '$workfilename' file from tftp!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    exit 255
-else
-    # we have the $workfilename file and can work with it
-    echo | tee -a -i $logfilepath
-    ls -alh $workfilename | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # copy the new file to the new folder
-    cp $workfilename $fqpnnewfolder >> $logfilepath
-fi
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Check if this is the first run or if we need to verify downloaded file is newer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-# check installation of Dynamic CLI
-rpm -q os_dynamic_cli &> /dev/null
-if [ $? -ne 0 ]; then
-    # Dynamic CLI is not currently installed
-    echo "Dynamic CLI is not currently installed!" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    # Not sure of current file, so copy new file to current
-    echo "Overwrite the current file : $fqfpcurrentfile with $workfilename" | tee -a -i $logfilepath
-    echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # copy the new file to the current folder
-    cp $workfilename $fqpncurrentfolder >> $logfilepath
-else
-    if [ -r $fqfpcurrentfile ]; then
-        # we have a current file to check
-        echo "We have an existing current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-    
-        # md5sum current/Check_Point_gaia_dynamic_cli.tgz
-        export md5current=$(md5sum $fqfpcurrentfile | cut -d " " -f 1)
-        echo 'md5 of current : '$md5current | tee -a -i $logfilepath
-        
-        # md5sum Check_Point_gaia_dynamic_cli.tgz
-        export md5new=$(md5sum $fqfpnewfile | cut -d " " -f 1)
-        echo 'md5 of     new : '$md5new | tee -a -i $logfilepath
-        
-        if [ $md5new == $md5current ]; then 
-            echo "Files are the same" | tee -a -i $logfilepath
-            echo 'No reason to update the existing installation!' | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'returning to script starting folder' | tee -a -i $logfilepath
-            popd
-            pwd | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            echo 'Exiting...' | tee -a -i $logfilepath
-            
-            echo | tee -a -i $logfilepath
-            echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-            echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
-            
-            exit 255
-        else 
-            echo "Files are different, moving right along..." | tee -a -i $logfilepath
-        fi
-        echo | tee -a -i $logfilepath
-        
-    else
-        # no current file, so copy new file to current
-        echo "There is no current file : $fqfpcurrentfile" | tee -a -i $logfilepath
-        echo "We'll assume this is first install and copy the new to current for later." | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        
-        # copy the new file to the current folder
-        cp $workfilename $fqpncurrentfolder >> $logfilepath
-    fi
-fi
-
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+# -------------------------------------------------------------------------------------------------
+# END: Verify Check Point services access
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo ' Untar the '$workfilename' and execute the installer! ' | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-if [ -r $workfilename ]; then
-    # OK now that we are clear on doing the work, let's extract this file and make it happen
-
-    # now unzip existing scripts folder
-    echo "Extract $workfilename file..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    tar -zxvf $workfilename | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    ls -alh | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    # now execute installer script in local folder
-    echo "Execute installer file $installerfilename ..." | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-
-    ./$installerfilename | tee -a -i $logfilepath
-
-    cp $workfilename $fqpncurrentfolder | tee -a -i $logfilepath
-
-    #echo 'Reboot to get operational!' | tee -a -i $logfilepath
-
-else
-    # Heh????
-    
-    echo | tee -a -i $logfilepath
-    echo 'Files and folders:' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    ls -alhR | tee -a -i $logfilepath
-    pwd | tee -a -i $logfilepath
-
-    echo | tee -a -i $logfilepath
-    echo 'returning to script starting folder' | tee -a -i $logfilepath
-    popd
-    pwd | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    echo 'Exiting...' | tee -a -i $logfilepath
-    
-    echo | tee -a -i $logfilepath
-    echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-    echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    
-    exit 255
-fi
-
-
-echo | tee -a -i $logfilepath
-echo 'returning to script starting folder' | tee -a -i $logfilepath
-popd
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-clish -c "show commands" >> $logfilepath
-echo | tee -a -i $logfilepath
-
-echo
-read -t $WAITTIME -n 1 -p "Any key to continue.  Automatic continue after $WAITTIME seconds : " anykey
-echo
-
-echo | tee -a -i $logfilepath
-echo 'Files and folders:' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-ls -alhR "$fqpnworkfolder" | tee -a -i $logfilepath
-pwd | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-echo | tee -a -i $logfilepath
-echo '----------------------------------------------------------------------------------------' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
-
-
-#----------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------
-
-
-echo 'Done!' | tee -a -i $logfilepath
-echo | tee -a -i $logfilepath
+#
 
 
 #==================================================================================================
 #==================================================================================================
 #
-# END :  Download and if necessary, upgrade GAIA Dynamic CLI
+# end shell meat
 #
 #==================================================================================================
 #==================================================================================================
@@ -1698,20 +1691,240 @@ echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
 ls -alh $outputpathbase | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+echo >> $logfilepath
+echo 'Output location for all results is here : '$outputpathbase >> $logfilepath
+echo 'Log results documented in this log file : '$logfilepath >> $logfilepath
+echo >> $logfilepath
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Archive results for easy transport
+#
+#==================================================================================================
+#==================================================================================================
+
+
+# MODIFIED 2020-10-20 -
+if [ -z $archivepathbase ]; then
+    export expandedpath=$(cd $OtherOutputFolder ; pwd)
+    export archivepathbase=$expandedpath
+    #export archivepathbase=$outputpathbase
+fi
+export archivefiletype=.tgz
+export archivefilename=$HOSTNAME'_'$targetversion_$BASHScriptName.$DATEDTGS$archivefiletype
+export archivefqfn=$archivepathbase/$archivefilename
+
+if [ -z $archivestartfolder ]; then
+    if $OutputDTGSSubfolder ; then
+        export archivestartfolder=$DATEDTGS
+        if $OutputSubfolderScriptName ; then
+            export archivestartfolder=$archivestartfolder.$BASHScriptName
+        elif $OutputSubfolderScriptShortName ; then
+            export archivestartfolder=$archivestartfolder.$BASHScriptShortName
+        fi
+    else
+        if $OutputSubfolderScriptName ; then
+            export archivestartfolder=$BASHScriptName
+        elif $OutputSubfolderScriptShortName ; then
+            export archivestartfolder=$BASHScriptShortName
+        else
+            export archivestartfolder=.
+        fi
+    fi
+fi
+
 echo | tee -a -i $logfilepath
-echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------'
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo 'Archive of operation results' | tee -a -i $logfilepath
+echo ' - from '$archivepathbase/$archivestartfolder | tee -a -i $logfilepath
+echo ' - to : '$archivefqfn | tee -a -i $logfilepath
+echo | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
+#tar czvf $archivefqfn --directory=$archivepathbase $outputpathbase $DATEDTGS
+#tar czvf $archivefqfn --directory=$archivepathbase .
+tar czvf $archivefqfn --directory=$archivepathbase $archivestartfolder
+
+echo
+echo '----------------------------------------------------------------------------'
+echo '----------------------------------------------------------------------------'
+echo
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Push Archived results to tftp server
+#
+#==================================================================================================
+#==================================================================================================
+
+export archivetftptargetfolder=$tftptargetfolder_root/$BASHScripttftptargetfolder
+export archivetftpfilefqfn=$archivetftptargetfolder/$archivefilename
+
+if $EXPORTRESULTSTOTFPT ; then
+    
+    if [ ! -z $MYTFTPSERVER1 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER1
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER1 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER1 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER2 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER2
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER2 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER2 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER3 ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER3
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER3 -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER3 not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+    
+    if [ ! -z $MYTFTPSERVER ]; then
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'Push archive file : '$archivefqfn
+        echo ' - to tftp server : '$MYTFTPSERVER
+        echo ' - target path    : '$archivetftpfilefqfn
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+        tftp -v -m binary $MYTFTPSERVER -c put $archivefqfn $archivetftpfilefqfn
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    else
+        
+        echo
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo 'tftp server value $MYTFTPSERVER not set!'
+        echo '  Not executing push to that tftp server!'
+        echo '----------------------------------------------------------------------------'
+        echo '----------------------------------------------------------------------------'
+        echo
+        
+    fi
+
+else
+    
+    echo
+    echo '----------------------------------------------------------------------------'
+    echo '----------------------------------------------------------------------------'
+    echo 'tftp server results export not enabled!'
+    echo '----------------------------------------------------------------------------'
+    echo '----------------------------------------------------------------------------'
+    echo
+    
+fi
+
+
+#==================================================================================================
+#==================================================================================================
+#
+# Final information to the executing script
+#
+#==================================================================================================
+#==================================================================================================
+
+
+echo
+echo 'Output location for all results is here : '$outputpathbase
+echo 'Log results documented in this log file : '$logfilepath
+echo 'Archive of operation is here            : '$archivefqfn
+echo
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
-
-
-echo
-echo 'Script Completed, exiting...';echo
 
 

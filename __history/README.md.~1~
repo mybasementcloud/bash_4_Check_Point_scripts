@@ -7,13 +7,12 @@ NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 
 NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
 
-Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40 and R81 EA.  R80.40 GA and R81 EA operation tests show success.
+Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40.  R80.40 GA operation tests show success.
 
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
 Specific examples and operation for:
 - _fixes - script based changes and updates to address problems, bugs, issues, ideas, and format.  Can be used relative to the closest date template to fix scripts built with older templates.
-- _scripting_tools - folder for scripting tools and coding and change management templates, also scripts for touch and text correction when in bash
 - _sub-scripts - sub-ordinate scripts called by the version vXX.YY.ZZ level template based scripts for common operations
 - _template - templates for bash scripts, may include some canned plumbing
 - _tools - tools folder with expected tools at the expected versions.  All sources subject to inlcuded limitations and rights

@@ -203,7 +203,7 @@ elif [ ! -z $MYTFTPSERVER3 ] && [ $MYTFTPSERVER3 != $MYTFTPSERVER ]; then
 elif [ ! -z $MYTFTPSERVER ]; then
     export targettftpserver=$MYTFTPSERVER
 else
-    export targettftpserver=192.168.1.1
+    export targettftpserver=10.69.248.60
 fi
 
 

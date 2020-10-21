@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Identify Self Referencing Symbolic Link Files (Lite) - All combined, no dependent scripts
+# SCRIPT Show current VPN Client Operational Information - Independent version for stand-alone use
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -30,10 +30,10 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=identify_self_referencing_symbolic_link_files.Lite
-export BASHScriptShortName=id_self_referencing_symlinks
+export BASHScriptFileNameRoot=vpn_client_operational_info
+export BASHScriptShortName=vpn_client_ops_info
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription="Identify Self Referencing Symbolic Link Files (Lite)"
+export BASHScriptDescription="Show current VPN Client Operational Information"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
 export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
@@ -43,7 +43,7 @@ export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=_template
+export BASHScriptsFolder=GW
 
 export BASHScripttftptargetfolder="_template"
 
@@ -106,7 +106,8 @@ export JQ16Required=false
 # -------------------------------------------------------------------------------------------------
 
 
-targetfolder=/var/log/tmp/scripts
+export logfilefolderroot=/var/log/tmp
+export logfilefoldername=dump
 
 
 # -------------------------------------------------------------------------------------------------
@@ -115,7 +116,8 @@ targetfolder=/var/log/tmp/scripts
 
 
 # setup initial log file for output logging
-export logfilefolder=$targetfolder/dump/$DATEDTGS.$BASHScriptShortName
+#DATEYM=`date +%Y-%m`
+export logfilefolder=$logfilefolderroot/$logfilefoldername/$DATEDTGS.$BASHScriptShortName
 export logfilepath=$logfilefolder/$BASHScriptName.$DATEDTGS.log
 
 if [ ! -w $logfilefolder ]; then
@@ -387,174 +389,11 @@ fi
 
 
 # -------------------------------------------------------------------------------------------------
-# local command line parameter variables configuration
+# Local Operations variables
 # -------------------------------------------------------------------------------------------------
 
 
-export CLIparm_l01_StartFolder=
-export CLIparm_l02_KillCircLinks=
-
-export KillCircularSymLinks=false
-
-export SHOWHELP=false
-
-# -------------------------------------------------------------------------------------------------
-# processlocalcliparms - Local command line parameter processor
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-processlocalcliparms () {
-    #
-    
-    echo
-    
-    # -------------------------------------------------------------------------------------------------
-    # Process command line parameters from the REMAINS returned from the standard handler
-    # -------------------------------------------------------------------------------------------------
-    
-    while [ -n "$1" ]; do
-        # Copy so we can modify it (can't modify $1)
-        OPT="$1"
-        
-        # testing
-        echo 'OPT = '$OPT
-        #
-            
-        # Detect argument termination
-        if [ x"$OPT" = x"--" ]; then
-            
-            shift
-            for OPT ; do
-                # MODIFIED 2019-03-08
-                #LOCALREMAINS="$LOCALREMAINS \"$OPT\""
-                LOCALREMAINS="$LOCALREMAINS $OPT"
-            done
-            break
-        fi
-        # Parse current opt
-        while [ x"$OPT" != x"-" ] ; do
-            case "$OPT" in
-                # Help and Standard Operations
-                '-?' | --help )
-                    SHOWHELP=true
-                    ;;
-                --KILL | --kill )
-                    export CLIparm_l02_KillCircLinks=true
-                    export KillCircularSymLinks=true
-                    ;;
-                # Handle --flag=value opts like this
-                --Path=* )
-                    CLIparm_l01_StartFolder="${OPT#*=}"
-                    #shift
-                    ;;
-                # and --flag value opts like this
-                --Path )
-                    CLIparm_l01_StartFolder="$2"
-                    shift
-                    ;;
-                # Anything unknown is recorded for later
-                * )
-                    # MODIFIED 2019-03-08
-                    #LOCALREMAINS="$LOCALREMAINS \"$OPT\""
-                    LOCALREMAINS="$LOCALREMAINS $OPT"
-                    break
-                    ;;
-            esac
-            # Check for multiple short options
-            # NOTICE: be sure to update this pattern to match valid options
-            # Remove any characters matching "-", and then the values between []'s
-            #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
-            NEXTOPT="${OPT#-[vrf?]}" # try removing single short opt
-            if [ x"$OPT" != x"$NEXTOPT" ] ; then
-                OPT="-$NEXTOPT"  # multiple short opts, keep going
-            else
-                break  # long form, exit inner loop
-            fi
-        done
-        # Done with that param. move to next
-        shift
-    done
-    # Set the non-parameters back into the positional parameters ($1 $2 ..)
-    eval set -- $LOCALREMAINS
-    
-    export CLIparm_l01_StartFolder=$CLIparm_l01_StartFolder
-    export CLIparm_l02_KillCircLinks=$CLIparm_l02_KillCircLinks
-    export KillCircularSymLinks=$KillCircularSymLinks
-
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-02-06
-
-# -------------------------------------------------------------------------------------------------
-# END:  Common Help display proceedure
-# -------------------------------------------------------------------------------------------------
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-
-# -------------------------------------------------------------------------------------------------
-# Help display proceedure
-# -------------------------------------------------------------------------------------------------
-
-# MODIFIED 2020-02-06 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-#
-
-# Show help information
-
-doshowhelp () {
-    #
-    # Screen width template for sizing, default width of 80 characters assumed
-    #
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-    echo
-    echo ' Script:  '$0'  Script Version:  '$BASHScriptVersion'  Date:  '$ScriptDate'  Revision:  '$ScriptRevision
-    echo
-    echo ' Standard Command Line Parameters: '
-    echo
-    echo '  Show Help                  -? | --help'
-    echo
-    echo '  Starting Folder Path       --Path <Starting_Folder_Path> | --Path=<Starting_Folder_Path>'
-    echo
-    echo '  Remove Circular SymLinks   --KILL | --kill'
-    echo
-    echo '  Example:  '
-    echo ' ]# '$0' --Path "${RTDIR}/log_indexes/" --KILL'
-    
-    #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
-    #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-
-    echo
-    return 1
-}
-
-#
-# /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-02-06
-
-# -------------------------------------------------------------------------------------------------
-# END:  Common Help display proceedure
-# -------------------------------------------------------------------------------------------------
-# =================================================================================================
-
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-processlocalcliparms "$@"
-
-if $SHOWHELP ; then
-    # Show Help
-    doshowhelp "$@"
-    # don't want a log file for showing help
-    #rm $logfilepath
-    # this is done now, so exit hard
-    exit 255 
-fi
+targetfolder=/var/log/tmp
 
 
 # -------------------------------------------------------------------------------------------------
@@ -574,191 +413,184 @@ echo | tee -a -i $logfilepath
 # script plumbing 1
 # -------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
 
-export outputpathbase=$logfilefolder
+#if $IsR8XVersion ; then
+    # Do something because R8X
+    
+    #echo
+#else
+    # Do something else because not R8X
+    
+    #echo
+#fi
 
-#----------------------------------------------------------------------------------------
-# Configure specific parameters
-#----------------------------------------------------------------------------------------
 
 export targetversion=$gaiaversion
 
-export outputfilepath=$outputpathbase/
+export outputpathbase=$targetfolder/dump
+export outputfilepath=$outputpathbase/$DATEDTGS.$BASHScriptShortName/
 export outputfileprefix=$HOSTNAME'_'$targetversion
 export outputfilesuffix='_'$DATEDTGS
 export outputfiletype=.txt
 
 if [ ! -r $outputfilepath ] ; then
-    mkdir -pv $outputfilepath
-    chmod 775 $outputfilepath
+    mkdir -pv $outputfilepath | tee -a -i $logfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 else
-    chmod 775 $outputfilepath
+    chmod 775 $outputfilepath | tee -a -i $logfilepath
 fi
 
 
-export command2run=id_self_ref_symlinks
+export command2run=office_mode_users
 export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
-export outputfilefqdn=$outputfilepath$outputfile
+export outputfilefqfn=$outputfilepath$outputfile
 
-export command2run2=files_with_self_ref_symlinks
-export outputfile2=$outputfileprefix'_'$command2run2$outputfilesuffix$outputfiletype
-export outputfilefqdn2=$outputfilepath$outputfile2
+echo >> "$logfilepath"
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t om_assigned_ips -f' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
 
-echo | tee -a -i "$outputfilefqdn"
-echo 'Execute '$command2run' with output to : '$outputfilefqdn | tee -a -i "$outputfilefqdn"
+fw tab -t om_assigned_ips -f &>> "$outputfilefqfn"
 
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
+cat "$outputfilefqfn" | tee -a -i $logfilepath
 
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-echo 'Files with Self-referencing SymLinks:' >> "$outputfilefqdn2"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
 
+export command2run=SNX_users
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
 
-#----------------------------------------------------------------------------------------
-# Loop through target folder root to identify all symbolic link files
-#----------------------------------------------------------------------------------------
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t sslt_om_ip_params -f' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
 
-#sourcerootfolder=${RTDIR}/log_indexes/
+fw tab -t sslt_om_ip_params -f &>> "$outputfilefqfn"
 
-if [ -z $CLIparm_l01_StartFolder ]; then
-    export sourcerootfolder=.
-else
-    if [ -r $CLIparm_l01_StartFolder ]; then
-        export sourcerootfolder=
-        export sourcerootfolder=${CLIparm_l01_StartFolder%/}/
-    else
-        export sourcerootfolder=.
-    fi
-fi
+cat "$outputfilefqfn" | tee -a -i $logfilepath
 
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
 
-targetfile=
-targetactualfile=
+# number of remote access users (SecuRemote/SecureClient/Endpoint Connect/SNX)
+# sk54641 - SNMP OID for the number Remote Access users (SR/SC/EPC/SNX) currently connected to a VPN-1 gateway
+# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk54641
 
+export command2run=remote_access_vpn_users_all_clients_table
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
 
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo 'Starting operations in this folder:  '$sourcerootfolder | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t userc_users -f -u' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
 
-pushd $sourcerootfolder >> "$outputfilefqdn"
+fw tab -t userc_users -f -u &>> "$outputfilefqfn"
 
-echo >> "$outputfilefqdn"
+cat "$outputfilefqfn" | tee -a -i $logfilepath
 
-echo 'Starting Work path :  '`pwd` | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-ls -alhi >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn"
-echo >> "$outputfilefqdn"
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
 
-for f in $(find . -type l); do 
-    
-    targetlinktype=`stat -L -c %F $f`
-    targetfile=$f
-    targetactualfile=`readlink $f`
-    
-    echo 'Target Link Type = '$targetlinktype'  Target Link File :  '$targetfile'  Target Actual File :  '$targetactualfile | tee -a -i "$outputfilefqdn"
-    
-    if [ "$targetlinktype" = "directory" ]; then
-        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-        echo 'Drop in to actual link folder: '$targetactualfile >> "$outputfilefqdn"
-        
-        pushd $targetactualfile >> "$outputfilefqdn"
-        
-        echo >> "$outputfilefqdn"
-        
-        echo 'Current path :  '`pwd` >> "$outputfilefqdn"
-        ls -alhi >> "$outputfilefqdn"
-        echo >> "$outputfilefqdn"
-        
-        for g in $(find . -type l); do 
-            
-            locallinktype=`stat -L -c %F $g`
-            
-            if [ "$locallinktype" = "directory" ]; then
-                localfile=$g
-                localactualpath=`pwd`
-                localactualfile=`readlink $g`
-                localfilename=${g##*/}
-                
-                echo 'Local Link Type = '$locallinktype'  Local Link File Name (as found):  '$localfilename '('$localfile')  Local Actual File :  '$localactualfile | tee -a -i "$outputfilefqdn"
-                ls -alhi $g >> "$outputfilefqdn"
-                
-                echo >> "$outputfilefqdn"
-                
-                tempdumpfile=/var/log/tmp/dumpfile.$DATEDTGS.txt
-                find . -type l -follow -print 2>> "$tempdumpfile" >> "$outputfilefqdn"
-                cat $tempdumpfile >> "$outputfilefqdn"
-                localactuallinkloops=`cat $tempdumpfile | grep -i "$g"`
-                localactuallinkloopscheck=`test -z localactuallinkloops; echo $?`
-                localactuallinkloopscheckresult=$localactuallinkloopscheck
-                echo 'Loop Check Result ('$localactuallinkloopscheck'):  '$localactuallinkloops | tee -a -i "$outputfilefqdn"
-                rm $tempdumpfile
-                
-                if [ $localactuallinkloopscheckresult ] ; then 
-                    echo 'Loop Check True - Link points to itself!!!!'
-                    
-                    echo $targetactualfile$localfilename >> "$outputfilefqdn2"
-                    
-                    if $KillCircularSymLinks ; then
-                        echo 'Remove Circular SymLink File!' | tee -a -i "$outputfilefqdn"
-                        #echo 'testing....'
-                        rm $g >> "$outputfilefqdn"
-                    else
-                        echo 'Keep Circular SymLink File!' >> "$outputfilefqdn"
-                    fi
-                else
-                    echo 'Loop Check false - Not directly self referencing'
-                fi
-                
-                if [ $localactualpath/ = $localactualfile ]; then 
-                    echo 'Link points to itself!!!!'
-                else
-                    echo 'Not directly self referencing, but may still represent a loop!'
-                fi
-                
-            else
-                echo 'Not A directory!' $g >> "$outputfilefqdn"
-            fi
-            
-            echo >> "$outputfilefqdn"
-            
-        done;
-        
-        popd >> "$outputfilefqdn"
-        
-        echo 'Returned path :  '`pwd` >> "$outputfilefqdn"
-        
-        echo >> "$outputfilefqdn"
-        echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-        
-    else
-        echo 'Not a directory!  '$f'  Skipping...' >> "$outputfilefqdn"
-    fi
-    
-done;
-echo >> "$outputfilefqdn"
+# number of remote access users (SecuRemote/SecureClient/Endpoint Connect/SNX)
+# sk54641 - SNMP OID for the number Remote Access users (SR/SC/EPC/SNX) currently connected to a VPN-1 gateway
+# https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk54641
 
-popd >> "$outputfilefqdn"
+export command2run=remote_access_vpn_users_all_clients
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
 
-echo 'Returned path :  '`pwd` >> "$outputfilefqdn"
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t userc_users -s' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
 
-echo >> "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
-echo '----------------------------------------------------------------------------' | tee -a -i "$outputfilefqdn"
+fw tab -t userc_users -s &>> "$outputfilefqfn"
 
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
-echo '----------------------------------------------------------------------------' >> "$outputfilefqdn2"
+cat "$outputfilefqfn" | tee -a -i $logfilepath
 
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
 
+export command2run=L2TP_users
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t L2TP_tunnels -f' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
+
+fw tab -t L2TP_tunnels -f &>> "$outputfilefqfn"
+
+cat "$outputfilefqfn" | tee -a -i $logfilepath
+
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
+
+export command2run=MAB_users_connected_no_SNX
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : fw tab -t cvpn_session' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
+
+fw tab -t cvpn_session &>> "$outputfilefqfn"
+
+cat "$outputfilefqfn" | tee -a -i $logfilepath
+
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
+
+export command2run=Office_Mode_users_connected_in_Visitor_Mode
+export outputfile=$outputfileprefix'_'$command2run$outputfilesuffix$outputfiletype
+export outputfilefqfn=$outputfilepath$outputfile
+
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo ' - Execute Command    : '$command2run | tee -a -i $logfilepath
+echo ' - Output File        : '$outputfilefqfn | tee -a -i $logfilepath
+echo ' - Command            : vpn show_tcpt' | tee -a -i $logfilepath
+echo '----------------------------------------------------------------------------' | tee -a -i $logfilepath
+echo >> "$logfilepath"
+
+vpn show_tcpt &>> "$outputfilefqfn"
+
+cat "$outputfilefqfn" | tee -a -i $logfilepath
+
+echo >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo '----------------------------------------------------------------------------' >> "$logfilepath"
+echo >> "$logfilepath"
+
 
 # -------------------------------------------------------------------------------------------------
 # Closing operations and log file information
@@ -774,13 +606,12 @@ if [ -r None ] ; then
 fi
 
 echo | tee -a -i $logfilepath
-echo 'List folder : '$outputpathbase | tee -a -i $logfilepath
-ls -alh $outputpathbase | tee -a -i $logfilepath
+echo 'List folder : '$logfilefolder | tee -a -i $logfilepath
+ls -alh $logfilefolder | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 echo | tee -a -i $logfilepath
-echo 'Output location for all results is here : '$outputpathbase | tee -a -i $logfilepath
-echo 'Log results documented in this log file : '$logfilepath | tee -a -i $logfilepath
+echo 'Log File : '$logfilepath | tee -a -i $logfilepath
 echo | tee -a -i $logfilepath
 
 

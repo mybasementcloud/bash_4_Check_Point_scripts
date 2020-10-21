@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# Watch Firewall Acceleration Status
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -18,8 +18,8 @@ ScriptVersion=04.36.00
 ScriptRevision=000
 TemplateVersion=04.36.00
 TemplateLevel=006
-SubScriptsLevel=NA
-SubScriptsVersion=NA
+SubScriptsLevel=006
+SubScriptsVersion=04.12.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -30,55 +30,27 @@ export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersion=$SubScriptsLevel.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js_generic
-export BASHScriptShortName=fix_gaia_webui_login_dot_js_generic.v$ScriptVersion
+export BASHScriptName=watch_accel_stats
+export BASHScriptShortName=watch_accel_stats.v$ScriptVersion
 export BASHScriptnohupName=$BASHScriptShortName
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription="Watch Firewall Acceleration Status"
 
 #export BASHScriptName=$BASHScriptFileNameRoot.$TemplateLevel.v$ScriptVersion
-export BASHScriptName=$BASHScriptFileNameRoot
+export BASHScriptName=$BASHScriptFileNameRoot.v$ScriptVersion
 
 export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
 # _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=GW
 
 export BASHScripttftptargetfolder="_template"
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# START: Basic Configuration
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# Date variable configuration
-# -------------------------------------------------------------------------------------------------
-
-
-export DATE=`date +%Y-%m-%d-%H%M%Z`
-export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
-export DATEDTSG=`date +%Y-%m-%d-%H%M%S%Z`
-export DATEYMD=`date +%Y-%m-%d`
-
-
-# -------------------------------------------------------------------------------------------------
-# Other variable configuration
-# -------------------------------------------------------------------------------------------------
-
-
-# WAITTIME in seconds for read -t commands
-export WAITTIME=60
-
-export outputpathroot=/var/tmp/Change_Log
-export outputpathbase=$outputpathroot/$DATEDTGS
-
-
-# -------------------------------------------------------------------------------------------------
-# Start Script
+# START: Script
 # -------------------------------------------------------------------------------------------------
 
 
@@ -96,29 +68,23 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -r $outputpathroot ] 
-then
-    mkdir -pv $outputpathroot
-fi
-if [ ! -r $outputpathbase ] 
-then
-    mkdir -pv $outputpathbase
-fi
+watchcommands="echo 'fwaccel stats -s';fwaccel stats -s"
+watchcommands=$watchcommands";echo;echo;echo 'fwaccel stats -p';fwaccel stats -p"
+watchcommands=$watchcommands";echo;echo;echo 'fwaccel templates -S';fwaccel templates -S"
 
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* $outputpathbase
+watch -d -n 1 "$watchcommands"
 
-
-echo 'Created folder :  '$outputpathbase
+echo 'fwaccel stats -s';fwaccel stats -s
 echo
-ls -al $outputpathbase
+echo 'fwaccel stats -p';fwaccel stats -p"
+echo
+echo 'fwaccel templates -S';fwaccel templates -S"
 echo
 
-
 # -------------------------------------------------------------------------------------------------
-# End of script
+# End of script Operations
 # -------------------------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------------------------
 
 if [ -r nul ] ; then
     rm nul
@@ -130,4 +96,3 @@ fi
 
 echo
 echo 'Script Completed, exiting...';echo
-

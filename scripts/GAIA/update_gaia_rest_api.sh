@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-09-17
-ScriptVersion=04.33.00
+ScriptDate=2020-10-20
+ScriptVersion=04.36.00
 ScriptRevision=000
-TemplateVersion=04.33.00
+TemplateVersion=04.36.00
 TemplateLevel=006
 SubScriptsLevel=006
-SubScriptsVersion=04.10.00
+SubScriptsVersion=04.12.00
 #
 
 export BASHScriptVersion=v${ScriptVersion//./x}
@@ -81,7 +81,14 @@ export rootscriptconfigfile=__root_script_config.sh
 # Script Operations Control variable configuration
 # -------------------------------------------------------------------------------------------------
 
-export WAITTIME=60
+
+WAITTIME=20
+
+
+# -------------------------------------------------------------------------------------------------
+# R8X API variable configuration
+# -------------------------------------------------------------------------------------------------
+
 
 # MODIFIED 2020-09-11 -
 # R80       version 1.0
@@ -92,6 +99,7 @@ export WAITTIME=60
 # R80.30    version 1.5
 # R80.40    version 1.6
 # R80.40 JHF 78 version 1.6.1
+# R81.00    version 1.7
 #
 # For common scripts minimum API version at 1.1 should suffice, otherwise get explicit
 # To enable use of API Key authentication, at least version 1.6 is required
@@ -103,6 +111,12 @@ export UseR8XAPI=false
 export UseJSONJQ=true
 export UseJSONJQ16=true
 export JQ16Required=false
+
+
+# -------------------------------------------------------------------------------------------------
+# Log file and logging control variables
+# -------------------------------------------------------------------------------------------------
+
 
 # setup initial log file for output logging
 export logfilepath=/var/tmp/$BASHScriptName.$DATEDTGS.log
@@ -120,9 +134,20 @@ export OutputToOther=false
 #
 export OtherOutputFolder=Specify_The_Folder_Here
 
+# MODIFIED 2020-10-20 -
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
+# OutputYearSubfolder             : true|false : Add a folder level with just the year (YYYY)
+# OutputYMSubfolder               : true|false : Add a folder level with the year-month (YYYY-MM)
+# OutputDTGSSubfolder             : true|false : Add a folder level with Date Time Group with Seconds (YYYY-MM-DD-HHmmSS)
+# Append script name to output subfolder, only one of these should be true, ignored if both are false
+# OutputSubfolderScriptName       : true|false : Add full script name to folder name of output folder
+#                                 :: setting this value true will override OutputSubfolderScriptShortName
+# OutputSubfolderScriptShortName  : true|false : Add short script name to folder name of output folder
+#
+export OutputYearSubfolder=true
+export OutputYMSubfolder=true
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
 export OutputSubfolderScriptShortName=true

@@ -1,8 +1,8 @@
 # !! SAMPLE !!
 #
-# Version   :  v04.33.00
+# Version   :  v04.36.00
 # Revision  :  000|00
-# Date      :  2020-09-17
+# Date      :  2020-10-20
 #
 #========================================================================================
 #========================================================================================
@@ -44,26 +44,30 @@ echo >> $tempENVHELPFILEalias
 
 
 #========================================================================================
-# 2019-09-28, 2020-05-30
+# 2019-09-28, 2020-05-30, 2020-09-30
 
 export MYWORKFOLDER=/var/log/__customer
 
+export MYWORKFOLDERSCRIPTS=$MYWORKFOLDER/_scripts
+export MYWORKFOLDERSCRIPTSB4CP=$MYWORKFOLDER/_scripts/bash_4_Check_Point
+export MYWORKFOLDERTOOLS=$MYWORKFOLDER/_tools
+export MYWORKFOLDERDOWNLOADS=$MYWORKFOLDER/download
 export MYWORKFOLDERUGEX=$MYWORKFOLDER/upgrade_export
 export MYWORKFOLDERUGEXSCRIPTS=$MYWORKFOLDER/upgrade_export/scripts
 export MYWORKFOLDERCHANGE=$MYWORKFOLDERUGEX/Change_Log
 export MYWORKFOLDERDUMP=$MYWORKFOLDERUGEX/dump
-export MYWORKFOLDERDOWNLOADS=$MYWORKFOLDER/download
-export MYWORKFOLDERSCRIPTS=$MYWORKFOLDER/_scripts
-export MYWORKFOLDERSCRIPTSB4CP=$MYWORKFOLDER/_scripts/bash_4_Check_Point
+export MYWORKFOLDERREFERENCE=$MYWORKFOLDERUGEX/Reference
 
 echo '$MYWORKFOLDER                ='"$MYWORKFOLDER" >> $tempENVHELPFILEvars
+echo '$MYWORKFOLDERSCRIPTS         ='"$MYWORKFOLDERSCRIPTS" >> $tempENVHELPFILEvars
+echo '$MYWORKFOLDERSCRIPTSB4CP     ='"$MYWORKFOLDERSCRIPTSB4CP" >> $tempENVHELPFILEvars
+echo '$MYWORKFOLDERTOOLS           ='"$MYWORKFOLDERTOOLS" >> $tempENVHELPFILEvars
+echo '$MYWORKFOLDERDOWNLOADS       ='"$MYWORKFOLDERDOWNLOADS" >> $tempENVHELPFILEvars
 echo '$MYWORKFOLDERUGEX            ='"$MYWORKFOLDERUGEX" >> $tempENVHELPFILEvars
 echo '$MYWORKFOLDERUGEXSCRIPTS     ='"$MYWORKFOLDERUGEXSCRIPTS" >> $tempENVHELPFILEvars
 echo '$MYWORKFOLDERCHANGE          ='"$MYWORKFOLDERCHANGE" >> $tempENVHELPFILEvars
 echo '$MYWORKFOLDERDUMP            ='"$MYWORKFOLDERDUMP" >> $tempENVHELPFILEvars
-echo '$MYWORKFOLDERDOWNLOADS       ='"$MYWORKFOLDERDOWNLOADS" >> $tempENVHELPFILEvars
-echo '$MYWORKFOLDERSCRIPTS         ='"$MYWORKFOLDERSCRIPTS" >> $tempENVHELPFILEvars
-echo '$MYWORKFOLDERSCRIPTSB4CP     ='"$MYWORKFOLDERSCRIPTSB4CP" >> $tempENVHELPFILEvars
+echo '$MYWORKFOLDERREFERENCE       ='"$MYWORKFOLDERREFERENCE" >> $tempENVHELPFILEvars
 echo >> $tempENVHELPFILEvars
 
 #========================================================================================
@@ -441,11 +445,59 @@ echo -e 'alias_commands_update_all_users :'"\n"'                             :: 
 
 #========================================================================================
 #========================================================================================
+# 2020-09-30
+#
+
+# Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
+#
+
+echo 'help2reference <command>     :  Document help for <command> to Reference folder' >> $tempENVHELPFILEalias
+
+help2reference () 
+{ 
+    referencefile="$MYWORKFOLDERREFERENCE/help.$1.`DTGSDATE`.txt"
+    echo > $referencefile
+    echo 'referencefile = '$referencefile | tee -a -i $referencefile
+    echo 'Command = '"$@" --help | tee -a -i $referencefile
+    echo | tee -a -i $referencefile
+    "$@" --help >> $referencefile 2>> $referencefile
+    echo | tee -a -i $referencefile
+    list $referencefile
+    echo
+}
+
+
+#========================================================================================
+#========================================================================================
+# 2020-09-30
+#
+
+# Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
+#
+
+echo 'docset2reference             :  Document set output to Reference folder' >> $tempENVHELPFILEalias
+
+docset2reference () 
+{ 
+    referencefile="$MYWORKFOLDERREFERENCE/help.set.`DTGSDATE`.txt"
+    echo 'Document set output to Reference folder file:  '$referencefile
+    echo
+    set > $referencefile
+    echo
+    list $referencefile
+    echo
+}
+
+
+#========================================================================================
+#========================================================================================
 # 2020-05-30
 #
 
 # Add function to show the variables exported (set) in this script
 #
+
+echo '_list_custom_user_vars       :  List all custom variables' >> $tempENVHELPFILEalias
 
 _list_custom_user_vars () 
 { 
@@ -456,13 +508,15 @@ _list_custom_user_vars ()
     echo
     
     echo '$MYWORKFOLDER                ='"$MYWORKFOLDER"
+    echo '$MYWORKFOLDERSCRIPTS         ='"$MYWORKFOLDERSCRIPTS"
+    echo '$MYWORKFOLDERSCRIPTSB4CP     ='"$MYWORKFOLDERSCRIPTSB4CP"
+    echo '$MYWORKFOLDERTOOLS           ='"$MYWORKFOLDERTOOLS"
+    echo '$MYWORKFOLDERDOWNLOADS       ='"$MYWORKFOLDERDOWNLOADS"
     echo '$MYWORKFOLDERUGEX            ='"$MYWORKFOLDERUGEX"
     echo '$MYWORKFOLDERUGEXSCRIPTS     ='"$MYWORKFOLDERUGEXSCRIPTS"
     echo '$MYWORKFOLDERCHANGE          ='"$MYWORKFOLDERCHANGE"
-    echo '$MYWORKFOLDERDUMP            ='"$MYWORKFOLDERDUMP"
-    echo '$MYWORKFOLDERDOWNLOADS       ='"$MYWORKFOLDERDOWNLOADS"
-    echo '$MYWORKFOLDERSCRIPTS         ='"$MYWORKFOLDERSCRIPTS"
-    echo '$MYWORKFOLDERSCRIPTSB4CP     ='"$MYWORKFOLDERSCRIPTSB4CP"
+    echo '$MYWORKFOLDERDUMP            ='"$MYWORKFOLDERDUMP"s
+    echo '$MYWORKFOLDERREFERENCE       ='"$MYWORKFOLDERREFERENCE"
     echo
     
     echo '$JQ                          ='"$JQ"
