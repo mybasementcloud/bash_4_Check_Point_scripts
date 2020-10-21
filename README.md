@@ -8,6 +8,7 @@ NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
 
 Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40 and R81 EA.  R80.40 GA and R81 EA operation tests show success.
+Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R81.  R81 EA operation tests show success.
 
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
@@ -15,6 +16,8 @@ Specific examples and operation for:
 - _fixes - script based changes and updates to address problems, bugs, issues, ideas, and format.  Can be used relative to the closest date template to fix scripts built with older templates.
 - _scripting_tools - folder for scripting tools and coding and change management templates, also scripts for touch and text correction when in bash
 - _sub-scripts - sub-ordinate scripts called by the version vXX.YY.ZZ level template based scripts for common operations
+- _api_subscripts - sub-ordinate scripts specifically for api scripting operations (like for Session_Cleanup) and will be added when utilizing API script templates from version v00.60.00 and later
+- _subscripts - sub-ordinate scripts called by the version vXX.YY.ZZ level template based scripts for common operations [formerly _sub-scripts folder]
 - _template - templates for bash scripts, may include some canned plumbing
 - _tools - tools folder with expected tools at the expected versions.  All sources subject to inlcuded limitations and rights
 - alias_commands - folder for the files added to the $HOME folders to help with command shortcuts, predefined variables, and alias configurations
@@ -52,7 +55,7 @@ NOTES:
 
 - Moved to new working folder /var/log/__customer/ from /var/ ; this is to hedge against los of files and information due to upgrade, like CPUSE operation for R80.20.M1, R80.20 GA T101, (and later)
 - Updated to different approach on identifing final Gaia version to account for R80.20.M1 (R80.20.M2 later) and wether R80.10 and above are handling Endpoint Security, since R80.20.M1 effectively upgrades R77.30.03.  Now updated to utilize available python scripts on Gaia instead of using clish commands that might get impaired by users in Gaia webUI
-- Updated to handle R80.30 GA and some EA and future elements (R80.40) elements
+- Updated to handle R81 EA elements
 - Added sample updatescripts script to pull latest package of scripts (scripts.tgz) from a tftp server and expand them, after removing the existing script links and deleting the old folder
 - Added --NOSTART CLI parameter to where cpstart or mdsstart was executed in scripts, to not execute the restart of Check Point services
 - if $MYTFTPSERVER is set to IPv4 Address of a TFTP server, config_capture, healthdump, interface_info, and check_point_service_status_check will tftp their archived results to a folder defined in _root_script_config.sh.  If the value is not set, then only an archive is created at the root of the working folder.
