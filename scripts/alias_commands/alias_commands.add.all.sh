@@ -1,8 +1,8 @@
 # !! SAMPLE !!
 #
-# Version   :  v04.36.00
-# Revision  :  000|00
-# Date      :  2020-10-20
+# Version   :  v04.37.00
+# Revision  :  001|00
+# Date      :  2020-10-21
 #
 #========================================================================================
 #========================================================================================
@@ -409,6 +409,11 @@ if [ -r $MYWORKFOLDERSCRIPTSB4CP/SmartEvent_backup ] ; then
     #echo 'SmartEvent_restore           :  Backup SmartEvent Indexing and Log files' >> $tempENVHELPFILEalias
     echo 'Reset_SmartLog_Indexing      :  Reset SmartLog Indexing back the number of days provided in parameter' >> $tempENVHELPFILEalias
     #echo -e 'SmartEvent_NUKE_Index_and_Logs :'"\n"'                             ::  Annihilate SmartEvent Indexes and Logs' >> $tempENVHELPFILEalias
+fi
+
+if [ -r $MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup ] ; then
+    alias LogExporter_Backup='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup'
+    echo 'LogExporter_Backup           :  Backup Log Exporter configuration for R8X based systems (SMS, MDSM)' >> $tempENVHELPFILEalias
 fi
 
 alias report_cpwd_admin_list='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/report_cpwd_admin_list'

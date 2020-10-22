@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-10-20
-ScriptVersion=04.36.00
-ScriptRevision=000
-TemplateVersion=04.36.00
+ScriptDate=2020-10-21
+ScriptVersion=04.37.00
+ScriptRevision=001
+TemplateVersion=04.37.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.12.00
@@ -42,7 +42,7 @@ export BASHScriptHelpFileName="$BASHScriptFileNameRoot.help"
 export BASHScriptHelpFilePath="help.v$ScriptVersion"
 export BASHScriptHelpFile="$BASHScriptHelpFilePath/$BASHScriptHelpFileName"
 
-# _subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _api_subscripts|_hostsetupscripts|_hostupdatescripts|_scripting_tools|_subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=GAIA
 
 export BASHScripttftptargetfolder="_template"
@@ -134,7 +134,7 @@ export OutputToOther=false
 #
 export OtherOutputFolder=Specify_The_Folder_Here
 
-# MODIFIED 2020-10-20 -
+# MODIFIED 2020-10-21 -
 # if we are date-time stamping the output location as a subfolder of the 
 # output folder set this to true,  otherwise it needs to be false
 #
@@ -734,11 +734,11 @@ CommandLineParameterHandler "$@"
 if [ -n "$REMAINS" ]; then
      
     dumprawcliremains $REMAINS
-
+    
     processcliremains $REMAINS
     
     # MODIFIED 2019-03-08
-
+    
     dumpcliparmparselocalresults $REMAINS
 fi
 
@@ -763,7 +763,7 @@ fi
 # CheckAndUnlockGaiaDB - Check and Unlock Gaia database
 # -------------------------------------------------------------------------------------------------
 
-# MODIFIED 2020-09-14 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+# MODIFIED 2020-10-21 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 #
 
 CheckAndUnlockGaiaDB () {
@@ -787,7 +787,7 @@ CheckAndUnlockGaiaDB () {
             echo -n '!'
             export gaiadbunlocked=true
         fi
-    
+        
     done
     
     echo; echo
@@ -796,7 +796,7 @@ CheckAndUnlockGaiaDB () {
 }
 
 #
-# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-09-14
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2020-10-21
 
 #CheckAndUnlockGaiaDB
 
