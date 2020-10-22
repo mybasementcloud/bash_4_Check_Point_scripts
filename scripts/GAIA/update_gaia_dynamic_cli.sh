@@ -14,9 +14,9 @@
 #
 #
 ScriptDate=2020-10-21
-ScriptVersion=04.37.00
-ScriptRevision=001
-TemplateVersion=04.37.00
+ScriptVersion=04.38.00
+ScriptRevision=002
+TemplateVersion=04.38.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.12.00

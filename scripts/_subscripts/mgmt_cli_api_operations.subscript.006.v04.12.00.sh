@@ -16,7 +16,7 @@
 SubScriptDate=2020-10-21
 SubScriptVersion=04.12.00
 SubScriptRevision=000
-TemplateVersion=04.37.00
+TemplateVersion=04.38.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.12.00
