@@ -1,9 +1,27 @@
 # !! SAMPLE !!
 #
-# Version   :  v04.38.00
-# Revision  :  002|00
-# Date      :  2020-10-21
+# SCRIPT  Alias commands and varriables configuration for bash shell launch
 #
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+#
+ScriptDate=2020-10-22
+ScriptVersion=04.40.00
+ScriptRevision=000
+TemplateVersion=04.40.00
+TemplateLevel=006
+SubScriptsLevel=006
+SubScriptsVersion=04.12.00
+#
+
 #========================================================================================
 #========================================================================================
 # start of alias.commands.<action>.<scope>.sh
@@ -23,6 +41,12 @@ echo
 
 # 2020-09-17
 export ENVIRONMENTHELPFILE=$HOME/environment_help_file.txt
+
+echo >> $ENVIRONMENTHELPFILE
+echo '===============================================================================' > $ENVIRONMENTHELPFILE
+echo 'MyBasementCloud bash Environment, Scripts :  Version '$ScriptVersion', Revision '$ScriptRevision' from Date '$ScriptDate >> $ENVIRONMENTHELPFILE
+echo '===============================================================================' > $ENVIRONMENTHELPFILE
+echo >> $ENVIRONMENTHELPFILE
 
 echo '===============================================================================' > $ENVIRONMENTHELPFILE
 echo 'User Environment Configuration Variables and Alias Commands' >> $ENVIRONMENTHELPFILE
@@ -411,9 +435,9 @@ if [ -r $MYWORKFOLDERSCRIPTSB4CP/SmartEvent_backup ] ; then
     #echo -e 'SmartEvent_NUKE_Index_and_Logs :'"\n"'                             ::  Annihilate SmartEvent Indexes and Logs' >> $tempENVHELPFILEalias
 fi
 
-if [ -r $MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup ] ; then
-    alias LogExporter_Backup='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup'
-    echo 'LogExporter_Backup           :  Backup Log Exporter configuration for R8X based systems (SMS, MDSM)' >> $tempENVHELPFILEalias
+if [ -r $MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup_R8X ] ; then
+    alias LogExporter_Backup_R8X='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/LogExporter_Backup_R8X'
+    echo 'LogExporter_Backup_R8X       :  Backup Log Exporter configuration for R8X based systems (SMS, MDSM)' >> $tempENVHELPFILEalias
 fi
 
 alias report_cpwd_admin_list='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/report_cpwd_admin_list'

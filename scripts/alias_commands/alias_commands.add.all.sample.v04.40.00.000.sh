@@ -508,7 +508,7 @@ echo 'docset2reference             :  Document set output to Reference folder' >
 
 docset2reference () 
 { 
-    referencefile="$MYWORKFOLDERREFERENCE/help.set.`DTGSDATE`.txt"
+    referencefile="$MYWORKFOLDERREFERENCE/set.`DTGSDATE`.txt"
     echo 'Document set output to Reference folder file:  '$referencefile
     echo
     set > $referencefile
