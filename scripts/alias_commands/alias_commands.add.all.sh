@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-10-22
-ScriptVersion=04.40.00
+ScriptDate=2020-10-26
+ScriptVersion=04.41.00
 ScriptRevision=000
-TemplateVersion=04.40.00
+TemplateVersion=04.41.00
 TemplateLevel=006
 SubScriptsLevel=006
-SubScriptsVersion=04.12.00
+SubScriptsVersion=04.20.00
 #
 
 #========================================================================================
@@ -42,13 +42,13 @@ echo
 # 2020-09-17
 export ENVIRONMENTHELPFILE=$HOME/environment_help_file.txt
 
-echo >> $ENVIRONMENTHELPFILE
-echo '===============================================================================' > $ENVIRONMENTHELPFILE
+echo > $ENVIRONMENTHELPFILE
+echo '===============================================================================' >> $ENVIRONMENTHELPFILE
 echo 'MyBasementCloud bash Environment, Scripts :  Version '$ScriptVersion', Revision '$ScriptRevision' from Date '$ScriptDate >> $ENVIRONMENTHELPFILE
-echo '===============================================================================' > $ENVIRONMENTHELPFILE
+echo '===============================================================================' >> $ENVIRONMENTHELPFILE
 echo >> $ENVIRONMENTHELPFILE
 
-echo '===============================================================================' > $ENVIRONMENTHELPFILE
+echo '===============================================================================' >> $ENVIRONMENTHELPFILE
 echo 'User Environment Configuration Variables and Alias Commands' >> $ENVIRONMENTHELPFILE
 echo '===============================================================================' >> $ENVIRONMENTHELPFILE
 echo >> $ENVIRONMENTHELPFILE
@@ -152,6 +152,42 @@ echo 'timecheck                    :  Show Current DTGS Date Time Group (YYYY-mm
 
 
 #========================================================================================
+# ADDED 2020-10-26 -
+
+alias HOSTNAMEDTG='echo $HOSTNAME.`DTGDATE`'
+alias HOSTNAMEDTGS='echo $HOSTNAME.`DTGSDATE`'
+alias HOSTNAMENOW='echo $HOSTNAME.`DTGSDATE`'
+
+echo 'HOSTNAMEDTG                  :  Generate hostname . (dot) Date Time Group :  $HOSTNAME.YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTNAMEDTGS                 :  Generate hostname . (dot) Date Time Group with Seconds :  $HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTNAMENOW                  :  Generate hostname . (dot) Date Time Group with Seconds :  $HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+
+
+#========================================================================================
+# ADDED 2020-10-26 -
+
+#Generate Check Point release version
+CPRELEASEVERSION ()
+{
+    get_platform_release=`$MDS_FWDIR/Python/bin/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+    platform_release=${get_platform_release//\"/}
+    get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
+    platform_release_version=${get_platform_release_version//\"/}
+    echo $platform_release_version
+}
+
+echo 'CPRELEASEVERSION             :  Generate Check Point release version' >> $tempENVHELPFILEalias
+
+alias CPVERSIONNOW='echo `CPRELEASEVERSION`.$HOSTNAME.`DTGSDATE`'
+alias CPVERSIONHOSTNOW='echo `CPRELEASEVERSION`.$HOSTNAME.`DTGSDATE`'
+alias HOSTCPVERSIONNOW='echo $HOSTNAME.`CPRELEASEVERSION`.`DTGSDATE`'
+
+echo 'CPVERSIONNOW                 :  Generate Check Point release version . (dot) Date Time Group :  release_version.YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
+echo 'CPVERSIONHOSTNOW             :  Generate Check Point release version . (dot) hostname . (dot) Date Time Group with Seconds :  release_version.$HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTCPVERSIONNOW             :  Generate hostname . (dot) Check Point release version . (dot) Date Time Group with Seconds :  $HOSTNAME.release_version.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+
+
+#========================================================================================
 # Updated 2020-09-17
 #alias list='ls -alh'
 alias list='ls -alh --color=auto --group-directories-first'
@@ -249,12 +285,12 @@ alias checkFTW='echo; echo "Check if FTW completed!  TRUE if .wizard_accepted fo
 echo 'checkFTW                     :  Display status of First Time Wizard (FTW) completion or operation' >> $tempENVHELPFILEalias
 
 #========================================================================================
-# 2020-09-17
+# 2020-09-17, 2020-10-26
 
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats ] ; then
     # GW related aliases
     
-    alias dumpzdebugnow='DTGSNOW=`DTGSDATE`;mkdir -pv "$MYWORKFOLDERDUMP/$DTGSNOW";list "$MYWORKFOLDERDUMP/";echo;cd "$MYWORKFOLDERDUMP/$DTGSNOW";echo;echo Current path = `pwd`;echo;fw ctl zdebug drop | tee -a zdebug_drop.$DTGSNOW.txt'
+    alias dumpzdebugnow='filesuffix=`HOSTCPVERSIONNOW`; targefolder=$MYWORKFOLDERDUMP/`DTGSDATE` ; mkdir -pv "$targefolder";list "$targefolder/";echo;cd "$targefolder";echo;echo Current path = `pwd`;echo;fw ctl zdebug drop | tee -a zdebug_drop.$filesuffix.txt'
     echo 'dumpzdebugnow                :  Gateway : generate zdebug drop dump to new dump folder with current Date Time Group (DTGS)' >> $tempENVHELPFILEalias
 fi
 
@@ -309,6 +345,9 @@ echo 'show_mytftpservers           :  Show current settings for the TFTP servers
 
 alias getupdatescripts='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
 echo 'getupdatescripts             :  Get the current update script from the primary TFTP server' >> $tempENVHELPFILEalias
+
+alias updatelatestscripts='getupdatescripts ; . ./updatescripts.sh ; . ./alias_commands_update_all_users'
+echo 'updatelatestscripts          :  Update to the latest scripts on the TFTP server' >> $tempENVHELPFILEalias
 
 alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/setuphost.sh;echo;chmod 775 setuphost.sh;echo;ls -alh setuphost.sh'
 echo 'getsetuphostscript           :  Get the current host setup script from the primary TFTP server' >> $tempENVHELPFILEalias
@@ -474,7 +513,7 @@ echo -e 'alias_commands_update_all_users :'"\n"'                             :: 
 
 #========================================================================================
 #========================================================================================
-# 2020-09-30
+# 2020-09-30, 2020-10-26
 #
 
 # Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
@@ -484,7 +523,7 @@ echo 'help2reference <command>     :  Document help for <command> to Reference f
 
 help2reference () 
 { 
-    referencefile="$MYWORKFOLDERREFERENCE/help.$1.`DTGSDATE`.txt"
+    referencefile="$MYWORKFOLDERREFERENCE/help.$1.`HOSTCPVERSIONNOW`.txt"
     echo > $referencefile
     echo 'referencefile = '$referencefile | tee -a -i $referencefile
     echo 'Command = '"$@" --help | tee -a -i $referencefile
@@ -498,7 +537,7 @@ help2reference ()
 
 #========================================================================================
 #========================================================================================
-# 2020-09-30
+# 2020-09-30, 2020-10-26
 #
 
 # Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
@@ -508,7 +547,7 @@ echo 'docset2reference             :  Document set output to Reference folder' >
 
 docset2reference () 
 { 
-    referencefile="$MYWORKFOLDERREFERENCE/help.set.`DTGSDATE`.txt"
+    referencefile="$MYWORKFOLDERREFERENCE/help.set.`HOSTCPVERSIONNOW`.txt"
     echo 'Document set output to Reference folder file:  '$referencefile
     echo
     set > $referencefile
