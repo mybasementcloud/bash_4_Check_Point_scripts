@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Subscripts for bash 4 Check Point Scripts
+#
+# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+#
+# Version created 2020-11-11 2200 hrs CDT
+#
+SubScriptDate=2020-11-11
+SubScriptVersion=04.20.00
+SubScriptRevision=000
+TemplateVersion=04.42.00
+TemplateLevel=006
+SubScriptsLevel=006
+SubScriptsVersion=04.20.00
+SubScriptTemplateVersion=04.20.00
+#
+
+BASHActualSubScriptVersion=v${SubScriptVersion//./x}
+
+BASHSubScriptsVersion=v${SubScriptsVersion//./x}
+BASHSubScriptsRevision=v${SubScriptRevision//./x}
+
+#export BASHExpectedSubScriptsVersion=${SubScriptsLevel}.v${SubScriptsVersion//./x}
+BASHActualSubScriptsVersion=${SubScriptsLevel}.v${SubScriptsVersion//./x}
+
+BASHSubScriptsTemplateVersion=v${SubScriptTemplateVersion//./x}
+BASHSubScriptsTemplateLevel=${TemplateLevel}.v${SubScriptTemplateVersion}
+
+BASHSubScriptScriptTemplateVersion=v${TemplateVersion//./x}
+BASHSubScriptScriptTemplateLevel=${TemplateLevel}.v${TemplateVersion}
+
+

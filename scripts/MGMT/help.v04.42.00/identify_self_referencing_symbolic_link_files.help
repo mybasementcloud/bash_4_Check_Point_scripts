@@ -1,0 +1,14 @@
+  Starting Folder Path       --Path <Starting_Folder_Path> | --Path=<Starting_Folder_Path>
+
+  Remove Circular SymLinks   --KILL | --kill
+
+ Example:  Show Circular SymLinks in SmartLog index files
+
+ ]# script_name --NOWAIT --Path "${RTDIR}/log_indexes/"
+
+ Example:  Show Circular SymLinks in SmartLog index files and remove
+
+ ]# script_name --NOWAIT --Path "${RTDIR}/log_indexes/" --KILL
+
+
+

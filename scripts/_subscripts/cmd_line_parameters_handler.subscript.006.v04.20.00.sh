@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-SubScriptDate=2020-10-26
+SubScriptDate=2020-11-11
 SubScriptVersion=04.20.00
 SubScriptRevision=000
-TemplateVersion=04.41.00
+TemplateVersion=04.42.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.20.00
@@ -39,11 +39,11 @@ BASHSubScriptScriptTemplateLevel=${TemplateLevel}.v${TemplateVersion}
 
 
 SubScriptFileNameRoot=cmd_line_parameters_handler
-SubScriptShortName="cliparms.$SubScriptsLevel"
+SubScriptShortName="cliparms.${SubScriptsLevel}"
 SubScriptDescription="Command line parameters handler"
 
-#SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
-SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
+#SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
+SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
 
 SubScriptHelpFileName=${SubScriptFileNameRoot}.help
 SubScriptHelpFilePath=help.v${SubScriptVersion}
@@ -55,22 +55,22 @@ SubScriptHelpFile=${SubScriptHelpFilePath}/${SubScriptHelpFileName}
 # =================================================================================================
 
 
-if [ x"$BASHExpectedSubScriptsVersion" = x"$BASHActualSubScriptsVersion" ] ; then
+if [ x"${BASHExpectedSubScriptsVersion}" = x"${BASHActualSubScriptsVersion}" ] ; then
     # Script and Actions Script versions match, go ahead
-    echo >> $logfilepath
-    echo 'Verify Actions Scripts Version - OK' >> $logfilepath
-    echo >> $logfilepath
+    echo >> ${logfilepath}
+    echo 'Verify Actions Scripts Version - OK' >> ${logfilepath}
+    echo >> ${logfilepath}
 else
     # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $logfilepath
-    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Expected Subscript version : '$BASHExpectedSubScriptsVersion | tee -a -i $logfilepath
-    echo 'Current  Subscript version : '$BASHActualSubScriptsVersion | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    echo | tee -a -i ${logfilepath}
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i ${logfilepath}
+    echo 'Expected Subscript version : '${BASHExpectedSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo 'Current  Subscript version : '${BASHActualSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
 
     exit 250
 fi
@@ -82,9 +82,9 @@ fi
 # =================================================================================================
 
 
-echo >> $logfilepath
-echo 'Subscript Name:  '$SubScriptName'  Subcript Version: '$SubScriptVersion'  Subscript Revision:  '$SubScriptRevision'  Level:  '$SubScriptsLevel'  Template Version: '$TemplateVersion >> $logfilepath
-echo >> $logfilepath
+echo >> ${logfilepath}
+echo 'Subscript Name:  '${SubScriptName}'  Subcript Version: '${SubScriptVersion}'  Subscript Revision:  '${SubScriptRevision}'  Level:  '${SubScriptsLevel}'  Template Version: '${TemplateVersion} >> ${logfilepath}
+echo >> ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -106,56 +106,56 @@ echo >> $logfilepath
 
 CheckScriptVerboseOutput () {
 
-    if [ -z $SCRIPTVERBOSE ] ; then
+    if [ -z ${SCRIPTVERBOSE} ] ; then
         # Verbose mode not set from shell level
-        echo "!! Verbose mode not set from shell level" >> $logfilepath
+        echo "!! Verbose mode not set from shell level" >> ${logfilepath}
         export SCRIPTVERBOSE=false
-        echo >> $logfilepath
-    elif [ x"`echo "$SCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+        echo >> ${logfilepath}
+    elif [ x"`echo "${SCRIPTVERBOSE}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
         # Verbose mode set OFF from shell level
-        echo "!! Verbose mode set OFF from shell level" >> $logfilepath
+        echo "!! Verbose mode set OFF from shell level" >> ${logfilepath}
         export SCRIPTVERBOSE=false
-        echo >> $logfilepath
-    elif [ x"`echo "$SCRIPTVERBOSE" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+        echo >> ${logfilepath}
+    elif [ x"`echo "${SCRIPTVERBOSE}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
         # Verbose mode set ON from shell level
-        echo "!! Verbose mode set ON from shell level" >> $logfilepath
+        echo "!! Verbose mode set ON from shell level" >> ${logfilepath}
         export SCRIPTVERBOSE=true
-        echo >> $logfilepath
-        echo 'Script :  '$0 >> $logfilepath
-        echo 'Verbose mode enabled' >> $logfilepath
-        echo >> $logfilepath
-    elif [ "$SCRIPTVERBOSE" = "true" ] ; then
+        echo >> ${logfilepath}
+        echo 'Script :  '$0 >> ${logfilepath}
+        echo 'Verbose mode enabled' >> ${logfilepath}
+        echo >> ${logfilepath}
+    elif [ "${SCRIPTVERBOSE}" = "true" ] ; then
         # Verbose mode set ON
         export APISCRIPTVERBOSE=true
-        echo >> $logfilepath
-        echo 'Script :  '$0 >> $logfilepath
-        echo 'Verbose mode enabled' >> $logfilepath
-        echo >> $logfilepath
-    elif [ "$SCRIPTVERBOSE" = "true" ] ; then
+        echo >> ${logfilepath}
+        echo 'Script :  '$0 >> ${logfilepath}
+        echo 'Verbose mode enabled' >> ${logfilepath}
+        echo >> ${logfilepath}
+    elif [ "${SCRIPTVERBOSE}" = "true" ] ; then
         # Verbose mode set ON
         export APISCRIPTVERBOSE=true
-        echo >> $logfilepath
-        echo 'Script :  '$0 >> $logfilepath
-        echo 'Verbose mode enabled' >> $logfilepath
-        echo >> $logfilepath
-    elif [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+        echo >> ${logfilepath}
+        echo 'Script :  '$0 >> ${logfilepath}
+        echo 'Verbose mode enabled' >> ${logfilepath}
+        echo >> ${logfilepath}
+    elif [ x"${SCRIPTVERBOSE}" = x"true" ] ; then
         # Verbose mode set ON
         export APISCRIPTVERBOSE=true
-        echo >> $logfilepath
-        echo 'Script :  '$0 >> $logfilepath
-        echo 'Verbose mode enabled' >> $logfilepath
-        echo >> $logfilepath
+        echo >> ${logfilepath}
+        echo 'Script :  '$0 >> ${logfilepath}
+        echo 'Verbose mode enabled' >> ${logfilepath}
+        echo >> ${logfilepath}
     else
         # Verbose mode set to wrong value from shell level
-        echo "!! Verbose mode set to wrong value from shell level >"$SCRIPTVERBOSE"<" >> $logfilepath
-        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" >> $logfilepath
+        echo "!! Verbose mode set to wrong value from shell level >"${SCRIPTVERBOSE}"<" >> ${logfilepath}
+        echo "!! Settting Verbose mode OFF, pending command line parameter checking!" >> ${logfilepath}
         export SCRIPTVERBOSE=false
-        echo >> $logfilepath
+        echo >> ${logfilepath}
     fi
     
     export SCRIPTVERBOSECHECK=true
 
-    echo >> $logfilepath
+    echo >> ${logfilepath}
     return 0
 }
 
@@ -174,15 +174,15 @@ CheckScriptVerboseOutput () {
 # MODIFIED 2019-01-18 -
 # Command Line Parameter Handling Action Script should only do this if we didn't do it in the calling script
 
-if [ x"$SCRIPTVERBOSECHECK" = x"true" ] ; then
-    # Already checked status of $SCRIPTVERBOSE
-    echo "Status of verbose output at start of command line handler: $SCRIPTVERBOSE"
+if [ x"${SCRIPTVERBOSECHECK}" = x"true" ] ; then
+    # Already checked status of ${SCRIPTVERBOSE}
+    echo "Status of verbose output at start of command line handler: ${SCRIPTVERBOSE}"
 else
-    # Need to check status of $SCRIPTVERBOSE
+    # Need to check status of ${SCRIPTVERBOSE}
 
     CheckScriptVerboseOutput
 
-    echo "Status of verbose output at start of command line handler: $SCRIPTVERBOSE" >> $logfilepath
+    echo "Status of verbose output at start of command line handler: ${SCRIPTVERBOSE}" >> ${logfilepath}
 fi
 
 
@@ -246,13 +246,13 @@ export CLIparm_use_api_key=false
 
 # --NOWAIT
 #
-if [ -z "$NOWAIT" ]; then
+if [ -z "${NOWAIT}" ]; then
     # NOWAIT mode not set from shell level
     export CLIparm_NOWAIT=false
-elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+elif [ x"`echo "${NOWAIT}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # NOWAIT mode set OFF from shell level
     export CLIparm_NOWAIT=false
-elif [ x"`echo "$NOWAIT" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+elif [ x"`echo "${NOWAIT}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
     # NOWAIT mode set ON from shell level
     export CLIparm_NOWAIT=true
 else
@@ -264,13 +264,13 @@ export CLIparm_NOSTART=false
 
 # --NOSTART
 #
-if [ -z "$NOSTART" ]; then
+if [ -z "${NOSTART}" ]; then
     # NOSTART mode not set from shell level
     export CLIparm_NOSTART=false
-elif [ x"`echo "$NOSTART" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
+elif [ x"`echo "${NOSTART}" | tr '[:upper:]' '[:lower:]'`" = x"false" ] ; then
     # NOSTART mode set OFF from shell level
     export CLIparm_NOSTART=false
-elif [ x"`echo "$NOSTART" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
+elif [ x"`echo "${NOSTART}" | tr '[:upper:]' '[:lower:]'`" = x"true" ] ; then
     # NOSTART mode set ON from shell level
     export CLIparm_NOSTART=true
 else
@@ -301,30 +301,30 @@ dumpcliparmparseresults () {
     #
     
     workoutputfile=/var/tmp/workoutputfile.1.${DATEDTGS}.txt
-    echo > $workoutputfile
+    echo > ${workoutputfile}
     
     # Screen width template for sizing, default width of 80 characters assumed
     #
     #                  1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #        01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo 'CLI Parameters :' >> $workoutputfile
-    echo >> $workoutputfile
+    echo 'CLI Parameters :' >> ${workoutputfile}
+    echo >> ${workoutputfile}
     
-    if $UseR8XAPI ; then
+    if ${UseR8XAPI} ; then
         
-        echo 'CLIparm_rootuser        = '$CLIparm_rootuser >> $workoutputfile
-        echo 'CLIparm_user            = '$CLIparm_user >> $workoutputfile
-        echo 'CLIparm_password        = '$CLIparm_password >> $workoutputfile
+        echo 'CLIparm_rootuser        = '${CLIparm_rootuser} >> ${workoutputfile}
+        echo 'CLIparm_user            = '${CLIparm_user} >> ${workoutputfile}
+        echo 'CLIparm_password        = '${CLIparm_password} >> ${workoutputfile}
         
-        echo 'CLIparm_api_key         = '$CLIparm_api_key >> $workoutputfile
-        echo 'CLIparm_use_api_key     = '$CLIparm_use_api_key >> $workoutputfile
+        echo 'CLIparm_api_key         = '${CLIparm_api_key} >> ${workoutputfile}
+        echo 'CLIparm_use_api_key     = '${CLIparm_use_api_key} >> ${workoutputfile}
         
-        echo 'CLIparm_websslport      = '$CLIparm_websslport >> $workoutputfile
-        echo 'CLIparm_mgmt            = '$CLIparm_mgmt >> $workoutputfile
-        echo 'CLIparm_domain          = '$CLIparm_domain >> $workoutputfile
-        echo 'CLIparm_sessionidfile   = '$CLIparm_sessionidfile >> $workoutputfile
-        echo 'CLIparm_sessiontimeout  = '$CLIparm_sessiontimeout >> $workoutputfile
+        echo 'CLIparm_websslport      = '${CLIparm_websslport} >> ${workoutputfile}
+        echo 'CLIparm_mgmt            = '${CLIparm_mgmt} >> ${workoutputfile}
+        echo 'CLIparm_domain          = '${CLIparm_domain} >> ${workoutputfile}
+        echo 'CLIparm_sessionidfile   = '${CLIparm_sessionidfile} >> ${workoutputfile}
+        echo 'CLIparm_sessiontimeout  = '${CLIparm_sessiontimeout} >> ${workoutputfile}
         
     fi
     
@@ -333,61 +333,61 @@ dumpcliparmparseresults () {
     #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     
-    echo 'CLIparm_logpath         = '$CLIparm_logpath >> $workoutputfile
-    echo 'CLIparm_outputpath      = '$CLIparm_outputpath >> $workoutputfile
+    echo 'CLIparm_logpath         = '${CLIparm_logpath} >> ${workoutputfile}
+    echo 'CLIparm_outputpath      = '${CLIparm_outputpath} >> ${workoutputfile}
     
-    echo  >> $workoutputfile
-    echo 'SHOWHELP                = '$SHOWHELP >> $workoutputfile
-    echo 'SCRIPTVERBOSE           = '$SCRIPTVERBOSE >> $workoutputfile
-    echo 'NOWAIT                  = '$NOWAIT >> $workoutputfile
-    echo 'CLIparm_NOWAIT          = '$CLIparm_NOWAIT >> $workoutputfile
+    echo  >> ${workoutputfile}
+    echo 'SHOWHELP                = '${SHOWHELP} >> ${workoutputfile}
+    echo 'SCRIPTVERBOSE           = '${SCRIPTVERBOSE} >> ${workoutputfile}
+    echo 'NOWAIT                  = '${NOWAIT} >> ${workoutputfile}
+    echo 'CLIparm_NOWAIT          = '${CLIparm_NOWAIT} >> ${workoutputfile}
     
-    echo  >> $workoutputfile
-    echo 'NOSTART                 = '$NOSTART >> $workoutputfile
-    echo 'CLIparm_NOSTART         = '$CLIparm_NOSTART >> $workoutputfile
+    echo  >> ${workoutputfile}
+    echo 'NOSTART                 = '${NOSTART} >> ${workoutputfile}
+    echo 'CLIparm_NOSTART         = '${CLIparm_NOSTART} >> ${workoutputfile}
     
-    echo  >> $workoutputfile
-    echo 'CLIparm_NOHUP           = '$CLIparm_NOHUP >> $workoutputfile
-    echo 'CLIparm_NOHUPScriptName = '$CLIparm_NOHUPScriptName >> $workoutputfile
-    echo 'CLIparm_NOHUPDTG        = '$CLIparm_NOHUPDTG >> $workoutputfile
+    echo  >> ${workoutputfile}
+    echo 'CLIparm_NOHUP           = '${CLIparm_NOHUP} >> ${workoutputfile}
+    echo 'CLIparm_NOHUPScriptName = '${CLIparm_NOHUPScriptName} >> ${workoutputfile}
+    echo 'CLIparm_NOHUPDTG        = '${CLIparm_NOHUPDTG} >> ${workoutputfile}
     
-    echo  >> $workoutputfile
-    echo 'remains                 = '$REMAINS >> $workoutputfile
+    echo  >> ${workoutputfile}
+    echo 'remains                 = '${REMAINS} >> ${workoutputfile}
     
-    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+    if [ x"${SCRIPTVERBOSE}" = x"true" ] ; then
         # Verbose mode ON
         
-        echo | tee -a -i $logfilepath
-        cat $workoutputfile | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
-        echo "Number parms $#" | tee -a -i $logfilepath
-        echo "parms raw : \> $@ \<" | tee -a -i $logfilepath
+        echo | tee -a -i ${logfilepath}
+        cat ${workoutputfile} | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
+        echo "Number parms $#" | tee -a -i ${logfilepath}
+        echo "parms raw : \> $@ \<" | tee -a -i ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "$parmnum \t ${k}" | tee -a -i $logfilepath
-            parmnum=`expr $parmnum + 1`
+            echo -e "${parmnum} \t ${k}" | tee -a -i ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
         done
         
-        echo | tee -a -i $logfilepath
+        echo | tee -a -i ${logfilepath}
     else
         # Verbose mode OFF
         
-        echo >> $logfilepath
-        cat $workoutputfile >> $logfilepath
-        echo "Number parms $#" >> $logfilepath
-        echo "parms raw : \> $@ \<" >> $logfilepath
+        echo >> ${logfilepath}
+        cat ${workoutputfile} >> ${logfilepath}
+        echo "Number parms $#" >> ${logfilepath}
+        echo "parms raw : \> $@ \<" >> ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "$parmnum \t ${k}" >> $logfilepath
-            parmnum=`expr $parmnum + 1`
+            echo -e "${parmnum} \t ${k}" >> ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
         done
         
-        echo >> $logfilepath
+        echo >> ${logfilepath}
     fi
     
-    rm $workoutputfile
+    rm ${workoutputfile}
 }
 
 
@@ -404,37 +404,37 @@ dumpcliparmparseresults () {
 
 dumprawcliparms () {
     #
-    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+    if [ x"${SCRIPTVERBOSE}" = x"true" ] ; then
         # Verbose mode ON
         
-        echo | tee -a -i $logfilepath
-        echo "Command line parameters before : " | tee -a -i $logfilepath
-        echo "Number parms $#" | tee -a -i $logfilepath
-        echo "parms raw : \> $@ \<" | tee -a -i $logfilepath
+        echo | tee -a -i ${logfilepath}
+        echo "Command line parameters before : " | tee -a -i ${logfilepath}
+        echo "Number parms $#" | tee -a -i ${logfilepath}
+        echo "parms raw : \> $@ \<" | tee -a -i ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "$parmnum \t ${k}" | tee -a -i $logfilepath
-            parmnum=`expr $parmnum + 1`
+            echo -e "${parmnum} \t ${k}" | tee -a -i ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
         done
         
-        echo | tee -a -i $logfilepath
+        echo | tee -a -i ${logfilepath}
         
     else
         # Verbose mode OFF
         
-        echo >> $logfilepath
-        echo "Command line parameters before : " >> $logfilepath
-        echo "Number parms $#" >> $logfilepath
-        echo "parms raw : \> $@ \<" >> $logfilepath
+        echo >> ${logfilepath}
+        echo "Command line parameters before : " >> ${logfilepath}
+        echo "Number parms $#" >> ${logfilepath}
+        echo "parms raw : \> $@ \<" >> ${logfilepath}
         
         parmnum=0
         for k ; do
-            echo -e "$parmnum \t ${k}" >> $logfilepath
-            parmnum=`expr $parmnum + 1`
+            echo -e "${parmnum} \t ${k}" >> ${logfilepath}
+            parmnum=`expr ${parmnum} + 1`
         done
         
-        echo >> $logfilepath
+        echo >> ${logfilepath}
         
     fi
 
@@ -466,7 +466,7 @@ doshowhelp () {
     #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
     echo
     echo -n $0' [-?][-v]|'
-    if $UseR8XAPI ; then
+    if ${UseR8XAPI} ; then
         echo -n '|[-r]|[[-u <admin_name>]|[-p <password>]]|[--api-key <api_key_value>]'
         echo -n '|[-P <web ssl port>]'
         echo -n '|[-m <server_IP>]'
@@ -480,7 +480,7 @@ doshowhelp () {
     echo
     
     echo
-    echo ' Script Version:  '$BASHScriptVersion'  Date:  '$ScriptDate
+    echo ' Script Version:  '$BASHScriptVersion'  Date:  '${ScriptDate}
     echo
     echo ' Standard Command Line Parameters: '
     echo
@@ -490,7 +490,7 @@ doshowhelp () {
     
     # Handle Local Help file here, since the values are more specific to the script
     # MODIFIED 2020-02-11
-    localhelpfile=$scriptspathroot/$BASHScriptsFolder/$BASHScriptHelpFile
+    localhelpfile=${scriptspathroot}/$BASHScriptsFolder/$BASHScriptHelpFile
     
     # Show Local Help
     if [ -r $localhelpfile ]; then
@@ -500,7 +500,7 @@ doshowhelp () {
     fi
     
     
-    if $UseR8XAPI ; then
+    if ${UseR8XAPI} ; then
         
         echo '  Authenticate as root       -r | --root'
         echo '  Set Console User Name      -u <admin_name> | --user <admin_name> |'
@@ -546,13 +546,13 @@ doshowhelp () {
     echo '  nohup date-time-group      --NOHUP-DTG <NOHUP_SCRIPT_DATE_TIME_GROUP> | --NOHUP-DTG=<NOHUP_SCRIPT_DATE_TIME_GROUP>'
     echo
     
-    if $UseR8XAPI ; then
+    if ${UseR8XAPI} ; then
         echo '  session_file_filepath = fully qualified file path for session file'
     fi
     echo '  log_path = fully qualified folder path for log files'
     echo '  output_path = fully qualified folder path for output files'
     
-    if $UseR8XAPI ; then
+    if ${UseR8XAPI} ; then
         #              1111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990
         #    01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
         echo
@@ -622,11 +622,11 @@ ProcessCommandLIneParameterVerboseEnable () {
         # Copy so we can modify it (can't modify $1)
         OPT="$1"
         
-        #echo OPT = $OPT
+        #echo OPT = ${OPT}
         
         # Parse current opt
-        while [ x"$OPT" != x"-" ] ; do
-            case "$OPT" in
+        while [ x"${OPT}" != x"-" ] ; do
+            case "${OPT}" in
                 # Help and Standard Operations
                 '-v' | --verbose )
                     export SCRIPTVERBOSE=true
@@ -641,8 +641,8 @@ ProcessCommandLIneParameterVerboseEnable () {
             # Remove any characters matching "-", and then the values between []'s
             #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
             NEXTOPT="${OPT#-[vrf?]}" # try removing single short opt
-            if [ x"$OPT" != x"$NEXTOPT" ] ; then
-                OPT="-$NEXTOPT"  # multiple short opts, keep going
+            if [ x"${OPT}" != x"${NEXTOPT}" ] ; then
+                OPT="-${NEXTOPT}"  # multiple short opts, keep going
             else
                 break  # long form, exit inner loop
             fi
@@ -682,7 +682,7 @@ ProcessCommandLineParametersAndSetValues () {
     #
     
     #rawcliparmdump=false
-    #if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+    #if [ x"${SCRIPTVERBOSE}" = x"true" ] ; then
         #Verbose mode ON
         #dumprawcliparms "$@"
         #rawcliparmdump=true
@@ -693,11 +693,11 @@ ProcessCommandLineParametersAndSetValues () {
         OPT="$1"
         
         # testing
-        #echo 'OPT = '$OPT
+        #echo 'OPT = '${OPT}
         #
         
         # Detect argument termination
-        if [ x"$OPT" = x"--" ]; then
+        if [ x"${OPT}" = x"--" ]; then
             # testing
             # echo "Argument termination"
             #
@@ -705,15 +705,15 @@ ProcessCommandLineParametersAndSetValues () {
             shift
             for OPT ; do
                 # MODIFIED 2019-03-08
-                #REMAINS="$REMAINS \"$OPT\""
-                REMAINS="$REMAINS $OPT"
+                #REMAINS="${REMAINS} \"${OPT}\""
+                REMAINS="${REMAINS} ${OPT}"
             done
             break
         fi
         
         # Parse current opt
-        while [ x"$OPT" != x"-" ] ; do
-            case "$OPT" in
+        while [ x"${OPT}" != x"-" ] ; do
+            case "${OPT}" in
                 # Help and Standard Operations
                 '-?' | --help )
                     SHOWHELP=true
@@ -860,8 +860,8 @@ ProcessCommandLineParametersAndSetValues () {
                 # Anything unknown is recorded for later
                 * )
                     # MODIFIED 2019-05-31
-                    #REMAINS="$REMAINS \"$OPT\""
-                    REMAINS="$REMAINS $OPT"
+                    #REMAINS="${REMAINS} \"${OPT}\""
+                    REMAINS="${REMAINS} ${OPT}"
                     break
                     ;;
             esac
@@ -870,8 +870,8 @@ ProcessCommandLineParametersAndSetValues () {
             # Remove any characters matching "-", and then the values between []'s
             #NEXTOPT="${OPT#-[upmdsor?]}" # try removing single short opt
             NEXTOPT="${OPT#-[vrf?]}" # try removing single short opt
-            if [ x"$OPT" != x"$NEXTOPT" ] ; then
-                OPT="-$NEXTOPT"  # multiple short opts, keep going
+            if [ x"${OPT}" != x"${NEXTOPT}" ] ; then
+                OPT="-${NEXTOPT}"  # multiple short opts, keep going
             else
                 break  # long form, exit inner loop
             fi
@@ -880,41 +880,41 @@ ProcessCommandLineParametersAndSetValues () {
         shift
     done
     # Set the non-parameters back into the positional parameters ($1 $2 ..)
-    eval set -- $REMAINS
+    eval set -- ${REMAINS}
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-02
     # MODIFIED 2020-09-02 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     #
     
-    export SHOWHELP=$SHOWHELP
-    export CLIparm_websslport=$CLIparm_websslport
-    export CLIparm_rootuser=$CLIparm_rootuser
-    export CLIparm_user=$CLIparm_user
-    export CLIparm_password=$CLIparm_password
-    export CLIparm_mgmt=$CLIparm_mgmt
-    export CLIparm_domain=$CLIparm_domain
-    export CLIparm_sessionidfile=$CLIparm_sessionidfile
-    export CLIparm_sessiontimeout=$CLIparm_sessiontimeout
-    export CLIparm_logpath=$CLIparm_logpath
+    export SHOWHELP=${SHOWHELP}
+    export CLIparm_websslport=${CLIparm_websslport}
+    export CLIparm_rootuser=${CLIparm_rootuser}
+    export CLIparm_user=${CLIparm_user}
+    export CLIparm_password=${CLIparm_password}
+    export CLIparm_mgmt=${CLIparm_mgmt}
+    export CLIparm_domain=${CLIparm_domain}
+    export CLIparm_sessionidfile=${CLIparm_sessionidfile}
+    export CLIparm_sessiontimeout=${CLIparm_sessiontimeout}
+    export CLIparm_logpath=${CLIparm_logpath}
     
     # ADDED 2020-08-19 -
-    export CLIparm_api_key=$CLIparm_api_key
-    export CLIparm_use_api_key=$CLIparm_use_api_key
+    export CLIparm_api_key=${CLIparm_api_key}
+    export CLIparm_use_api_key=${CLIparm_use_api_key}
     
-    export CLIparm_outputpath=$CLIparm_outputpath
+    export CLIparm_outputpath=${CLIparm_outputpath}
     
-    export NOWAIT=`echo "$CLIparm_NOWAIT" | tr '[:upper:]' '[:lower:]'`
-    export CLIparm_NOWAIT=$CLIparm_NOWAIT
+    export NOWAIT=`echo "${CLIparm_NOWAIT}" | tr '[:upper:]' '[:lower:]'`
+    export CLIparm_NOWAIT=${CLIparm_NOWAIT}
     
-    export NOSTART=`echo "$CLIparm_NOSTART" | tr '[:upper:]' '[:lower:]'`
-    export CLIparm_NOSTART=$CLIparm_NOSTART
+    export NOSTART=`echo "${CLIparm_NOSTART}" | tr '[:upper:]' '[:lower:]'`
+    export CLIparm_NOSTART=${CLIparm_NOSTART}
     
-    export CLIparm_NOHUP=$CLIparm_NOHUP
-    export CLIparm_NOHUPScriptName=$CLIparm_NOHUPScriptName
-    export CLIparm_NOHUPDTG=$CLIparm_NOHUPDTG
+    export CLIparm_NOHUP=${CLIparm_NOHUP}
+    export CLIparm_NOHUPScriptName=${CLIparm_NOHUPScriptName}
+    export CLIparm_NOHUPDTG=${CLIparm_NOHUPDTG}
     
-    export REMAINS=$REMAINS
+    export REMAINS=${REMAINS}
     
     #
     # /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ MODIFIED 2020-09-02
@@ -961,13 +961,13 @@ dumpcliparmparseresults "$@"
 #
 # Was help requested, if so show it and return
 #
-if [ x"$SHOWHELP" = x"true" ] ; then
+if [ x"${SHOWHELP}" = x"true" ] ; then
     # Show Help
     doshowhelp "$@"
     echo
     
     # don't want a log file for showing help
-    #rm $logfilepath
+    #rm ${logfilepath}
     
     # this is done now, so exit hard
     exit 255 

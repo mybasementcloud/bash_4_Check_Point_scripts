@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-SubScriptDate=2020-10-26
+SubScriptDate=2020-11-11
 SubScriptVersion=04.20.00
 SubScriptRevision=000
-TemplateVersion=04.41.00
+TemplateVersion=04.42.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.20.00
@@ -39,11 +39,11 @@ BASHSubScriptScriptTemplateLevel=${TemplateLevel}.v${TemplateVersion}
 
 
 SubScriptFileNameRoot=_template_sub_scripts
-SubScriptShortName="_template_sub_scripts.$SubScriptsLevel"
+SubScriptShortName="_template_sub_scripts.${SubScriptsLevel}"
 SubScriptDescription="Sub Scripts Template"
 
-#SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
-SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
+#SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
+SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
 
 SubScriptHelpFileName=${SubScriptFileNameRoot}.help
 SubScriptHelpFilePath=help.v${SubScriptVersion}
@@ -55,22 +55,22 @@ SubScriptHelpFile=${SubScriptHelpFilePath}/${SubScriptHelpFileName}
 # =================================================================================================
 
 
-if [ x"$BASHExpectedSubScriptsVersion" = x"$BASHActualSubScriptsVersion" ] ; then
+if [ x"${BASHExpectedSubScriptsVersion}" = x"${BASHActualSubScriptsVersion}" ] ; then
     # Script and Actions Script versions match, go ahead
-    echo >> $logfilepath
-    echo 'Verify Actions Scripts Version - OK' >> $logfilepath
-    echo >> $logfilepath
+    echo >> ${logfilepath}
+    echo 'Verify Actions Scripts Version - OK' >> ${logfilepath}
+    echo >> ${logfilepath}
 else
     # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $logfilepath
-    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Expected Subscript version : '$BASHExpectedSubScriptsVersion | tee -a -i $logfilepath
-    echo 'Current  Subscript version : '$BASHActualSubScriptsVersion | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    echo | tee -a -i ${logfilepath}
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i ${logfilepath}
+    echo 'Expected Subscript version : '${BASHExpectedSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo 'Current  Subscript version : '${BASHActualSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
 
     exit 250
 fi
@@ -82,9 +82,9 @@ fi
 # =================================================================================================
 
 
-echo >> $logfilepath
-echo 'Subscript Name:  '$SubScriptName'  Subcript Version: '$SubScriptVersion'  Subscript Revision:  '$SubScriptRevision'  Level:  '$SubScriptsLevel'  Template Version: '$TemplateVersion >> $logfilepath
-echo >> $logfilepath
+echo >> ${logfilepath}
+echo 'Subscript Name:  '${SubScriptName}'  Subcript Version: '${SubScriptVersion}'  Subscript Revision:  '${SubScriptRevision}'  Level:  '${SubScriptsLevel}'  Template Version: '${TemplateVersion} >> ${logfilepath}
+echo >> ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------

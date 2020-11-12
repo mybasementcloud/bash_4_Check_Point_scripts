@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-SubScriptDate=2020-10-26
+SubScriptDate=2020-11-11
 SubScriptVersion=04.20.00
 SubScriptRevision=000
-TemplateVersion=04.41.00
+TemplateVersion=04.42.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.20.00
@@ -39,11 +39,11 @@ BASHSubScriptScriptTemplateLevel=${TemplateLevel}.v${TemplateVersion}
 
 
 SubScriptFileNameRoot=script_output_paths_and_folders
-SubScriptShortName="$SubScriptFileNameRoot.$SubScriptsLevel"
+SubScriptShortName="$SubScriptFileNameRoot.${SubScriptsLevel}"
 SubScriptDescription="Configure script output paths and folders"
 
-#SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
-SubScriptName=$SubScriptFileNameRoot.subscript.$SubScriptsLevel.v$SubScriptVersion
+#SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
+SubScriptName=$SubScriptFileNameRoot.subscript.${SubScriptsLevel}.v${SubScriptVersion}
 
 SubScriptHelpFileName=${SubScriptFileNameRoot}.help
 SubScriptHelpFilePath=help.v${SubScriptVersion}
@@ -55,22 +55,22 @@ SubScriptHelpFile=${SubScriptHelpFilePath}/${SubScriptHelpFileName}
 # =================================================================================================
 
 
-if [ x"$BASHExpectedSubScriptsVersion" = x"$BASHActualSubScriptsVersion" ] ; then
+if [ x"${BASHExpectedSubScriptsVersion}" = x"${BASHActualSubScriptsVersion}" ] ; then
     # Script and Actions Script versions match, go ahead
-    echo >> $logfilepath
-    echo 'Verify Actions Scripts Version - OK' >> $logfilepath
-    echo >> $logfilepath
+    echo >> ${logfilepath}
+    echo 'Verify Actions Scripts Version - OK' >> ${logfilepath}
+    echo >> ${logfilepath}
 else
     # Script and Actions Script versions don't match, ALL STOP!
-    echo | tee -a -i $logfilepath
-    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i $logfilepath
-    echo 'Expected Subscript version : '$BASHExpectedSubScriptsVersion | tee -a -i $logfilepath
-    echo 'Current  Subscript version : '$BASHActualSubScriptsVersion | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo 'Critical Error - Exiting Script !!!!' | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
-    echo "Log output in file $logfilepath" | tee -a -i $logfilepath
-    echo | tee -a -i $logfilepath
+    echo | tee -a -i ${logfilepath}
+    echo 'Verify Actions Scripts Version - Missmatch' | tee -a -i ${logfilepath}
+    echo 'Expected Subscript version : '${BASHExpectedSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo 'Current  Subscript version : '${BASHActualSubScriptsVersion} | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo 'Critical Error - Exiting Script !!!!' | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
+    echo "Log output in file ${logfilepath}" | tee -a -i ${logfilepath}
+    echo | tee -a -i ${logfilepath}
 
     exit 250
 fi
@@ -82,9 +82,9 @@ fi
 # =================================================================================================
 
 
-echo >> $logfilepath
-echo 'Subscript Name:  '$SubScriptName'  Subcript Version: '$SubScriptVersion'  Subscript Revision:  '$SubScriptRevision'  Level:  '$SubScriptsLevel'  Template Version: '$TemplateVersion >> $logfilepath
-echo >> $logfilepath
+echo >> ${logfilepath}
+echo 'Subscript Name:  '${SubScriptName}'  Subcript Version: '${SubScriptVersion}'  Subscript Revision:  '${SubScriptRevision}'  Level:  '${SubScriptsLevel}'  Template Version: '${TemplateVersion} >> ${logfilepath}
+echo >> ${logfilepath}
 
 
 # -------------------------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ localrootscriptconfiguration () {
     #
 
     # WAITTIME in seconds for read -t commands, but check if it's already set
-    if [ -z $WAITTIME ]; then
+    if [ -z ${WAITTIME} ]; then
         export WAITTIME=60
     fi
     
@@ -186,7 +186,7 @@ HandleRootScriptConfiguration () {
 
 
 # -------------------------------------------------------------------------------------------------
-# HandleLaunchInHomeFolder - Handle if folder where this was launched is the $HOME Folder
+# HandleLaunchInHomeFolder - Handle if folder where this was launched is the ${HOME} Folder
 # -------------------------------------------------------------------------------------------------
 
 # MODIFIED 2018-09-22 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -194,43 +194,43 @@ HandleRootScriptConfiguration () {
 
 HandleLaunchInHomeFolder () {
     #
-    # Handle if folder where this was launched is the $HOME Folder
+    # Handle if folder where this was launched is the ${HOME} Folder
     #
     
-    export expandedpath=$(cd $startpathroot ; pwd)
-    export startpathroot=$expandedpath
+    export expandedpath=$(cd ${startpathroot} ; pwd)
+    export startpathroot=${expandedpath}
     export checkthispath=`echo "${expandedpath}" | grep -i "$notthispath"`
-    export isitthispath=`test -z $checkthispath; echo $?`
+    export isitthispath=`test -z ${checkthispath}; echo $?`
     
-    if [ $isitthispath -eq 1 ] ; then
+    if [ ${isitthispath} -eq 1 ] ; then
         #Oh, Oh, we're in the home directory executing, not good!!!
-        #Configure outputpathroot for $alternatepathroot folder since we can't run in /home/
-        echo 'In home directory folder : '$startpathroot >> $logfilepath
-        export outputpathroot=$alternatepathroot
+        #Configure outputpathroot for ${alternatepathroot} folder since we can't run in /home/
+        echo 'In home directory folder : '${startpathroot} >> ${logfilepath}
+        export outputpathroot=${alternatepathroot}
     else
         #OK use the current folder and create working sub-folder
-        echo 'NOT in home directory folder : '$startpathroot >> $logfilepath
+        echo 'NOT in home directory folder : '${startpathroot} >> ${logfilepath}
         # let's not change the configuration provided
-        #export outputpathroot=$startpathroot
+        #export outputpathroot=${startpathroot}
     fi
     
-    if [ ! -r $outputpathroot ] ; then
-        #not where we're expecting to be, since $outputpathroot is missing here
+    if [ ! -r ${outputpathroot} ] ; then
+        #not where we're expecting to be, since ${outputpathroot} is missing here
         #maybe this hasn't been run here yet.
         #OK, so make the expected folder and set permissions we need
-        mkdir -pv $outputpathroot >> $logfilepath
-        chmod 775 $outputpathroot >> $logfilepath
+        mkdir -pv ${outputpathroot} >> ${logfilepath}
+        chmod 775 ${outputpathroot} >> ${logfilepath}
     else
         #set permissions we need
-        chmod 775 $outputpathroot >> $logfilepath
+        chmod 775 ${outputpathroot} >> ${logfilepath}
     fi
     
     #Now that outputroot is not in /home/ let's work on where we are working from
     
-    export expandedpath=$(cd $outputpathroot ; pwd)
+    export expandedpath=$(cd ${outputpathroot} ; pwd)
     export outputpathroot=${expandedpath}
-    export dumppathroot=$outputpathroot/dump
-    export changelogpathroot=$outputpathroot/Change_Log
+    export dumppathroot=${outputpathroot}/dump
+    export changelogpathroot=${outputpathroot}/Change_Log
     
     return 0
 }
@@ -257,188 +257,193 @@ FinalizeOutputAndLogPaths () {
     # Set Output file paths
     #----------------------------------------------------------------------------------------
     
-    if [ -z "$CLIparm_outputpath" ]; then
+    if [ -z "${CLIparm_outputpath}" ]; then
         # CLI parameter for outputpath not set
         
-        if [ ! -r $outputpathroot ] ; then
-            mkdir -pv $outputpathroot >> $logfilepath
-            chmod 775 $outputpathroot >> $logfilepath
+        if [ ! -r ${outputpathroot} ] ; then
+            mkdir -pv ${outputpathroot} >> ${logfilepath}
+            chmod 775 ${outputpathroot} >> ${logfilepath}
         else
-            chmod 775 $outputpathroot >> $logfilepath
+            chmod 775 ${outputpathroot} >> ${logfilepath}
         fi
         
-        if $OutputToRoot ; then
+        if ${OutputToRoot} ; then
             # output to outputpathroot
-            export outputpathbase=$outputpathroot
+            export outputpathbase=${outputpathroot}
             
-            echo 'Set root output to Root : '"$outputpathroot"', $outputpathbase = '"$outputpathbase" >> $logfilepath
+            echo 'Set root output to Root : '"${outputpathroot}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
             
-        elif $OutputToDump ; then
+        elif ${OutputToDump} ; then
             # output to dump folder
             
             # Check if the expected dump folder exists and if not, create it and set access rights
-            if [ ! -r $dumppathroot ] ; then
-                mkdir -pv $dumppathroot >> $logfilepath
-                chmod 775 $dumppathroot >> $logfilepath
+            if [ ! -r ${dumppathroot} ] ; then
+                mkdir -pv ${dumppathroot} >> ${logfilepath}
+                chmod 775 ${dumppathroot} >> ${logfilepath}
             else
-                chmod 775 $dumppathroot >> $logfilepath
+                chmod 775 ${dumppathroot} >> ${logfilepath}
             fi
             
-            export outputpathbase=$dumppathroot
+            export outputpathbase=${dumppathroot}
             
-            echo 'Set root output to Dump : '"$dumppathroot"', $outputpathbase = '"$outputpathbase" >> $logfilepath
+            echo 'Set root output to Dump : '"${dumppathroot}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
             
-        elif $OutputToChangeLog ; then
+        elif ${OutputToChangeLog} ; then
             # output to Change Log
             
             # Check if the expected change log folder exists and if not, create it and set access rights
-            if [ ! -r $changelogpathroot ] ; then
-                mkdir -pv $changelogpathroot >> $logfilepath
-                chmod 775 $changelogpathroot >> $logfilepath
+            if [ ! -r ${changelogpathroot} ] ; then
+                mkdir -pv ${changelogpathroot} >> ${logfilepath}
+                chmod 775 ${changelogpathroot} >> ${logfilepath}
             else
-                chmod 775 $changelogpathroot >> $logfilepath
+                chmod 775 ${changelogpathroot} >> ${logfilepath}
             fi
             
-            export outputpathbase=$changelogpathroot
+            export outputpathbase=${changelogpathroot}
             
-            echo 'Set root output to Change Log : '"$changelogpathroot"', $outputpathbase = '"$outputpathbase" >> $logfilepath
+            echo 'Set root output to Change Log : '"${changelogpathroot}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
             
-        elif $OutputToOther ; then
-            # output to other folder that should be set in $OtherOutputFolder
-            #export outputpathbase=$OtherOutputFolder
+        elif ${OutputToOther} ; then
+            # output to other folder that should be set in ${OtherOutputFolder}
+            #export outputpathbase=${OtherOutputFolder}
             
             # Check if the expected other folder exists and if not, create it and set access rights
-            if [ ! -r $OtherOutputFolder ] ; then
-                mkdir -pv $OtherOutputFolder >> $logfilepath
-                chmod 775 $OtherOutputFolder >> $logfilepath
+            if [ ! -r ${OtherOutputFolder} ] ; then
+                mkdir -pv ${OtherOutputFolder} >> ${logfilepath}
+                chmod 775 ${OtherOutputFolder} >> ${logfilepath}
             else
-                chmod 775 $OtherOutputFolder >> $logfilepath
+                chmod 775 ${OtherOutputFolder} >> ${logfilepath}
             fi
             
             # need to expand this other path to ensure things work
-            export expandedpath=$(cd $OtherOutputFolder ; pwd)
-            export outputpathbase=$expandedpath
+            export expandedpath=$(cd ${OtherOutputFolder} ; pwd)
+            export outputpathbase=${expandedpath}
             
-            echo 'Set root output to Other : '"$OtherOutputFolder"', $outputpathbase = '"$outputpathbase" >> $logfilepath
+            echo 'Set root output to Other : '"${OtherOutputFolder}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
             
         else
             # Huh, what... this should have been set, well the use dump
             # output to dumppathroot
             
             # Check if the expected dump folder exists and if not, create it and set access rights
-            if [ ! -r $dumppathroot ] ; then
-                mkdir -pv $dumppathroot >> $logfilepath
-                chmod 775 $dumppathroot >> $logfilepath
+            if [ ! -r ${dumppathroot} ] ; then
+                mkdir -pv ${dumppathroot} >> ${logfilepath}
+                chmod 775 ${dumppathroot} >> ${logfilepath}
             else
-                chmod 775 $dumppathroot >> $logfilepath
+                chmod 775 ${dumppathroot} >> ${logfilepath}
             fi
             
-            export outputpathbase=$dumppathroot
+            export outputpathbase=${dumppathroot}
             
-            echo 'Set root output to default Dump : '"$dumppathroot"', $outputpathbase = '"$outputpathbase" >> $logfilepath
+            echo 'Set root output to default Dump : '"${dumppathroot}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
             
         fi
         
         # Now that we know where things are going, let's make sure we can write there
         #
         
-        if [ ! -r $outputpathbase ] ; then
-            mkdir -pv $outputpathbase >> $logfilepath
-            chmod 775 $outputpathbase >> $logfilepath
+        if [ ! -r ${outputpathbase} ] ; then
+            mkdir -pv ${outputpathbase} >> ${logfilepath}
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         else
-            chmod 775 $outputpathbase >> $logfilepath
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         fi
         
         if $OutputYearSubfolder ; then
             # Use subfolder based on date-time group
             # this shifts the base output folder down a level
             DATEYear=`date +%Y`
-            export outputpathbase=$outputpathbase/$DATEYear
+            export outputpathbase=${outputpathbase}/${DATEYear}
         fi
         
         if $OutputYMSubfolder ; then
             # Use subfolder based on date-time group
             # this shifts the base output folder down a level
             DATEYM=`date +%Y-%m`
-            export outputpathbase=$outputpathbase/$DATEYM
+            export outputpathbase=${outputpathbase}/${DATEYM}
         fi
         
-        export archivepathbase=$outputpathbase
-        if $OutputDTGSSubfolder ; then
+        export archivepathbase=${outputpathbase}
+        if ${OutputDTGSSubfolder} ; then
             # Use subfolder based on date-time group
             # this shifts the base output folder down a level
-            #export archivepathbase=$outputpathbase
-            export outputpathbase=$outputpathbase/$DATEDTGS
-            export archivestartfolder=$DATEDTGS
-            if $OutputSubfolderScriptName ; then
+            #export archivepathbase=${outputpathbase}
+            if $OutputDTGTZinUTC ; then
+                export outputpathbase=${outputpathbase}/${DATEUTCDTGS}
+                export archivestartfolder=${DATEUTCDTGS}
+            else
+                export outputpathbase=${outputpathbase}/${DATEDTGS}
+                export archivestartfolder=${DATEDTGS}
+            fi
+            if ${OutputSubfolderScriptName} ; then
                 # Add script name to the Subfolder name
-                export outputpathbase=$outputpathbase.$BASHScriptName
-                export archivestartfolder=$archivestartfolder.$BASHScriptName
-            elif $OutputSubfolderScriptShortName ; then
+                export outputpathbase=${outputpathbase}.${BASHScriptName}
+                export archivestartfolder=${archivestartfolder}.${BASHScriptName}
+            elif ${OutputSubfolderScriptShortName} ; then
                 # Add short script name to the Subfolder name
-                export outputpathbase=$outputpathbase.$BASHScriptShortName
-                export archivestartfolder=$archivestartfolder.$BASHScriptShortName
+                export outputpathbase=${outputpathbase}.${BASHScriptShortName}
+                export archivestartfolder=${archivestartfolder}.${BASHScriptShortName}
             fi
         else
-            #export archivepathbase=$outputpathbase
-            if $OutputSubfolderScriptName ; then
+            #export archivepathbase=${outputpathbase}
+            if ${OutputSubfolderScriptName} ; then
                 # Add script name to the Subfolder name
-                export outputpathbase=$outputpathbase/$BASHScriptName
-                export archivestartfolder=$BASHScriptName
-            elif $OutputSubfolderScriptShortName ; then
+                export outputpathbase=${outputpathbase}/${BASHScriptName}
+                export archivestartfolder=${BASHScriptName}
+            elif ${OutputSubfolderScriptShortName} ; then
                 # Add short script name to the Subfolder name
-                export outputpathbase=$outputpathbase/$BASHScriptShortName
-                export archivestartfolder=$BASHScriptShortName
+                export outputpathbase=${outputpathbase}/${BASHScriptShortName}
+                export archivestartfolder=${BASHScriptShortName}
             else
                 export archivestartfolder=.
             fi
         fi
         
-        if [ ! -r $outputpathbase ] ; then
-            mkdir -pv $outputpathbase >> $logfilepath
-            chmod 775 $outputpathbase >> $logfilepath
+        if [ ! -r ${outputpathbase} ] ; then
+            mkdir -pv ${outputpathbase} >> ${logfilepath}
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         else
-            chmod 775 $outputpathbase >> $logfilepath
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         fi
         
-        echo 'Final $outputpathbase = '"$outputpathbase" >> $logfilepath
-        echo >> $logfilepath
+        echo 'Final ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
+        echo >> ${logfilepath}
         
     else
         # CLI parameter for outputpath set
-        export outputpathroot=$CLIparm_outputpath
-        #export outputpathbase=$CLIparm_outputpath
+        export outputpathroot=${CLIparm_outputpath}
+        #export outputpathbase=${CLIparm_outputpath}
         
         # need to expand this other path to ensure things work
-        #export expandedpath=$(cd $CLIparm_outputpath ; pwd)
-        export expandedpath=$(cd $outputpathroot ; pwd)
-        export outputpathbase=$expandedpath
+        #export expandedpath=$(cd ${CLIparm_outputpath} ; pwd)
+        export expandedpath=$(cd ${outputpathroot} ; pwd)
+        export outputpathbase=${expandedpath}
         
-        export archivepathbase=$outputpathbase
+        export archivepathbase=${outputpathbase}
         export archivestartfolder=.
         
-        echo 'Set root output to Other : '"$CLIparm_outputpath"', $outputpathroot = '"$outputpathroot"', $outputpathbase = '"$outputpathbase" >> $logfilepath
-        echo >> $logfilepath
+        echo 'Set root output to Other : '"${CLIparm_outputpath}"', ${outputpathroot} = '"${outputpathroot}"', ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
+        echo >> ${logfilepath}
         
-        if [ ! -r $outputpathbase ] ; then
-            mkdir -pv $outputpathbase >> $logfilepath
-            chmod 775 $outputpathbase >> $logfilepath
+        if [ ! -r ${outputpathbase} ] ; then
+            mkdir -pv ${outputpathbase} >> ${logfilepath}
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         else
-            chmod 775 $outputpathbase >> $logfilepath
+            chmod 775 ${outputpathbase} >> ${logfilepath}
         fi
         
-        echo 'Final $outputpathbase = '"$outputpathbase" >> $logfilepath
-        echo >> $logfilepath
+        echo 'Final ${outputpathbase} = '"${outputpathbase}" >> ${logfilepath}
+        echo >> ${logfilepath}
         
     fi
     
-    export outputhomepath=$outputpathbase
+    export outputhomepath=${outputpathbase}
     
-    if [ ! -r $outputhomepath ] ; then
-        mkdir -pv $outputhomepath >> $logfilepath
-        chmod 775 $outputhomepath >> $logfilepath
+    if [ ! -r ${outputhomepath} ] ; then
+        mkdir -pv ${outputhomepath} >> ${logfilepath}
+        chmod 775 ${outputhomepath} >> ${logfilepath}
     else
-        chmod 775 $outputhomepath >> $logfilepath
+        chmod 775 ${outputhomepath} >> ${logfilepath}
     fi
     
     #----------------------------------------------------------------------------------------
@@ -447,164 +452,164 @@ FinalizeOutputAndLogPaths () {
     
     # MODIFIED 2019-01-19 -
     
-    export logfilepathbase=$outputpathbase
-    export logfilepathfirst=$logfilepath
+    export logfilepathbase=${outputpathbase}
+    export logfilepathfirst=${logfilepath}
     
     # Setup the log file fully qualified path based on final locations
     #
-    if [ -z "$CLIparm_logpath" ]; then
+    if [ -z "${CLIparm_logpath}" ]; then
         # CLI parameter for logfile not set
-        export logfilepathbase=$outputpathbase
+        export logfilepathbase=${outputpathbase}
     else
         # CLI parameter for logfile set
-        #export logfilepathbase=$CLIparm_logpath
+        #export logfilepathbase=${CLIparm_logpath}
         
         # need to expand this other path to ensure things work
-        export expandedpath=$(cd $CLIparm_logpath ; pwd)
-        export logfilepathbase=$expandedpath
+        export expandedpath=$(cd ${CLIparm_logpath} ; pwd)
+        export logfilepathbase=${expandedpath}
     fi
     
     # Lets make sure we can write to this folder
-    if [ ! -r $logfilepathbase ] ; then
-        mkdir -pv $logfilepathbase >> $logfilepath
-        chmod 775 $logfilepathbase >> $logfilepath
+    if [ ! -r ${logfilepathbase} ] ; then
+        mkdir -pv ${logfilepathbase} >> ${logfilepath}
+        chmod 775 ${logfilepathbase} >> ${logfilepath}
     else
-        chmod 775 $logfilepathbase >> $logfilepath
+        chmod 775 ${logfilepathbase} >> ${logfilepath}
     fi
     
-    if [ -z "$gaiaversion" ] ; then
-        # $gaiaversion not set
-        export logfilepathfinal=$logfilepathbase/$BASHScriptName.${DATEDTGS}.log
+    if [ -z "${gaiaversion}" ] ; then
+        # ${gaiaversion} not set
+        export logfilepathfinal=${logfilepathbase}/${BASHScriptName}.${DATEDTGS}.log
     else
-        # $gaiaversion set
-        export logfilepathfinal=$logfilepathbase/$BASHScriptName.$gaiaversion.${DATEDTGS}.log
+        # ${gaiaversion} set
+        export logfilepathfinal=${logfilepathbase}/${BASHScriptName}.${gaiaversion}.${DATEDTGS}.log
     fi
     
     # if we've been logging, move the temporary log to the final path
     #
-    if [ -r $logfilepath ]; then
-        mv $logfilepath $logfilepathfinal >> $logfilepath
+    if [ -r ${logfilepath} ]; then
+        mv ${logfilepath} ${logfilepathfinal} >> ${logfilepath}
     fi
     
     # And then set the logfilepath value to the final one
     #
-    export logfilepath=$logfilepathfinal
+    export logfilepath=${logfilepathfinal}
     
     #----------------------------------------------------------------------------------------
     # Handle clean-up file creation for nohup operation
     #----------------------------------------------------------------------------------------
     
-    echo | tee -a -i $logfilepath
+    echo | tee -a -i ${logfilepath}
     
-    if $CLIparm_NOHUP; then
+    if ${CLIparm_NOHUP}; then
         
-        echo 'Create NOHUP Clean-up File : ' | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        echo 'Create NOHUP Clean-up File : ' | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        if [ -n $CLIparm_NOHUPScriptName ]; then
+        if [ -n ${CLIparm_NOHUPScriptName} ]; then
             # nohup operation script name was passed in CLI parameters
-            export script2nohup=$CLIparm_NOHUPScriptName
-        elif [ -n $BASHScriptnohupName ]; then
+            export script2nohup=${CLIparm_NOHUPScriptName}
+        elif [ -n ${BASHScriptnohupName} ]; then
             # nohup operation script name uses local definition
-            export script2nohup=$BASHScriptnohupName
+            export script2nohup=${BASHScriptnohupName}
         else
-            # nohup operation script name $BASHScriptnohupName does not exist???
+            # nohup operation script name ${BASHScriptnohupName} does not exist???
             # OK so do some script level manipulation
-            export script2nohup=$BASHScriptFileNameRoot
+            export script2nohup=${BASHScriptFileNameRoot}
         fi
         
         # Nonsense based on some initial research, we'll leave this for now
         #
-        export script2nohuppath=$(dirname "$script2nohup")
-        export script2nohupfile=$(basename -- "$script2nohup")
+        export script2nohuppath=$(dirname "${script2nohup}")
+        export script2nohupfile=$(basename -- "${script2nohup}")
         export script2nohupfile="${script2nohup##*/}"
         export script2nohupfilename="${script2nohupfile##*.}"
         export script2nohupfileext="${script2nohupfile%.*}"
         
         #export script2nohupfile=${script2nohup//\"}
         
-        if [ -n $CLIparm_NOHUPDTG ]; then
+        if [ -n ${CLIparm_NOHUPDTG} ]; then
             export script2nohupDTG=${CLIparm_NOHUPDTG//\"}
         else
-            #export script2nohupDTG=$DATEDTGS
-            export script2nohupDTG=$DATEDTG
+            #export script2nohupDTG=${DATEDTGS}
+            export script2nohupDTG=${DATEDTG}
         fi
         
-        #export script2nohupstdoutlog=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.stdout.txt
-        #export script2nohupstderrlog=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.stderr.txt
-        #export script2watchnohupwork=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.watchme.sh
-        #export script2cleannohupwork=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.cleanup.sh
-        #export script2watchdiskspace=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.sh
-        #export script2logdisklv_log=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.vg_splat-lv_log.sh
-        #export script2logdisklvcrnt=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.vg_splat-lv_current.sh
+        #export script2nohupstdoutlog=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.stdout.txt
+        #export script2nohupstderrlog=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.stderr.txt
+        #export script2watchnohupwork=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.watchme.sh
+        #export script2cleannohupwork=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.cleanup.sh
+        #export script2watchdiskspace=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.sh
+        #export script2logdisklv_log=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.vg_splat-lv_log.sh
+        #export script2logdisklvcrnt=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.vg_splat-lv_current.sh
         
-        export script2nohupstdoutlog=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.stdout.txt
-        export script2nohupstderrlog=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.stderr.txt
-        export script2watchnohupwork=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.watchme.sh
-        export script2cleannohupwork=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.cleanup.sh
-        export script2watchdiskspace=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.sh
-        export script2logdisklv_log=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.vg_splat-lv_log.sh
-        export script2logdisklvcrnt=$outputpathroot/.nohup.$script2nohupDTG.$script2nohupfile.diskspace.vg_splat-lv_current.sh
+        export script2nohupstdoutlog=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.stdout.txt
+        export script2nohupstderrlog=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.stderr.txt
+        export script2watchnohupwork=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.watchme.sh
+        export script2cleannohupwork=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.cleanup.sh
+        export script2watchdiskspace=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.sh
+        export script2logdisklv_log=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.vg_splat-lv_log.sh
+        export script2logdisklvcrnt=${outputpathroot}/.nohup.${script2nohupDTG}.${script2nohupfile}.diskspace.vg_splat-lv_current.sh
         
-        echo 'NOHUP Clean-up related files and values : ' | tee -a -i $logfilepath
-        echo ' $script2nohup          : '"$script2nohup" | tee -a -i $logfilepath
-        echo ' $script2nohuppath      : '"$script2nohuppath" | tee -a -i $logfilepath
-        echo ' $script2nohupfile      : '"$script2nohupfile" | tee -a -i $logfilepath
-        echo ' $script2nohupfilename  : '"$script2nohupfilename" | tee -a -i $logfilepath
-        echo ' $script2nohupfileext   : '"$script2nohupfileext" | tee -a -i $logfilepath
-        echo ' $script2nohupDTG       : '"$script2nohupDTG" | tee -a -i $logfilepath
-        echo ' $script2nohupstdoutlog : '"$script2nohupstdoutlog" | tee -a -i $logfilepath
-        echo ' $script2nohupstderrlog : '"$script2nohupstderrlog" | tee -a -i $logfilepath
-        echo ' $script2watchnohupwork : '"$script2watchnohupwork" | tee -a -i $logfilepath
-        echo ' $script2cleannohupwork : '"$script2cleannohupwork" | tee -a -i $logfilepath
-        echo ' $script2watchdiskspace : '"$script2watchdiskspace" | tee -a -i $logfilepath
-        echo ' $script2logdisklv_log  : '"$script2logdisklv_log" | tee -a -i $logfilepath
-        echo ' $script2logdisklvcrnt  : '"$script2logdisklvcrnt" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        echo 'NOHUP Clean-up related files and values : ' | tee -a -i ${logfilepath}
+        echo ' ${script2nohup}          : '"${script2nohup}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohuppath}      : '"${script2nohuppath}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupfile}      : '"${script2nohupfile}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupfilename}  : '"${script2nohupfilename}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupfileext}   : '"${script2nohupfileext}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupDTG}       : '"${script2nohupDTG}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupstdoutlog} : '"${script2nohupstdoutlog}" | tee -a -i ${logfilepath}
+        echo ' ${script2nohupstderrlog} : '"${script2nohupstderrlog}" | tee -a -i ${logfilepath}
+        echo ' ${script2watchnohupwork} : '"${script2watchnohupwork}" | tee -a -i ${logfilepath}
+        echo ' ${script2cleannohupwork} : '"${script2cleannohupwork}" | tee -a -i ${logfilepath}
+        echo ' ${script2watchdiskspace} : '"${script2watchdiskspace}" | tee -a -i ${logfilepath}
+        echo ' ${script2logdisklv_log}  : '"${script2logdisklv_log}" | tee -a -i ${logfilepath}
+        echo ' ${script2logdisklvcrnt}  : '"${script2logdisklvcrnt}" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        touch $script2cleannohupwork >> $logfilepath
-        chmod 775 $script2cleannohupwork >> $logfilepath
+        touch ${script2cleannohupwork} >> ${logfilepath}
+        chmod 775 ${script2cleannohupwork} >> ${logfilepath}
         
-        echo '#!/bin/bash' > $script2cleannohupwork
-        echo '#' >> $script2cleannohupwork
-        echo  >> $script2cleannohupwork
-        echo 'mv '$script2nohupstdoutlog' '$outputpathbase >> $script2cleannohupwork
-        echo 'mv '$script2nohupstderrlog' '$outputpathbase >> $script2cleannohupwork
-        echo 'mv '$script2watchnohupwork' '$outputpathbase >> $script2cleannohupwork
-        echo 'cp '$script2cleannohupwork' '$outputpathbase >> $script2cleannohupwork
-        echo 'mv '$script2watchdiskspace' '$outputpathbase >> $script2cleannohupwork
-        echo 'mv '$script2logdisklv_log' '$outputpathbase >> $script2cleannohupwork
-        echo 'mv '$script2logdisklvcrnt' '$outputpathbase >> $script2cleannohupwork
-        echo 'echo' >> $script2cleannohupwork
-        echo 'ls -alh '$outputpathbase >> $script2cleannohupwork
-        echo 'echo' >> $script2cleannohupwork
-        echo 'rm '$script2cleannohupwork >> $script2cleannohupwork
-        echo 'echo' >> $script2cleannohupwork
-        echo  >> $script2cleannohupwork
+        echo '#!/bin/bash' > ${script2cleannohupwork}
+        echo '#' >> ${script2cleannohupwork}
+        echo  >> ${script2cleannohupwork}
+        echo 'mv '${script2nohupstdoutlog}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'mv '${script2nohupstderrlog}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'mv '${script2watchnohupwork}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'cp '${script2cleannohupwork}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'mv '${script2watchdiskspace}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'mv '${script2logdisklv_log}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'mv '${script2logdisklvcrnt}' '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'echo' >> ${script2cleannohupwork}
+        echo 'ls -alh '${outputpathbase} >> ${script2cleannohupwork}
+        echo 'echo' >> ${script2cleannohupwork}
+        echo 'rm '${script2cleannohupwork} >> ${script2cleannohupwork}
+        echo 'echo' >> ${script2cleannohupwork}
+        echo  >> ${script2cleannohupwork}
         echo
         
-        echo >> $logfilepath
-        echo '------------------------------------------------------------------------------' >> $logfilepath
-        echo 'Dump nohup cleanup script to log file:  '$script2cleannohupwork >> $logfilepath
-        echo '------------------------------------------------------------------------------' >> $logfilepath
-        echo >> $logfilepath
-        cat $script2cleannohupwork >> $logfilepath
-        echo >> $logfilepath
-        echo '------------------------------------------------------------------------------' >> $logfilepath
-        echo 'Copy nohup cleanup script to log folder:  '$logfilepathbase >> $logfilepath
-        echo '------------------------------------------------------------------------------' >> $logfilepath
-        echo >> $logfilepath
-        cp $script2cleannohupwork $logfilepathbase >> $logfilepath
-        echo >> $logfilepath
-        echo '------------------------------------------------------------------------------' >> $logfilepath
-        echo >> $logfilepath
-        echo >> $logfilepath
+        echo >> ${logfilepath}
+        echo '------------------------------------------------------------------------------' >> ${logfilepath}
+        echo 'Dump nohup cleanup script to log file:  '${script2cleannohupwork} >> ${logfilepath}
+        echo '------------------------------------------------------------------------------' >> ${logfilepath}
+        echo >> ${logfilepath}
+        cat ${script2cleannohupwork} >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo '------------------------------------------------------------------------------' >> ${logfilepath}
+        echo 'Copy nohup cleanup script to log folder:  '${logfilepathbase} >> ${logfilepath}
+        echo '------------------------------------------------------------------------------' >> ${logfilepath}
+        echo >> ${logfilepath}
+        cp ${script2cleannohupwork} ${logfilepathbase} >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo '------------------------------------------------------------------------------' >> ${logfilepath}
+        echo >> ${logfilepath}
+        echo >> ${logfilepath}
         
         
     else
         
-        echo 'NOT in NOHUP mode!  No need for NOHUP Clean-up File ' >> $logfilepath
-        echo >> $logfilepath
+        echo 'NOT in NOHUP mode!  No need for NOHUP Clean-up File ' >> ${logfilepath}
+        echo >> ${logfilepath}
         
     fi
     
@@ -639,80 +644,80 @@ ShowFinalOutputAndLogPaths () {
     # Output and Log file and folder Information
     #----------------------------------------------------------------------------------------
     
-    if [ x"$SCRIPTVERBOSE" = x"true" ] ; then
+    if [ x"${SCRIPTVERBOSE}" = x"true" ] ; then
         # Verbose mode ON
         
         
-        echo "Main script folder locations: " | tee -a -i $logfilepath
-        echo ' $customerpathroot         : '"$customerpathroot" | tee -a -i $logfilepath
-        echo ' $downloadpathroot         : '"$downloadpathroot" | tee -a -i $logfilepath
-        echo ' $customerscriptspathroot  : '"$customerscriptspathroot" | tee -a -i $logfilepath
-        echo ' $scriptspathmain          : '"$scriptspathmain" | tee -a -i $logfilepath
-        echo ' $scriptspathb4CP          : '"$scriptspathb4CP" | tee -a -i $logfilepath
-        if [ -n $scriptsbase ]; then
-            echo ' $scriptsbase              : '"$scriptsbase" | tee -a -i $logfilepath
+        echo "Main script folder locations: " | tee -a -i ${logfilepath}
+        echo ' customerpathroot         : '"${customerpathroot}" | tee -a -i ${logfilepath}
+        echo ' downloadpathroot         : '"${downloadpathroot}" | tee -a -i ${logfilepath}
+        echo ' customerscriptspathroot  : '"${customerscriptspathroot}" | tee -a -i ${logfilepath}
+        echo ' scriptspathmain          : '"${scriptspathmain}" | tee -a -i ${logfilepath}
+        echo ' scriptspathb4CP          : '"${scriptspathb4CP}" | tee -a -i ${logfilepath}
+        if [ -n ${scriptsbase} ]; then
+            echo ' {scriptsbase}              : '"${scriptsbase}" | tee -a -i ${logfilepath}
         fi
-        echo ' $customerworkpathroot     : '"$customerworkpathroot" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        echo ' customerworkpathroot     : '"${customerworkpathroot}" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        echo "Controls : " | tee -a -i $logfilepath
-        echo ' $OutputToRoot              : '"$OutputToRoot" | tee -a -i $logfilepath
-        echo ' $OutputToDump              : '"$OutputToDump" | tee -a -i $logfilepath
-        echo ' $OutputToChangeLog         : '"$OutputToChangeLog" | tee -a -i $logfilepath
-        echo ' $OutputToOther             : '"$OutputToOther" | tee -a -i $logfilepath
-        echo ' $OtherOutputFolder         : '"$OtherOutputFolder" | tee -a -i $logfilepath
-        echo ' $OutputDTGSSubfolder       : '"$OutputDTGSSubfolder" | tee -a -i $logfilepath
-        echo ' $OutputSubfolderScriptName : '"$OutputSubfolderScriptName" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        echo "Controls : " | tee -a -i ${logfilepath}
+        echo ' OutputToRoot              : '"${OutputToRoot}" | tee -a -i ${logfilepath}
+        echo ' OutputToDump              : '"${OutputToDump}" | tee -a -i ${logfilepath}
+        echo ' OutputToChangeLog         : '"${OutputToChangeLog}" | tee -a -i ${logfilepath}
+        echo ' OutputToOther             : '"${OutputToOther}" | tee -a -i ${logfilepath}
+        echo ' OtherOutputFolder         : '"${OtherOutputFolder}" | tee -a -i ${logfilepath}
+        echo ' OutputDTGSSubfolder       : '"${OutputDTGSSubfolder}" | tee -a -i ${logfilepath}
+        echo ' OutputSubfolderScriptName : '"${OutputSubfolderScriptName}" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        echo "Output and Log file, folder locations: " | tee -a -i $logfilepath
-        echo ' $dumppathroot         : '"$dumppathroot" | tee -a -i $logfilepath
-        echo ' $changelogpathroot    : '"$changelogpathroot" | tee -a -i $logfilepath
-        echo ' $outputpathroot       : '"$outputpathroot" | tee -a -i $logfilepath
-        echo ' $outputpathbase       : '"$outputpathbase" | tee -a -i $logfilepath
-        echo ' $logfilepathbase      : '"$logfilepathbase" | tee -a -i $logfilepath
-        echo ' $logfilepath          : '"$logfilepath" | tee -a -i $logfilepath
-        echo ' $logfilepathfirst     : '"$logfilepathfirst" | tee -a -i $logfilepath
-        echo ' $logfilepathfinal     : '"$logfilepathfinal" | tee -a -i $logfilepath
-        echo | tee -a -i $logfilepath
+        echo "Output and Log file, folder locations: " | tee -a -i ${logfilepath}
+        echo ' dumppathroot         : '"${dumppathroot}" | tee -a -i ${logfilepath}
+        echo ' changelogpathroot    : '"${changelogpathroot}" | tee -a -i ${logfilepath}
+        echo ' outputpathroot       : '"${outputpathroot}" | tee -a -i ${logfilepath}
+        echo ' outputpathbase       : '"${outputpathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepathbase      : '"${logfilepathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepath          : '"${logfilepath}" | tee -a -i ${logfilepath}
+        echo ' logfilepathfirst     : '"$logfilepathfirst" | tee -a -i ${logfilepath}
+        echo ' logfilepathfinal     : '"${logfilepathfinal}" | tee -a -i ${logfilepath}
+        echo | tee -a -i ${logfilepath}
         
-        if $CLIparm_NOHUP; then
-            echo 'NOHUP Clean-up related files and values : ' | tee -a -i $logfilepath
-            echo ' $script2nohup          : '"$script2nohup" | tee -a -i $logfilepath
-            echo ' $script2nohuppath      : '"$script2nohuppath" | tee -a -i $logfilepath
-            echo ' $script2nohupfile      : '"$script2nohupfile" | tee -a -i $logfilepath
-            echo ' $script2nohupfilename  : '"$script2nohupfilename" | tee -a -i $logfilepath
-            echo ' $script2nohupfileext   : '"$script2nohupfileext" | tee -a -i $logfilepath
-            echo ' $script2nohupDTG       : '"$script2nohupDTG" | tee -a -i $logfilepath
-            echo ' $script2nohupstdoutlog : '"$script2nohupstdoutlog" | tee -a -i $logfilepath
-            echo ' $script2nohupstderrlog : '"$script2nohupstderrlog" | tee -a -i $logfilepath
-            echo ' $script2watchnohupwork : '"$script2watchnohupwork" | tee -a -i $logfilepath
-            echo ' $script2cleannohupwork : '"$script2cleannohupwork" | tee -a -i $logfilepath
-            echo ' $script2watchdiskspace : '"$script2watchdiskspace" | tee -a -i $logfilepath
-            echo ' $script2logdisklv_log  : '"$script2logdisklv_log" | tee -a -i $logfilepath
-            echo ' $script2logdisklvcrnt  : '"$script2logdisklvcrnt" | tee -a -i $logfilepath
-            echo | tee -a -i $logfilepath
+        if ${CLIparm_NOHUP}; then
+            echo 'NOHUP Clean-up related files and values : ' | tee -a -i ${logfilepath}
+            echo ' script2nohup          : '"${script2nohup}" | tee -a -i ${logfilepath}
+            echo ' script2nohuppath      : '"${script2nohuppath}" | tee -a -i ${logfilepath}
+            echo ' script2nohupfile      : '"${script2nohupfile}" | tee -a -i ${logfilepath}
+            echo ' script2nohupfilename  : '"${script2nohupfilename}" | tee -a -i ${logfilepath}
+            echo ' script2nohupfileext   : '"${script2nohupfileext}" | tee -a -i ${logfilepath}
+            echo ' script2nohupDTG       : '"${script2nohupDTG}" | tee -a -i ${logfilepath}
+            echo ' script2nohupstdoutlog : '"${script2nohupstdoutlog}" | tee -a -i ${logfilepath}
+            echo ' script2nohupstderrlog : '"${script2nohupstderrlog}" | tee -a -i ${logfilepath}
+            echo ' script2watchnohupwork : '"${script2watchnohupwork}" | tee -a -i ${logfilepath}
+            echo ' script2cleannohupwork : '"${script2cleannohupwork}" | tee -a -i ${logfilepath}
+            echo ' script2watchdiskspace : '"${script2watchdiskspace}" | tee -a -i ${logfilepath}
+            echo ' script2logdisklv_log  : '"${script2logdisklv_log}" | tee -a -i ${logfilepath}
+            echo ' script2logdisklvcrnt  : '"${script2logdisklvcrnt}" | tee -a -i ${logfilepath}
+            echo | tee -a -i ${logfilepath}
         fi
         
-        echo "Archive file, folder locations: " | tee -a -i $logfilepath
-        echo ' $archivepathbase      : '"$archivepathbase" | tee -a -i $logfilepath
-        echo ' $archivestartfolder   : '"$archivestartfolder" | tee -a -i $logfilepath
+        echo "Archive file, folder locations: " | tee -a -i ${logfilepath}
+        echo ' archivepathbase      : '"${archivepathbase}" | tee -a -i ${logfilepath}
+        echo ' archivestartfolder   : '"${archivestartfolder}" | tee -a -i ${logfilepath}
         
-        read -t $WAITTIME -n 1 -p "Any key to continue : " anykey
+        read -t ${WAITTIME} -n 1 -p "Any key to continue : " anykey
         echo
         
     else
         # Verbose mode OFF
         
-        echo "Output and Log file, folder locations: " | tee -a -i $logfilepath
-        echo ' $outputpathbase       : '"$outputpathbase" | tee -a -i $logfilepath
-        echo ' $logfilepath          : '"$logfilepath" | tee -a -i $logfilepath
+        echo "Output and Log file, folder locations: " | tee -a -i ${logfilepath}
+        echo ' outputpathbase       : '"${outputpathbase}" | tee -a -i ${logfilepath}
+        echo ' logfilepath          : '"${logfilepath}" | tee -a -i ${logfilepath}
         
-        echo "Archive file, folder locations: " | tee -a -i $logfilepath
-        echo ' $archivepathbase      : '"$archivepathbase" | tee -a -i $logfilepath
-        echo ' $archivestartfolder   : '"$archivestartfolder" | tee -a -i $logfilepath
+        echo "Archive file, folder locations: " | tee -a -i ${logfilepath}
+        echo ' archivepathbase      : '"${archivepathbase}" | tee -a -i ${logfilepath}
+        echo ' archivestartfolder   : '"${archivestartfolder}" | tee -a -i ${logfilepath}
         
-        echo | tee -a -i $logfilepath
+        echo | tee -a -i ${logfilepath}
     fi
     
     return 0
@@ -748,7 +753,7 @@ HandleRootScriptConfiguration "$@"
 # Setup root folder and path values
 #----------------------------------------------------------------------------------------
 
-export alternatepathroot=$customerworkpathroot
+export alternatepathroot=${customerworkpathroot}
 
 HandleLaunchInHomeFolder "$@"
 

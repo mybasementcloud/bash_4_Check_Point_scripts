@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-10-26
-ScriptVersion=04.41.00
+ScriptDate=2020-11-11
+ScriptVersion=04.42.00
 ScriptRevision=000
-TemplateVersion=04.41.00
+TemplateVersion=04.42.00
 TemplateLevel=006
 SubScriptsLevel=006
 SubScriptsVersion=04.20.00
@@ -40,11 +40,11 @@ echo
 
 
 # 2020-09-17
-export ENVIRONMENTHELPFILE=$HOME/environment_help_file.txt
+export ENVIRONMENTHELPFILE=${HOME}/environment_help_file.txt
 
 echo > $ENVIRONMENTHELPFILE
 echo '===============================================================================' >> $ENVIRONMENTHELPFILE
-echo 'MyBasementCloud bash Environment, Scripts :  Version '$ScriptVersion', Revision '$ScriptRevision' from Date '$ScriptDate >> $ENVIRONMENTHELPFILE
+echo 'MyBasementCloud bash Environment, Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}' from Date '${ScriptDate} >> $ENVIRONMENTHELPFILE
 echo '===============================================================================' >> $ENVIRONMENTHELPFILE
 echo >> $ENVIRONMENTHELPFILE
 
@@ -111,19 +111,19 @@ fi
 # points to where jq 1.6 is installed, which is not generally part of Gaia, even R80.40EA (2020-01-20)
 export JQ16PATH=$MYWORKFOLDER/_tools/JQ
 export JQ16FILE=jq-linux64
-export JQ16FQFN=$JQ16PATH/$JQ16FILE
-if [ -r $JQ16FQFN ] ; then
+export JQ16FQFN=$JQ16PATH/${JQ16FILE}
+if [ -r ${JQ16FQFN} ] ; then
     # OK we have the easy-button alternative
-    export JQ16=$JQ16FQFN
+    export JQ16=${JQ16FQFN}
 else
     export JQ16=
 fi
 
-echo '$JQ                          ='"$JQ" >> $tempENVHELPFILEvars
-echo '$JQ16PATH                    ='"$JQ16PATH" >> $tempENVHELPFILEvars
-echo '$JQ16FILE                    ='"$JQ16FILE" >> $tempENVHELPFILEvars
-echo '$JQ16FQFN                    ='"$JQ16FQFN" >> $tempENVHELPFILEvars
-echo '$JQ16                        ='"$JQ16" >> $tempENVHELPFILEvars
+echo '$JQ                          ='"${JQ}" >> $tempENVHELPFILEvars
+echo '$JQ16PATH                    ='"${JQ16PATH}" >> $tempENVHELPFILEvars
+echo '$JQ16FILE                    ='"${JQ16FILE}" >> $tempENVHELPFILEvars
+echo '$JQ16FQFN                    ='"${JQ16FQFN}" >> $tempENVHELPFILEvars
+echo '$JQ16                        ='"${JQ16}" >> $tempENVHELPFILEvars
 echo >> $tempENVHELPFILEvars
 
 
@@ -140,51 +140,57 @@ echo 'show_environment_help        :  Display help for environment variables and
 
 
 #========================================================================================
+# 2020-11-11
 
 alias DTGDATE='date +%Y-%m-%d-%H%M%Z'
 alias DTGSDATE='date +%Y-%m-%d-%H%M%S%Z'
 
+alias DTGUTCDATE='date -u +%Y-%m-%d-%H%M%Z'
+alias DTGUTCSDATE='date -u +%Y-%m-%d-%H%M%S%Z'
+
 echo 'DTGDATE                      :  Generate Date Time Group with Year-Month-Day-Time-TimeZone YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
 echo 'DTGDATE                      :  Generate Date Time Group with Year-Month-Day-Time-TimeZone YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'DTGUTCDATE                   :  Generate UTC based Date Time Group with Year-Month-Day-Time-TimeZone YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
+echo 'DTGUTCSDATE                  :  Generate UTC based Date Time Group with Year-Month-Day-Time-TimeZone YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
 
 alias timecheck='echo -e "Current Date-Time-Group : `DTGSDATE` \n"'
 echo 'timecheck                    :  Show Current DTGS Date Time Group (YYYY-mm-dd-HHMMSSTZ3)' >> $tempENVHELPFILEalias
 
 
 #========================================================================================
-# ADDED 2020-10-26 -
+# ADDED 2020-11-11 -
 
-alias HOSTNAMEDTG='echo $HOSTNAME.`DTGDATE`'
-alias HOSTNAMEDTGS='echo $HOSTNAME.`DTGSDATE`'
-alias HOSTNAMENOW='echo $HOSTNAME.`DTGSDATE`'
+alias HOSTNAMEDTG='echo ${HOSTNAME}.`DTGDATE`'
+alias HOSTNAMEDTGS='echo ${HOSTNAME}.`DTGSDATE`'
+alias HOSTNAMENOW='echo ${HOSTNAME}.`DTGSDATE`'
 
-echo 'HOSTNAMEDTG                  :  Generate hostname . (dot) Date Time Group :  $HOSTNAME.YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
-echo 'HOSTNAMEDTGS                 :  Generate hostname . (dot) Date Time Group with Seconds :  $HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
-echo 'HOSTNAMENOW                  :  Generate hostname . (dot) Date Time Group with Seconds :  $HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTNAMEDTG                  :  Generate hostname . (dot) Date Time Group :  ${HOSTNAME}.YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTNAMEDTGS                 :  Generate hostname . (dot) Date Time Group with Seconds :  ${HOSTNAME}.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTNAMENOW                  :  Generate hostname . (dot) Date Time Group with Seconds :  ${HOSTNAME}.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
 
 
 #========================================================================================
-# ADDED 2020-10-26 -
+# ADDED 2020-11-11 -
 
 #Generate Check Point release version
 CPRELEASEVERSION ()
 {
-    get_platform_release=`$MDS_FWDIR/Python/bin/python $MDS_FWDIR/scripts/get_platform.py -f json | $JQ '. | .release'`
+    get_platform_release=`${MDS_FWDIR}/Python/bin/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
     platform_release=${get_platform_release//\"/}
     get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
     platform_release_version=${get_platform_release_version//\"/}
-    echo $platform_release_version
+    echo ${platform_release_version}
 }
 
 echo 'CPRELEASEVERSION             :  Generate Check Point release version' >> $tempENVHELPFILEalias
 
-alias CPVERSIONNOW='echo `CPRELEASEVERSION`.$HOSTNAME.`DTGSDATE`'
-alias CPVERSIONHOSTNOW='echo `CPRELEASEVERSION`.$HOSTNAME.`DTGSDATE`'
-alias HOSTCPVERSIONNOW='echo $HOSTNAME.`CPRELEASEVERSION`.`DTGSDATE`'
+alias CPVERSIONNOW='echo `CPRELEASEVERSION`.${HOSTNAME}.`DTGSDATE`'
+alias CPVERSIONHOSTNOW='echo `CPRELEASEVERSION`.${HOSTNAME}.`DTGSDATE`'
+alias HOSTCPVERSIONNOW='echo ${HOSTNAME}.`CPRELEASEVERSION`.`DTGSDATE`'
 
 echo 'CPVERSIONNOW                 :  Generate Check Point release version . (dot) Date Time Group :  release_version.YYYY-mm-dd-HHMMTZ3' >> $tempENVHELPFILEalias
-echo 'CPVERSIONHOSTNOW             :  Generate Check Point release version . (dot) hostname . (dot) Date Time Group with Seconds :  release_version.$HOSTNAME.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
-echo 'HOSTCPVERSIONNOW             :  Generate hostname . (dot) Check Point release version . (dot) Date Time Group with Seconds :  $HOSTNAME.release_version.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'CPVERSIONHOSTNOW             :  Generate Check Point release version . (dot) hostname . (dot) Date Time Group with Seconds :  release_version.${HOSTNAME}.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
+echo 'HOSTCPVERSIONNOW             :  Generate hostname . (dot) Check Point release version . (dot) Date Time Group with Seconds :  ${HOSTNAME}.release_version.YYYY-mm-dd-HHMMSSTZ3' >> $tempENVHELPFILEalias
 
 
 #========================================================================================
@@ -285,7 +291,7 @@ alias checkFTW='echo; echo "Check if FTW completed!  TRUE if .wizard_accepted fo
 echo 'checkFTW                     :  Display status of First Time Wizard (FTW) completion or operation' >> $tempENVHELPFILEalias
 
 #========================================================================================
-# 2020-09-17, 2020-10-26
+# 2020-09-17, 2020-11-11
 
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/watch_accel_stats ] ; then
     # GW related aliases
@@ -317,7 +323,7 @@ fi
 # 2020-09-17 Updated
 
 #
-# This section expects definition of the following external variables.  These are usually part of the user profile setup in the $HOME folder
+# This section expects definition of the following external variables.  These are usually part of the user profile setup in the ${HOME} folder
 #  MYTFTPSERVER     default TFTP/FTP server to use for TFTP/FTP operations, usually set to one of the following
 #  MYTFTPSERVER1    first TFTP/FTP server to use for TFTP/FTP operations
 #  MYTFTPSERVER2    second TFTP/FTP server to use for TFTP/FTP operations
@@ -330,33 +336,33 @@ fi
 export MYTFTPSERVER1=192.168.1.1
 export MYTFTPSERVER2=192.168.1.2
 export MYTFTPSERVER3=
-export MYTFTPSERVER=$MYTFTPSERVER1
+export MYTFTPSERVER=${MYTFTPSERVER1}
 export MYTFTPFOLDER=/__gaia
 
-echo '$MYTFTPSERVER1               ='"$MYTFTPSERVER1" >> $tempENVHELPFILEvars
-echo '$MYTFTPSERVER2               ='"$MYTFTPSERVER2" >> $tempENVHELPFILEvars
-echo '$MYTFTPSERVER3               ='"$MYTFTPSERVER3" >> $tempENVHELPFILEvars
-echo '$MYTFTPSERVER                ='"$MYTFTPSERVER" >> $tempENVHELPFILEvars
-echo '$MYTFTPFOLDER                ='"$MYTFTPFOLDER" >> $tempENVHELPFILEvars
+echo '$MYTFTPSERVER1               ='"${MYTFTPSERVER1}" >> $tempENVHELPFILEvars
+echo '$MYTFTPSERVER2               ='"${MYTFTPSERVER2}" >> $tempENVHELPFILEvars
+echo '$MYTFTPSERVER3               ='"${MYTFTPSERVER3}" >> $tempENVHELPFILEvars
+echo '$MYTFTPSERVER                ='"${MYTFTPSERVER}" >> $tempENVHELPFILEvars
+echo '$MYTFTPFOLDER                ='"${MYTFTPFOLDER}" >> $tempENVHELPFILEvars
 echo >> $tempENVHELPFILEvars
 
-alias show_mytftpservers='echo -e "MYTFTPSERVERs: \n MYTFTPSERVER  = $MYTFTPSERVER \n MYTFTPSERVER1 = $MYTFTPSERVER1 \n MYTFTPSERVER2 = $MYTFTPSERVER2 \n MYTFTPSERVER3 = $MYTFTPSERVER3" ;echo'
+alias show_mytftpservers='echo -e "MYTFTPSERVERs: \n MYTFTPSERVER  = ${MYTFTPSERVER} \n MYTFTPSERVER1 = ${MYTFTPSERVER1} \n MYTFTPSERVER2 = ${MYTFTPSERVER2} \n MYTFTPSERVER3 = ${MYTFTPSERVER3}" ;echo'
 echo 'show_mytftpservers           :  Show current settings for the TFTP servers defined by MYTFTPSERVERx ' >> $tempENVHELPFILEalias
 
-alias getupdatescripts='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
+alias getupdatescripts='gougex;pwd;tftp -v -m binary ${MYTFTPSERVER} -c get $MYTFTPFOLDER/updatescripts.sh;echo;chmod 775 updatescripts.sh;echo;ls -alh updatescripts.sh'
 echo 'getupdatescripts             :  Get the current update script from the primary TFTP server' >> $tempENVHELPFILEalias
 
 alias updatelatestscripts='getupdatescripts ; . ./updatescripts.sh ; . ./alias_commands_update_all_users'
 echo 'updatelatestscripts          :  Update to the latest scripts on the TFTP server' >> $tempENVHELPFILEalias
 
-alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/setuphost.sh;echo;chmod 775 setuphost.sh;echo;ls -alh setuphost.sh'
+alias getsetuphostscript='cd /var/log;pwd;tftp -v -m binary ${MYTFTPSERVER} -c get $MYTFTPFOLDER/setuphost.sh;echo;chmod 775 setuphost.sh;echo;ls -alh setuphost.sh'
 echo 'getsetuphostscript           :  Get the current host setup script from the primary TFTP server' >> $tempENVHELPFILEalias
 
 # 2020-01-03
 # Clear legacy value if set
 alias getupdatetoolsscript 2>nul >nul ; if [ $? -eq 0 ] ; then echo 'alias getupdatetoolsscript SET!  REMOVING!'; unalias getupdatetoolsscript; fi ; echo
 
-alias gettoolsupdatescript='gougex;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYTFTPFOLDER/update_tools.sh;echo;chmod 775 update_tools.sh;echo;ls -alh update_tools.sh'
+alias gettoolsupdatescript='gougex;pwd;tftp -v -m binary ${MYTFTPSERVER} -c get $MYTFTPFOLDER/update_tools.sh;echo;chmod 775 update_tools.sh;echo;ls -alh update_tools.sh'
 echo 'gettoolsupdatescript         :  Get the current tools setup script from the primary TFTP server' >> $tempENVHELPFILEalias
 
 
@@ -369,7 +375,7 @@ export MYSMCFOLDER=/__smcias
 echo '$MYSMCFOLDER                 ='"$MYSMCFOLDER" >> $tempENVHELPFILEvars
 echo >> $tempENVHELPFILEvars
 
-alias getfixsmcscript='cd /var/log;pwd;tftp -v -m binary $MYTFTPSERVER -c get $MYSMCFOLDER/fix_smcias_interfaces.sh;echo;chmod 775 fix_smcias_interfaces.sh;echo;ls -alh fix_smcias_interfaces.sh'
+alias getfixsmcscript='cd /var/log;pwd;tftp -v -m binary ${MYTFTPSERVER} -c get $MYSMCFOLDER/fix_smcias_interfaces.sh;echo;chmod 775 fix_smcias_interfaces.sh;echo;ls -alh fix_smcias_interfaces.sh'
 echo 'getfixsmcscript              :  Get script to fix SMC IAS Server interfaces from the primary TFTP server' >> $tempENVHELPFILEalias
 
 
@@ -513,7 +519,7 @@ echo -e 'alias_commands_update_all_users :'"\n"'                             :: 
 
 #========================================================================================
 #========================================================================================
-# 2020-09-30, 2020-10-26
+# 2020-09-30, 2020-11-11
 #
 
 # Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
@@ -537,7 +543,7 @@ help2reference ()
 
 #========================================================================================
 #========================================================================================
-# 2020-09-30, 2020-10-26
+# 2020-09-30, 2020-11-11
 #
 
 # Add function to save the help output from a command to a file in the Upgrade Export Reference Folder
@@ -587,18 +593,18 @@ _list_custom_user_vars ()
     echo '$MYWORKFOLDERREFERENCE       ='"$MYWORKFOLDERREFERENCE"
     echo
     
-    echo '$JQ                          ='"$JQ"
-    echo '$JQ16PATH                    ='"$JQ16PATH"
-    echo '$JQ16FILE                    ='"$JQ16FILE"
-    echo '$JQ16FQFN                    ='"$JQ16FQFN"
-    echo '$JQ16                        ='"$JQ16"
+    echo '$JQ                          ='"${JQ}"
+    echo '$JQ16PATH                    ='"${JQ16PATH}"
+    echo '$JQ16FILE                    ='"${JQ16FILE}"
+    echo '$JQ16FQFN                    ='"${JQ16FQFN}"
+    echo '$JQ16                        ='"${JQ16}"
     echo
     
-    echo '$MYTFTPSERVER1               ='"$MYTFTPSERVER1"
-    echo '$MYTFTPSERVER2               ='"$MYTFTPSERVER2"
-    echo '$MYTFTPSERVER3               ='"$MYTFTPSERVER3"
-    echo '$MYTFTPSERVER                ='"$MYTFTPSERVER"
-    echo '$MYTFTPFOLDER                ='"$MYTFTPFOLDER"
+    echo '$MYTFTPSERVER1               ='"${MYTFTPSERVER1}"
+    echo '$MYTFTPSERVER2               ='"${MYTFTPSERVER2}"
+    echo '$MYTFTPSERVER3               ='"${MYTFTPSERVER3}"
+    echo '$MYTFTPSERVER                ='"${MYTFTPSERVER}"
+    echo '$MYTFTPFOLDER                ='"${MYTFTPFOLDER}"
     echo
     
     echo '$MYSMCFOLDER                 ='"$MYSMCFOLDER"
