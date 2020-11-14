@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-11-12
-ScriptVersion=04.43.00
+ScriptDate=2020-11-13
+ScriptVersion=04.44.00
 ScriptRevision=000
-TemplateVersion=04.43.00
+TemplateVersion=04.44.00
 TemplateLevel=006
 SubScriptsLevel=006
-SubScriptsVersion=04.25.00
+SubScriptsVersion=04.30.00
 #
 
 #========================================================================================
@@ -439,10 +439,12 @@ echo -e 'check_point_service_status_check :'"\n"'                             ::
 if [ -r $MYWORKFOLDERSCRIPTSB4CP/report_mdsstat ] ; then
     alias report_mdsstat='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/report_mdsstat'
     alias watch_mdsstat='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/watch_mdsstat'
-    alias show_domains_in_array='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/show_domains_in_array'
+    alias show_all_domains_in_array='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/show_all_domains_in_array'
+    alias show_sessions_all_domains='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/show_sessions_all_domains'
     echo 'report_mdsstat               :  Display and document status of MDSM server and domains' >> $tempENVHELPFILEalias
     echo 'watch_mdsstat                :  Display (watch) status of MDSM server and domains' >> $tempENVHELPFILEalias
-    echo 'show_domains_in_array        :  Display list of currently defined MDSM Domains on this MDS ' >> $tempENVHELPFILEalias
+    echo 'show_all_domains_in_array    :  Display list of currently defined MDSM Domains on this MDS ' >> $tempENVHELPFILEalias
+    echo 'show_sessions_all_domains    :  Display sessions for all currently defined MDSM Domains on this MDS ' >> $tempENVHELPFILEalias
 fi
 
 alias identify_self_referencing_symbolic_link_files='gougex;echo;$MYWORKFOLDERSCRIPTSB4CP/identify_self_referencing_symbolic_link_files'
