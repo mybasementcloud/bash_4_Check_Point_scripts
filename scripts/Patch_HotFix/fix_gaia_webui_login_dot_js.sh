@@ -13,22 +13,30 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-11-20
-ScriptVersion=04.45.00
-ScriptRevision=020
-TemplateVersion=04.45.00
+ScriptDate=2020-11-26
+ScriptVersion=04.48.00
+ScriptRevision=000
+TemplateVersion=04.48.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
 #
 
-export BASHScriptVersion=v${ScriptVersion//./x}
-export BASHScriptTemplateVersion=v${TemplateVersion//./x}
+export BASHScriptVersion=v${ScriptVersion}
+export BASHScriptTemplateVersion=v${TemplateVersion}
+
+export BASHScriptVersionX=v${ScriptVersion//./x}
+export BASHScriptTemplateVersionX=v${TemplateVersion//./x}
+
 export BASHScriptTemplateLevel=${TemplateLevel}.v${TemplateVersion}
 
-export BASHSubScriptsVersion=v${SubScriptsVersion//./x}
-export BASHSubScriptTemplateVersion=v${TemplateVersion//./x}
-export BASHExpectedSubScriptsVersion=${SubScriptsLevel}.v${SubScriptsVersion//./x}
+export BASHSubScriptsVersion=v${SubScriptsVersion}
+export BASHSubScriptTemplateVersion=v${TemplateVersion}
+export BASHExpectedSubScriptsVersion=${SubScriptsLevel}.v${SubScriptsVersion}
+
+export BASHSubScriptsVersionX=v${SubScriptsVersion//./x}
+export BASHSubScriptTemplateVersionX=v${TemplateVersion//./x}
+export BASHExpectedSubScriptsVersionX=${SubScriptsLevel}.v${SubScriptsVersion//./x}
 
 export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
 export BASHScriptShortName=fix_gaia_webui_login_dot_js.v${ScriptVersion}
