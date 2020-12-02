@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-11-26
-ScriptVersion=04.48.00
+ScriptDate=2020-12-01
+ScriptVersion=04.49.00
 ScriptRevision=000
-TemplateVersion=04.48.00
+TemplateVersion=04.49.00
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=04.48.00
+SubScriptsVersion=04.49.00
 AliasCommandsLevel=020
 #
 
@@ -462,14 +462,16 @@ fi
 
 #========================================================================================
 #========================================================================================
-# 2020-09-17 Updated
+# 2020-12-01 Updated
 
-alias generate_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/generate_script_links'
-alias remove_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/remove_script_links'
+alias generate_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/generate_script_links.v04.49.00'
+alias remove_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/remove_script_links.v04.49.00'
 alias reset_script_links='cd ${MYWORKFOLDERUGEX};remove_script_links;echo;generate_script_links;echo;list'
+alias rebuild_customer_scripts='cd ${MYWORKFOLDERUGEX};remove_script_links;echo;rm -f -r -d -v ${MYWORKFOLDERSCRIPTSB4CP};echo;generate_script_links;echo;list'
 printf "${tCYAN}%-30s${tNORM} : %s\n" "generate_script_links" 'Generate links and references to current scripts' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "remove_script_links" 'Remove links and references to current scripts' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "reset_script_links" 'Remove and Regenerate links and references to current scripts' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-30s${tNORM} : %s\n" "rebuild_customer_scripts" 'Rebuild the _scripts folder at the root of the customer folder' >> ${tempENVHELPFILEalias}
 
 alias gaia_version_type='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/gaia_version_type'
 printf "${tCYAN}%-30s${tNORM} : %s\n" "gaia_version_type" 'Display and document current Gaia version and installation type' >> ${tempENVHELPFILEalias}
@@ -589,20 +591,20 @@ if [ -r ${MYWORKFOLDERSCRIPTSB4CP}/restart_mgmt ] ; then
     printf "${tCYAN}%-30s${tNORM} : %s\n" "restart_mgmt" 'Execute and document a restart of management services' >> ${tempENVHELPFILEalias}
 fi
 
-alias alias_commands_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_add_user'
-alias alias_commands_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_add_all_users'
-alias alias_commands_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_update_user'
-alias alias_commands_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_update_all_users'
+alias alias_commands_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_user.v04.49.00'
+alias alias_commands_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_all_users.v04.49.00'
+alias alias_commands_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_user.v04.49.00'
+alias alias_commands_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_all_users.v04.49.00'
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_add_user" 'Add alias commands to current user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_add_all_users" 'Add alias commands to all user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_update_user" 'Update alias commands to current user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%s${tNORM}\n" "alias_commands_update_all_users" >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Update alias commands to current user' >> ${tempENVHELPFILEalias}
 
-#alias alias_commands_CORE_G2_NPM_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_CORE_G2_NPM_add_user'
-#alias alias_commands_CORE_G2_NPM_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_CORE_G2_NPM_add_all_users'
-#alias alias_commands_CORE_G2_NPM_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_CORE_G2_NPM_update_user'
-#alias alias_commands_CORE_G2_NPM_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERSCRIPTSB4CP}/alias_commands_CORE_G2_NPM_update_all_users'
+#alias alias_commands_CORE_G2_NPM_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_add_user'
+#alias alias_commands_CORE_G2_NPM_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_add_all_users'
+#alias alias_commands_CORE_G2_NPM_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_update_user'
+#alias alias_commands_CORE_G2_NPM_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_update_all_users'
 #printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_add_user" >> ${tempENVHELPFILEalias}
 #printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Add alias commands for CORE_G2_NPM to current user' >> ${tempENVHELPFILEalias}
 #printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_add_all_users" >> ${tempENVHELPFILEalias}
@@ -682,22 +684,31 @@ docset2dumpnow ()
 
 #========================================================================================
 #========================================================================================
-# 2020-11-26
+# 2020-12-01
 #
 
 # Add function to show status of CPUSE and upgrade tools
 #
 
-printf "${tCYAN}%-30s${tNORM} : %s\n" "CPUSE_status" 'Show status of CPUSE and upgrade tools' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-30s${tNORM} : %s\n" "CPUSE_status [release]" 'Show status of CPUSE and upgrade tools' >> ${tempENVHELPFILEalias}
 
 CPUSE_status () 
 { 
     echo
     echo 'Show status of CPUSE and upgrade tools'
     echo
+    # properly handle current product version
     echo 'Try to get Upgrade Tools version: '
-    cpprod_util CPPROD_GetValue CPupgrade-tools-${gaiaversion} BuildNumber 1
+    cpprod_util CPPROD_GetValue CPupgrade-tools-`CPRELEASEVERSION` BuildNumber 1
     echo
+    
+    # properly handle requested product version in 
+    if [ -n $1 ] ; then
+        echo 'Try to get Upgrade Tools version for '$1': '
+        cpprod_util CPPROD_GetValue CPupgrade-tools-$1 BuildNumber 1
+    fi
+    echo
+    
     echo 'Document clish Installer status and packages: '
     clish -i -c "show installer status all"
     echo
