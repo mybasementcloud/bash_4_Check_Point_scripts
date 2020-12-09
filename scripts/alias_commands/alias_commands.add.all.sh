@@ -13,14 +13,14 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-12-01
-ScriptVersion=04.49.00
+ScriptDate=2020-12-09
+ScriptVersion=04.50.00
 ScriptRevision=000
-TemplateVersion=04.49.00
+TemplateVersion=04.50.00
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=04.49.00
-AliasCommandsLevel=020
+SubScriptsVersion=04.50.00
+AliasCommandsLevel=025
 #
 
 #========================================================================================
@@ -464,8 +464,8 @@ fi
 #========================================================================================
 # 2020-12-01 Updated
 
-alias generate_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/generate_script_links.v04.49.00'
-alias remove_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/remove_script_links.v04.49.00'
+alias generate_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/generate_script_links.v04.50.00.sh'
+alias remove_script_links='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/remove_script_links.v04.50.00.sh'
 alias reset_script_links='cd ${MYWORKFOLDERUGEX};remove_script_links;echo;generate_script_links;echo;list'
 alias rebuild_customer_scripts='cd ${MYWORKFOLDERUGEX};remove_script_links;echo;rm -f -r -d -v ${MYWORKFOLDERSCRIPTSB4CP};echo;generate_script_links;echo;list'
 printf "${tCYAN}%-30s${tNORM} : %s\n" "generate_script_links" 'Generate links and references to current scripts' >> ${tempENVHELPFILEalias}
@@ -591,28 +591,15 @@ if [ -r ${MYWORKFOLDERSCRIPTSB4CP}/restart_mgmt ] ; then
     printf "${tCYAN}%-30s${tNORM} : %s\n" "restart_mgmt" 'Execute and document a restart of management services' >> ${tempENVHELPFILEalias}
 fi
 
-alias alias_commands_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_user.v04.49.00'
-alias alias_commands_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_all_users.v04.49.00'
-alias alias_commands_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_user.v04.49.00'
-alias alias_commands_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_all_users.v04.49.00'
+alias alias_commands_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_user.v04.50.00.sh'
+alias alias_commands_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_add_all_users.v04.50.00.sh'
+alias alias_commands_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_user.v04.50.00.sh'
+alias alias_commands_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig/alias_commands_update_all_users.v04.50.00.sh'
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_add_user" 'Add alias commands to current user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_add_all_users" 'Add alias commands to all user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} : %s\n" "alias_commands_update_user" 'Update alias commands to current user' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%s${tNORM}\n" "alias_commands_update_all_users" >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Update alias commands to current user' >> ${tempENVHELPFILEalias}
-
-#alias alias_commands_CORE_G2_NPM_add_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_add_user'
-#alias alias_commands_CORE_G2_NPM_add_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_add_all_users'
-#alias alias_commands_CORE_G2_NPM_update_user='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_update_user'
-#alias alias_commands_CORE_G2_NPM_update_all_users='cd ${MYWORKFOLDERUGEX};${MYWORKFOLDERUGEXSCRIPTS}/UserConfig.CORE_G2.NPM/alias_commands_CORE_G2_NPM_update_all_users'
-#printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_add_user" >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Add alias commands for CORE_G2_NPM to current user' >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_add_all_users" >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Add alias commands for CORE_G2_NPM to all user' >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_update_user" >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Update alias commands for CORE_G2_NPM to current user' >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%s${tNORM}\n" "alias_commands_CORE_G2_NPM_update_all_users" >> ${tempENVHELPFILEalias}
-#printf "${tCYAN}%-30s${tNORM} :: %s\n" " " 'Update alias commands for CORE_G2_NPM to current user' >> ${tempENVHELPFILEalias}
 
 
 #========================================================================================
