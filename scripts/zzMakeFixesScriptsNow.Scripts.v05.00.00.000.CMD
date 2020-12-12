@@ -1,8 +1,8 @@
-@ECHO OFF
+ECHO OFF
 REM
-REM Script :  Code Snipet Open File Types in Text File Editor
+REM Script     :  Deployment Copy :  Scripts scripts to __gaia for distribution
 REM
-REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/
+REM # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 REM #
 REM # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 REM # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -14,7 +14,7 @@ REM # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY
 REM #
 REM #
 
-SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash.b4CP
+SET _LOCALSCRIPTNAME=zzMakeFixesScriptsNow.Scripts
 SET _LOCALSCRIPTDATE=2020-12-11
 SET _LOCALSCRIPTTIME=2055CST
 SET _LOCALSCRIPTVERSION=05.00.00
@@ -781,9 +781,9 @@ REM CD /D "%_scriptTempWORKDIR%"
 
 REM PUSHD "%_scriptTempWORKDIR%" 
 
-@ECHO Open File Types in Text File Editor?
+@ECHO Make Fixes Scripts Now
 @ECHO.
-@ECHO Open File Types in Text File Editor? >> "%_scriptLOGFQPN%"
+@ECHO Make Fixes Scripts Now >> "%_scriptLOGFQPN%"
 @ECHO. >> "%_scriptLOGFQPN%"
 
 IF "%_JUSTDOIT%"=="TRUE" GOTO :WEAREGOODTOGO
@@ -802,7 +802,7 @@ REM SET "ENTERDATETIMEGRP="
 
 REM * ===================================================================================
 REM * ===================================================================================
-REM * Open File Types in Text File Editor
+REM * Make Fixes Scripts Now
 REM * ===================================================================================
 REM * ===================================================================================
 
@@ -818,434 +818,227 @@ REM ============================================================================
 
 REM =====================================================================================
 REM -------------------------------------------------------------------------------------
-REM START SUBROUTINE:  sub_ProcessFolderFile  :  Process a File in the folder
+REM START SUBROUTINE:  sub_XCopySourceToTargetwithXcopyParms  :  
 REM -------------------------------------------------------------------------------------
 
-:sub_ProcessFolderFile
+:sub_XCopySourceToTargetwithXcopyParms
 
-REM parameter 1 :  File in Folder
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
 
-REM -------------------------------------------------------------------------------------
+SET _sublocalXcopyParms=%~1
+SET _sublocalSource=%~2
+SET _sublocalTarget=%~3
 
-SET "_localFILE="
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
 
-SET "_localFILE=%~1"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO:Source         = "%_sublocalSource%" >> "%_scriptLOGFQPN%"
+@ECHO:Target         = "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
+@ECHO:XcopyParms     = "%_sublocalXcopyParms%" >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
-REM ECHO. >> "%_scriptLOGFQPN%"
-REM ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO Subroutine sub_ProcessFolderFile Start >> "%_scriptLOGFQPN%"
-REM ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
+IF EXIST "%_sublocalSource%" (
+	REM Source found
+	
+	REM Check target directory exists, and if not create it
+	IF NOT EXIST "%_sublocalTarget%" MKDIR "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
+	
+	@ECHO:XCopying using "%_sublocalXcopyParms%" from "%_sublocalSource%" to "%_sublocalTarget%"
+	@ECHO:XCopying from Source to Target using XcopyParms >> "%_scriptLOGFQPN%"
+	@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+	
+	XCOPY "%_sublocalSource%" "%_sublocalTarget%" %_sublocalXcopyParms% >> "%_scriptLOGFQPN%"
+	
+) ELSE (
+	REM NOT Source found !
+	
+	@ECHO:Source does not exist "%_sublocalSource%" !
+	@ECHO:Source does not exist "%_sublocalSource%" ! >> "%_scriptLOGFQPN%"
+)
 
-@ECHO:   Process Folder FILE ="%_localFILE%"
-@ECHO:   Process Folder FILE ="%_localFILE%" >> "%_scriptLOGFQPN%"
-START "%FILEEDITORNAME%" /MAX /B "%FILEEDITOR%" "%_localFILE%"
-
-REM ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO Subroutine sub_ProcessFolderFile Finished >> "%_scriptLOGFQPN%"
-REM ECHO ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
-
-SET "_localFILE="
-
-EXIT /B
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 REM * -----------------------------------------------------------------------------------
-REM * SUBROUTINE IMPLEMENTATION ELEMENTS :  sub_ProcessFolderFile
+REM * Clean-up subroutine local variables
 REM * -----------------------------------------------------------------------------------
-
-REM CALL :sub_ProcessFolderFile %parameter%
-
-REM -------------------------------------------------------------------------------------
-REM END SUBROUTINE:  sub_ProcessFolderFile
-REM -------------------------------------------------------------------------------------
-REM =====================================================================================
-
-
-REM =====================================================================================
-REM -------------------------------------------------------------------------------------
-REM START SUBROUTINE:  sub_ProcessWORKFolder  :  Process WORK Folders
-REM -------------------------------------------------------------------------------------
-
-:sub_ProcessWORKFolder
-
-REM parameter 1 :  WORK Folder
-
-REM -------------------------------------------------------------------------------------
-
-SET "_localWORKFOLDER="
-
-SET "_localWORKFOLDER=%~1"
-
-REM Check if WORK folders to ignore
-IF /I "%_localWORKFOLDER%"=="." GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"==".." GOTO :SKIPWORKACTION
-REM IF /I "%_localWORKFOLDER%"=="%_localROOTFOLDER%" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="__folder_template" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="__history" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="__scripting_tools" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="__Updates" GOTO :SKIPWORKACTION
-REM IF /I "%_localWORKFOLDER%"=="_code_snippets" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_Deprecated Scripts" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_fixes" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_research_scripts" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_scripting_tools" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_SYNCAPP" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="_tools" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="Code_Snipets" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="dump" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="delete.csv" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="import.csv" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="sample_data" GOTO :SKIPWORKACTION
-IF /I "%_localWORKFOLDER%"=="test" GOTO :SKIPWORKACTION
-
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: Subroutine sub_ProcessWORKFolder Start : folder = %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
-
-@ECHO: WORK FOLDER = "%_localWORKFOLDER%" >> "%_scriptLOGFQPN%"
-
-PUSHD %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
-REM PWD >> "%_scriptLOGFQPN%"
-@ECHO: HANDLE THIS WORK DIRECTORYS FILES (%_localWORKFOLDER%) :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: HANDLE THIS WORK DIRECTORYS FILES (%_localWORKFOLDER%) :  %CD%
-
-REM IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%%I")
-
-@ECHO: >> "%_scriptLOGFQPN%"
-
-POPD >> "%_scriptLOGFQPN%"
-REM PWD >> "%_scriptLOGFQPN%"
-@ECHO: RETURN DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-
-REM ECHO. >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: Subroutine sub_ProcessWORKFolder Finished : folder = %_localWORKFOLDER% >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
-GOTO :ENDWORKACTION
-
-:SKIPWORKACTION
-
-@ECHO: SKIPPING FOLDER = "%_localWORKFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: SKIPPING FOLDER = "%_localWORKFOLDER%"
-
-:ENDWORKACTION
-REM @ECHO: >> "%_scriptLOGFQPN%"
-
-REM -------------------------------------------------------------------------------------
-
-SET "_localWORKFOLDER="
-
-EXIT /B
-
-REM * -----------------------------------------------------------------------------------
-REM * SUBROUTINE IMPLEMENTATION ELEMENTS :  sub_ProcessWORKFolder
-REM * -----------------------------------------------------------------------------------
-
-REM CALL :sub_ProcessWORKFolder %parameter%
-
-REM -------------------------------------------------------------------------------------
-REM END SUBROUTINE:  sub_ProcessWORKFolder
-REM -------------------------------------------------------------------------------------
-REM =====================================================================================
-
-
-REM =====================================================================================
-REM -------------------------------------------------------------------------------------
-REM START SUBROUTINE:  sub_ProcessROOTFolder  :  Process ROOT Folders
-REM -------------------------------------------------------------------------------------
-
-:sub_ProcessROOTFolder
-
-REM parameter 1 :  ROOT Folder
-
-REM -------------------------------------------------------------------------------------
-
-SET "_localROOTFOLDER="
-
-SET "_localROOTFOLDER=%~1"
-
-REM Check if folders to ignore
-IF /I "%_localROOTFOLDER%"=="__folder_template" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="__history" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="__scripting_tools" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="__Updates" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_Deprecated Scripts" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_fixes" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_research_scripts" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_scripting_tools" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_SYNCAPP" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="_tools" GOTO :SKIPACTION
-REM IF /I "%_localROOTFOLDER%"=="Code_Snipets" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="dump" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="delete.csv" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="import.csv" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="sample_data" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="test" GOTO :SKIPACTION
-IF /I "%_localROOTFOLDER%"=="Session_Cleanup" GOTO :SKIPACTION
-
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: Subroutine sub_ProcessROOTFolder Start : folder = %_localROOTFOLDER% >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-REM ECHO. >> "%_scriptLOGFQPN%"
-
-REM Not a folders to ignore
-@ECHO: ROOT FOLDER = "%_localROOTFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: ROOT FOLDER = "%_localROOTFOLDER%"
-
-PUSHD %_localROOTFOLDER% >> "%_scriptLOGFQPN%"
-REM PWD >> "%_scriptLOGFQPN%"
-@ECHO: HANDLE THIS DIRECTORIES FILES :  %CD% >> "%_scriptLOGFQPN%"
-
-REM IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-REM IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%CD%\%%I")
-IF NOT "%TARGETEXTENSION1%"=="" FOR %%I IN (%TARGETEXTENSION1%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION2%"=="" FOR %%I IN (%TARGETEXTENSION2%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION3%"=="" FOR %%I IN (%TARGETEXTENSION3%) DO (CALL :sub_ProcessFolderFile "%%I")
-IF NOT "%TARGETEXTENSION4%"=="" FOR %%I IN (%TARGETEXTENSION4%) DO (CALL :sub_ProcessFolderFile "%%I")
-
-@ECHO: >> "%_scriptLOGFQPN%"
-
-SET FILESORTWORKDIR=%TEMP%\_tempWORKDIRSORT.TXT
-
-DIR /A:D /B | SORT > "%FILESORTWORKDIR%"
-
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: WORK DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-TYPE "%FILESORTWORKDIR%" >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
-REM FOR /F "tokens=*" %%I IN ('DIR /A:D /B | SORT') DO (CALL :sub_ProcessWORKFolder %%H)
-FOR /F "delims=" %%H IN (%FILESORTWORKDIR%) DO (CALL :sub_ProcessWORKFolder "%%H")
-
-DEL "%FILESORTWORKDIR%" >> "%_scriptLOGFQPN%"
-
-@ECHO: >> "%_scriptLOGFQPN%"
-POPD >> "%_scriptLOGFQPN%"
-REM PWD >> "%_scriptLOGFQPN%"
-@ECHO: RETURN DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: Subroutine sub_ProcessROOTFolder Finished : folder = %_localROOTFOLDER% >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO:
-
-GOTO :ENDACTION
-
-:SKIPACTION
-
-@ECHO: SKIPPING FOLDER = "%_localROOTFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: SKIPPING FOLDER = "%_localROOTFOLDER%"
-
-:ENDACTION
-REM @ECHO: >> "%_scriptLOGFQPN%"
-
-
-REM -------------------------------------------------------------------------------------
-
-SET "_localROOTFOLDER="
-
-EXIT /B
-
-REM * -----------------------------------------------------------------------------------
-REM * SUBROUTINE IMPLEMENTATION ELEMENTS :  sub_ProcessROOTFolder
-REM * -----------------------------------------------------------------------------------
-
-REM CALL :sub_ProcessROOTFolder %parameter%
-
-REM -------------------------------------------------------------------------------------
-REM END SUBROUTINE:  sub_ProcessROOTFolder
-REM -------------------------------------------------------------------------------------
-REM =====================================================================================
-
-
-REM =====================================================================================
-REM =====================================================================================
-REM END OF MAIN SUBROUTINES
-REM =====================================================================================
-REM =====================================================================================
-REM =====================================================================================
-
-:SKIPMAINSUBROUTINES
-
-REM * ===================================================================================
-REM * ===================================================================================
-REM * Do Something 1
-REM * ===================================================================================
-REM * ===================================================================================
-
-@ECHO: >> "%_scriptLOGFQPN%"
-
-REM SET xFILEFQPN=%~f1
-REM SET xFILEPATH=%~p1
-REM SET xFILENAMEWEXT=%~nx1
-REM SET xFILEDRIVE=%~d1
-
-
-@ECHO: Log File                        :  "%_scriptLOGFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO: Log File                        :  "%_scriptLOGFQPN%"
-
-SET SCRIPTFQPN=%~f0
-
-@ECHO: Script FQPN for Action          :  "%SCRIPTFQPN%" >> "%_scriptLOGFQPN%"
-@ECHO: Script FQPN for Action          :  "%SCRIPTFQPN%"
-
-SET SCRIPTNAME=%~nx0
-
-@ECHO: Script Name for Action          :  "%SCRIPTNAME%" >> "%_scriptLOGFQPN%"
-@ECHO: Script Name for Action          :  "%SCRIPTNAME%"
-
-SET SCRIPTFOLDER=%~p0
-
-@ECHO: Script Folder for Action        :  "%SCRIPTFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: Script Folder for Action        :  "%SCRIPTFOLDER%"
-
-SET LOCALFOLDER=%CD%
-
-@ECHO: Local Folder for Action         :  "%LOCALFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: Local Folder for Action         :  "%LOCALFOLDER%"
-
-SET TEMPFOLDER=%TEMP%
-
-@ECHO: Temp Folder for Action          :  "%TEMPFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: Temp Folder for Action          :  "%TEMPFOLDER%"
-
-
-SET "TARGETFOLDER="
-IF "%~1"=="" SET "TARGETFOLDER=."
-IF EXIST "%1" SET "TARGETFOLDER=%1"
-
-@ECHO: Target Folder for Action        :  "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
-@ECHO: Target Folder for Action        :  "%TARGETFOLDER%"
-
-IF "%TARGETFOLDER%"=="" GOTO :ENDOFSCRIPT
-
-SET "RAWEXTENSION1="
-IF "%~2"=="" SET "RAWEXTENSION1=VERSION"
-IF NOT "%~2"=="" SET "RAWEXTENSION1=%2"
-
-SET "TARGETEXTENSION1=*.%RAWEXTENSION1%"
-
-@ECHO: Target Extension 1 for Action   :  "%TARGETEXTENSION1%" >> "%_scriptLOGFQPN%"
-@ECHO: Target Extension 1 for Action   :  "%TARGETEXTENSION1%"
-
-IF "%TARGETEXTENSION1%"=="" GOTO :ENDOFSCRIPT
-
-SET "RAWEXTENSION2="
-IF "%~3"=="" SET "RAWEXTENSION2=SH"
-IF NOT "%~3"=="" SET "RAWEXTENSION2=%3"
-
-SET "TARGETEXTENSION2=*.%RAWEXTENSION2%"
-
-@ECHO: Target Extension 2 for Action   :  "%TARGETEXTENSION2%" >> "%_scriptLOGFQPN%"
-@ECHO: Target Extension 2 for Action   :  "%TARGETEXTENSION2%"
-
-IF "%TARGETEXTENSION2%"=="" GOTO :ENDOFSCRIPT
-
-SET "RAWEXTENSION3="
-IF "%~4"=="" SET "RAWEXTENSION3=JSON"
-IF NOT "%~4"=="" SET "RAWEXTENSION3=%4"
-
-SET "TARGETEXTENSION3=*.%RAWEXTENSION3%"
-
-@ECHO: Target Extension 3 for Action   :  "%TARGETEXTENSION3%" >> "%_scriptLOGFQPN%"
-@ECHO: Target Extension 3 for Action   :  "%TARGETEXTENSION3%"
-
-IF "%TARGETEXTENSION3%"=="" GOTO :ENDOFSCRIPT
-
-SET "RAWEXTENSION4="
-IF "%~5"=="" SET "RAWEXTENSION4=HELP"
-IF NOT "%~5"=="" SET "RAWEXTENSION4=%5"
-
-SET "TARGETEXTENSION4=*.%RAWEXTENSION4%"
-
-@ECHO: Target Extension 4 for Action   :  "%TARGETEXTENSION4%" >> "%_scriptLOGFQPN%"
-@ECHO: Target Extension 4 for Action   :  "%TARGETEXTENSION4%"
-
-IF "%TARGETEXTENSION4%"=="" GOTO :ENDOFSCRIPT
-
-@ECHO: >> "%_scriptLOGFQPN%"
-
-PAUSE
-
-PUSHD "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
-
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: CURRENT DIRECTORY :  %CD%
-@ECHO:
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-
-CALL :sub_ProcessWORKFolder "%CD%"
-
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-
-SET FILESORTROOTDIR=%TEMP%\_tempROOTDIRSORT.TXT
-
-DIR /A:D /B | SORT > "%FILESORTROOTDIR%"
-
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: ROOT DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-TYPE "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
-FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
-
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-
-DEL "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
-
-@ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
-POPD >> "%_scriptLOGFQPN%"
-
-:ENDOFSCRIPT
-
-@ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
-
+SET "_sublocalSource="
+SET "_sublocalTarget="
+SET "_sublocalXcopyParms="
 
 REM * ===================================================================================
 REM * Log the results
 REM * ===================================================================================
 
 
-REM @ECHO. >> "%_scriptLOGFQPN%"
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_XCopySourceToTargetwithXcopyParms
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_XCopySourceToTargetwithXcopyParms XCopyParms Source Target
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_XCopySourceToTargetwithXcopyParms
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
 
 
-REM * =========================================================================
-REM * =========================================================================
+REM =====================================================================================
+REM -------------------------------------------------------------------------------------
+REM START SUBROUTINE:  sub_CopySourceToTargetwithCopyParms  :  
+REM -------------------------------------------------------------------------------------
+
+:sub_CopySourceToTargetwithCopyParms
+
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
+
+SET _sublocalCopyParms=%~1
+SET _sublocalSource=%~2
+SET _sublocalTarget=%~3
+
+REM * -------------------------------------------------------------------------
+REM * Set subroutine local variables
+REM * -------------------------------------------------------------------------
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO:Source         = "%_sublocalSource%" >> "%_scriptLOGFQPN%"
+@ECHO:Target         = "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
+@ECHO:CopyParms     = "%_sublocalCopyParms%" >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+IF EXIST "%_sublocalSource%" (
+	REM Source found
+	
+	@ECHO:Copying using "%_sublocalCopyParms%" from "%_sublocalSource%" to "%_sublocalTarget%"
+	@ECHO:Copying from Source to Target using CopyParms >> "%_scriptLOGFQPN%"
+	@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+	
+	COPY %_sublocalCopyParms% "%_sublocalSource%" "%_sublocalTarget%" >> "%_scriptLOGFQPN%"
+	
+) ELSE (
+	REM NOT Source found !
+	
+	@ECHO:Source does not exist "%_sublocalSource%" !
+	@ECHO:Source does not exist "%_sublocalSource%" ! >> "%_scriptLOGFQPN%"
+)
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM * -----------------------------------------------------------------------------------
+REM * Clean-up subroutine local variables
+REM * -----------------------------------------------------------------------------------
+SET "_sublocalSource="
+SET "_sublocalTarget="
+SET "_sublocalXcopyParms="
+
+REM * ===================================================================================
+REM * Log the results
+REM * ===================================================================================
+
+
+EXIT /B 0
+
+REM -------------------------------------------------------------------------------------
+REM SUBROUTINE IMPLEMENTATION ELEMENTS : sub_CopySourceToTargetwithCopyParms
+REM -------------------------------------------------------------------------------------
+
+REM CALL :sub_CopySourceToTargetwithCopyParms XCopyParms Source Target
+
+REM -------------------------------------------------------------------------------------
+REM END SUBROUTINE: sub_CopySourceToTargetwithCopyParms
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM END OF MAIN SUBROUTINES
+REM -------------------------------------------------------------------------------------
+REM -------------------------------------------------------------------------------------
+REM =====================================================================================
+
+
+:SKIPMAINSUBROUTINES
+
+REM -----------------------------------------------------------------
+REM -----------------------------------------------------------------
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+SET XCOPYPARMS=/v/S/E/I/F/H/R/K/Y
+
+REM CALL :sub_XCopySourceToTargetwithXcopyParms %XCOPYPARMS% <source_files> <target_folder>
+
+REM CALL :sub_XCopySourceToTargetwithXcopyParms %XCOPYPARMS% ".\scripts\GAIA\*.sh" ".\__gaia\"
+
+
+REM This needs a solution, but probably also more coding
+REM CALL :sub_XCopySourceToTargetwithXcopyParms %XCOPYPARMS% ".\scripts\SMS\help.v??.??.??\*.help" ".\scripts.wip\SMS.wip\help.v??.??.??\*.help"
+
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM SET XCOPYPARMS=/v/I/F/H/R/K/Y
+SET COPYPARMS=/V/Y
+
+REM CALL :sub_XCopySourceToTargetwithXcopyParms %XCOPYPARMS% ".\scripts\GAIA\*.sh" ".\__gaia\"
+REM IF NOT EXIST ".\scripts\GAIA\update_gaia_dynamic_cli.sh" CALL :sub_XCopySourceToTargetwithXcopyParms %XCOPYPARMS% ".\scripts\GAIA\update_gaia_dynamic_cli.*.sh" ".\__gaia\update_gaia_dynamic_cli.sh"
+
+SET "TARGETUPDATEFOLDER=.\_fixes"
+
+REM Check target directory exists, and if not create it
+IF NOT EXIST "%TARGETUPDATEFOLDER%" MKDIR "%TARGETUPDATEFOLDER%" >> "%_scriptLOGFQPN%"
+
+SET "SOURCEFILE000=.\_scripting_tools\_fixes_update_info.TBEx.YYYY-MM-DD-HHmmZZZ.original.sh"
+SET "TARGETFILE000M=%TARGETUPDATEFOLDER%\_fixes_update_info.TBEx.%_DTTZ_SUFFIX_DATEDASH%-XXXXZZZ.original.sh"
+SET "TARGETFILE000A=%TARGETUPDATEFOLDER%\_fixes_update_info.TBEx.%_DTTZ_SUFFIX_DTGTZDASH%.original.sh"
+IF NOT EXIST "%TARGETFILE000M%" (
+	CALL :sub_CopySourceToTargetwithCopyParms %COPYPARMS% "%SOURCEFILE000%" "%TARGETFILE000M%"
+) ELSE (
+	CALL :sub_CopySourceToTargetwithCopyParms %COPYPARMS% "%SOURCEFILE000%" "%TARGETFILE000A%"
+)
+
+SET "SOURCEFILE001=.\_scripting_tools\_fixes_update_info.TBEx.YYYY-MM-DD-HHmmZZZ.updated.sh"
+SET "TARGETFILE001M=%TARGETUPDATEFOLDER%\_fixes_update_info.TBEx.%_DTTZ_SUFFIX_DATEDASH%-XXXXZZZ.updated.sh"
+SET "TARGETFILE001A=%TARGETUPDATEFOLDER%\_fixes_update_info.TBEx.%_DTTZ_SUFFIX_DTGTZDASH%.updated.sh"
+IF NOT EXIST "%TARGETFILE001M%" (
+	CALL :sub_CopySourceToTargetwithCopyParms %COPYPARMS% "%SOURCEFILE001%" "%TARGETFILE001M%"
+) ELSE (
+	CALL :sub_CopySourceToTargetwithCopyParms %COPYPARMS% "%SOURCEFILE001%" "%TARGETFILE001A%"
+)
+
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+@ECHO.
+@ECHO Remove unwanted files that are copied to __gaia >> "%_scriptLOGFQPN%"
+@ECHO.
+
+REM DEL /F /Q ".\__gaia\updatescripts.sample.sh" >> "%_scriptLOGFQPN%"
+REM DEL /F /Q ".\__gaia\updatescripts.sample.*.sh" >> "%_scriptLOGFQPN%"
+
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO Fixes files >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+DIR ".\_fixes\" >> "%_scriptLOGFQPN%"
+
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+@ECHO ------------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
 
 REM =====================================================================================
 REM Show the logged results

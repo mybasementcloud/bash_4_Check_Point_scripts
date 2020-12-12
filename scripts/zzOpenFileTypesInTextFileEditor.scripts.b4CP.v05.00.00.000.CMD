@@ -14,7 +14,7 @@ REM # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY
 REM #
 REM #
 
-SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.bash.b4CP
+SET _LOCALSCRIPTNAME=zzOpenFileTypesInTextFileEditor.scripts.b4CP
 SET _LOCALSCRIPTDATE=2020-12-11
 SET _LOCALSCRIPTTIME=2055CST
 SET _LOCALSCRIPTVERSION=05.00.00
@@ -1202,26 +1202,71 @@ PUSHD "%TARGETFOLDER%" >> "%_scriptLOGFQPN%"
 
 CALL :sub_ProcessWORKFolder "%CD%"
 
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
-SET FILESORTROOTDIR=%TEMP%\_tempROOTDIRSORT.TXT
+REM SET FILESORTROOTDIR=%TEMP%\_tempROOTDIRSORT.TXT
 
-DIR /A:D /B | SORT > "%FILESORTROOTDIR%"
+REM DIR /A:D /B | SORT > "%FILESORTROOTDIR%"
 
-@ECHO: >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
-@ECHO: ROOT DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-TYPE "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
-@ECHO: >> "%_scriptLOGFQPN%"
+REM @ECHO: >> "%_scriptLOGFQPN%"
+REM @ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+REM @ECHO: =============================================================================== >> "%_scriptLOGFQPN%"
+REM @ECHO: ROOT DIRECTORIES SORTED : >> "%_scriptLOGFQPN%"
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM TYPE "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM @ECHO: >> "%_scriptLOGFQPN%"
 
-FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
+REM FOR /F "delims=" %%G IN (%FILESORTROOTDIR%) DO (CALL :sub_ProcessROOTFolder "%%G")
 
-@ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
-DEL "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
+REM DEL "%FILESORTROOTDIR%" >> "%_scriptLOGFQPN%"
+
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
+
+REM CALL :sub_ProcessROOTFolder "."
+REM CALL :sub_ProcessROOTFolder ".\_fixes"
+
+CALL :sub_ProcessROOTFolder "_subscripts"
+CALL :sub_ProcessROOTFolder "_template"
+
+CALL :sub_ProcessROOTFolder "alias_commands"
+REM CALL :sub_ProcessROOTFolder "__SAMPLE\alias_commands"
+
+CALL :sub_ProcessROOTFolder "_hostsetupscripts"
+REM CALL :sub_ProcessROOTFolder "__SAMPLE\_hostsetupscripts"
+CALL :sub_ProcessROOTFolder "_hostupdatescripts"
+REM CALL :sub_ProcessROOTFolder "__SAMPLE\_hostupdatescripts"
+CALL :sub_ProcessROOTFolder "_scripting_tools"
+REM CALL :sub_ProcessROOTFolder "_tools"
+
+CALL :sub_ProcessROOTFolder "Common"
+CALL :sub_ProcessROOTFolder "Config"
+CALL :sub_ProcessROOTFolder "GAIA"
+REM CALL :sub_ProcessROOTFolder "__SAMPLE\GAIA"
+CALL :sub_ProcessROOTFolder "GW"
+CALL :sub_ProcessROOTFolder "GW.CORE"
+REM CALL :sub_ProcessROOTFolder "GW.CORE\SK106251"
+REM CALL :sub_ProcessROOTFolder "GW.CORE\SMCIAS01"
+REM CALL :sub_ProcessROOTFolder "GW.CORE\SMCIAS02"
+CALL :sub_ProcessROOTFolder "Health_Check"
+CALL :sub_ProcessROOTFolder "MDM"
+CALL :sub_ProcessROOTFolder "MGMT"
+CALL :sub_ProcessROOTFolder "Patch_HotFix"
+CALL :sub_ProcessROOTFolder "SmartEvent"
+CALL :sub_ProcessROOTFolder "SMS"
+CALL :sub_ProcessROOTFolder "SMS.CORE"
+CALL :sub_ProcessROOTFolder "SMS.migrate_backup"
+CALL :sub_ProcessROOTFolder "UserConfig"
+
+REM CALL :sub_ProcessWORKFolder "__SAMPLE"
+CALL :sub_ProcessROOTFolder "__SAMPLE"
+
+CALL :sub_ProcessROOTFolder "_api_subscripts"
+CALL :sub_ProcessROOTFolder "Session_Cleanup"
+
+REM @ECHO: ------------------------------------------------------------------------------- >> "%_scriptLOGFQPN%"
 
 @ECHO: CURRENT DIRECTORY :  %CD% >> "%_scriptLOGFQPN%"
 @ECHO: =============================================================================== >> "%_scriptLOGFQPN%"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# SCRIPT Setup rad_admin stats for needed blades to monitor and launch cpview
 #
 # (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -38,20 +38,20 @@ export BASHSubScriptsVersionX=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersionX=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersionX=${SubScriptsLevel}.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
-export BASHScriptShortName=fix_gaia_webui_login_dot_js.v${ScriptVersion}
+export BASHScriptFileNameRoot=enable_rad_admin_stats
+export BASHScriptShortName=${BASHScriptFileNameRoot}.v${ScriptVersion}
 export BASHScriptnohupName=${BASHScriptShortName}
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription="Setup rad_admin stats for needed blades to monitor and launch cpview"
 
 #export BASHScriptName=${BASHScriptFileNameRoot}.${TemplateLevel}.v${ScriptVersion}
-export BASHScriptName=${BASHScriptFileNameRoot}
+export BASHScriptName=${BASHScriptFileNameRoot}.${TemplateLevel}.v${ScriptVersion}
 
 export BASHScriptHelpFileName=${BASHScriptFileNameRoot}.help
 export BASHScriptHelpFilePath=help.v${ScriptVersion}
 export BASHScriptHelpFile=${BASHScriptHelpFilePath}/${BASHScriptHelpFileName}
 
 # _api_subscripts|_hostsetupscripts|_hostupdatescripts|_scripting_tools|_subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=GW
 
 export BASHScripttftptargetfolder="_template"
 
@@ -79,7 +79,34 @@ export DATEUTCYMD=`date -u +%Y-%m-%d`
 
 
 # -------------------------------------------------------------------------------------------------
+# Other variable configuration
 # -------------------------------------------------------------------------------------------------
+
+
+WAITTIME=20
+
+B4CPSCRIPTVERBOSE=false
+
+
+# -------------------------------------------------------------------------------------------------
+# END: Basic Configuration
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Start of Script Operations
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------------------
+# Local Operations variables
+# -------------------------------------------------------------------------------------------------
+
+
+targetfolder=/var/log/__customer/upgrade_export
+
 
 # -------------------------------------------------------------------------------------------------
 # Script intro
@@ -95,122 +122,23 @@ echo
 
 
 # -------------------------------------------------------------------------------------------------
-# JQ and json related
-# -------------------------------------------------------------------------------------------------
-
-# points to where jq is installed
-export JQ=${CPDIR_PATH}/jq/jq
-    
-# -------------------------------------------------------------------------------------------------
-# END:  Basic Configuration
-# -------------------------------------------------------------------------------------------------
+# Launch cpview
 # -------------------------------------------------------------------------------------------------
 
 
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-# START: Root Script Configuration
-# -------------------------------------------------------------------------------------------------
+rad_admin stats on urlf
+rad_admin stats on appi
+rad_admin stats on av
+rad_admin stats on malware
 
-export customerpathroot=/var/log/__customer
-export customerworkpathroot=${customerpathroot}/upgrade_export
+cpview
 
-export scriptspathroot=${customerworkpathroot}/scripts
-
-export subscriptsfolder=_subscripts
 
 
 # -------------------------------------------------------------------------------------------------
-# localrootscriptconfiguration - Local Root Script Configuration setup
-# -------------------------------------------------------------------------------------------------
-
-localrootscriptconfiguration () {
-    #
-    # Local Root Script Configuration setup
-    #
-    
-    # WAITTIME in seconds for read -t commands
-    export WAITTIME=60
-    
-    export customerpathroot=/var/log/__customer
-    export customerworkpathroot=${customerpathroot}/upgrade_export
-    export outputpathroot=${customerworkpathroot}
-    export dumppathroot=${customerworkpathroot}/dump
-    export changelogpathroot=${customerworkpathroot}/Change_Log
-    
-    echo
-    return 0
-}
-
-
+# End of script Operations
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-if [ -r "${scriptspathroot}/$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder for scripts
-    # So let's call that script to configure what we need
-    
-        . ${scriptspathroot}/$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "../$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder above the executiong script
-    # So let's call that script to configure what we need
-    
-    . ../$rootscriptconfigfile "$@"
-    errorreturn=$?
-elif [ -r "$rootscriptconfigfile" ] ; then
-    # Found the Root Script Configuration File in the folder with the executiong script
-    # So let's call that script to configure what we need
-    
-    . $rootscriptconfigfile "$@"
-    errorreturn=$?
-else
-    # Did not the Root Script Configuration File
-    # So let's call local configuration
-    
-    localrootscriptconfiguration "$@"
-    errorreturn=$?
-fi
-
-
-# -------------------------------------------------------------------------------------------------
-# END:  Root Script Configuration
-# -------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------
-
-
-export outputpathbase=${changelogpathroot}/${DATEDTGS}
-
-if [ ! -r ${changelogpathroot} ]; then
-    mkdir -pv ${changelogpathroot}
-fi
-if [ ! -r ${outputpathbase} ]; then
-    mkdir -pv ${outputpathbase}
-fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* ${outputpathbase}
-
-
-echo 'Created folder :  '${outputpathbase}
-echo
-ls -al ${outputpathbase}
-echo
-
-
-# -------------------------------------------------------------------------------------------------
-# End of script
-# -------------------------------------------------------------------------------------------------
-
-
-if [ -r nul ] ; then
-    rm nul
-fi
-
-if [ -r None ] ; then
-    rm None
-fi
-
-echo
-echo 'Script Completed, exiting...';echo
-
+#echo
+#echo 'Script Completed, exiting...';echo
