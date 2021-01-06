@@ -9,7 +9,7 @@
 # CO-AUTHOR (v0.2-v3.6):    Rosemarie Rodriguez
 # CODE CONTRIBUTORS:        Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman, Michael Bybee
 #                           Brian Sterne, Yevgeniy Yeryomin
-# VERSION:                  7.14
+# VERSION:                  7.13
 # SK:                       sk121447
 #
 # VLAN/IP overlap and Any GUI Client checks courtesy of ccc created by Danny Jung.
@@ -46,7 +46,7 @@ device_manufacturer=$(dmidecode -t system 2>/dev/null | grep Manufacturer | awk 
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="7.14 12-17-2020"
+script_ver="7.13 10-30-2020"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -61,13 +61,13 @@ headerCheck=""
 #  Version Information
 #====================================================================================================
 r7730_ga_jumbo="351"
-r8010_ga_jumbo="287"
+r8010_ga_jumbo="279"
 r8020_ga_jumbo="183"
-r8030_ga_jumbo="226"
-r8040_ga_jumbo="89"
+r8030_ga_jumbo="219"
+r8040_ga_jumbo="83"
 r81_ga_jumbo="0"
 latest_cpinfo_build="914000215"
-latest_cpuse_build="1999"
+latest_cpuse_build="1976"
 
 
 #====================================================================================================
@@ -5079,7 +5079,7 @@ check_updates()
             $curl_cmd -o $r80_20_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk137592' --insecure > /dev/null 2>&1
             $curl_cmd -o $r80_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk153152' --insecure > /dev/null 2>&1
             $curl_cmd -o $r80_40_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk165456' --insecure > /dev/null 2>&1
-            $curl_cmd -o $r81_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk170114' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r81_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk' --insecure > /dev/null 2>&1
 
             #Find the jumbo versions
             online_latest_R77_30=$(grep -i latest $r77_30_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
@@ -5234,10 +5234,10 @@ check_vsx()
         printf '<span><b>VSX Licenses - </b></span><b>' >> $html_file
 
         #Check the number of configured VSs vs the licensed limit
-        if [[ $vs_allowed -gt $vs_configured ]]; then
+        if [[ $vs_allowed -gt $vsx_configured ]]; then
             result_check_passed
             printf "VSX,VSX Licenses,OK,\n" >> $csv_log
-        elif [[ $vs_allowed -eq $vs_configured ]]; then
+        elif [[ $vs_allowed -eq $vsx_configured ]]; then
             result_check_info
             printf "VSX,VSX Licenses,INFO,\n" >> $csv_log
             printf "VS Licenses - The number of configured Virtual Devices has reached the licensed limit.\nPlease contact your sales team to get additional licenses if more virtual devices are planned.\n" >> $logfile

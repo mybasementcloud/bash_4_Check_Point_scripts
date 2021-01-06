@@ -13,13 +13,13 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-12-31
-ScriptVersion=05.03.00
+ScriptDate=2020-12-22
+ScriptVersion=05.02.00
 ScriptRevision=000
-TemplateVersion=05.03.00
+TemplateVersion=05.02.00
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=05.03.00
+SubScriptsVersion=05.02.00
 AliasCommandsLevel=025
 #
 
@@ -255,16 +255,16 @@ printf "${tCYAN}%-30s${tNORM} : %s\n" "HOSTNAMENOW" 'Generate hostname . (dot) D
 
 
 #========================================================================================
-# UPDATED 2020-12-31 -
+# ADDED 2020-11-11 -
 
 #Generate Check Point release version
 CPRELEASEVERSION ()
 {
-    # we need the quick version of the gaiaversion
-    cpreleasefile=/etc/cp-release
-    getgaiaquickversion=$(cat ${cpreleasefile} | cut -d " " -f 4)
-    gaiaquickversion=${getgaiaquickversion}
-    echo ${gaiaquickversion}
+    get_platform_release=`${MDS_FWDIR}/Python/bin/python ${MDS_FWDIR}/scripts/get_platform.py -f json | ${JQ} '. | .release'`
+    platform_release=${get_platform_release//\"/}
+    get_platform_release_version=`echo ${get_platform_release//\"/} | cut -d " " -f 4`
+    platform_release_version=${get_platform_release_version//\"/}
+    echo ${platform_release_version}
 }
 
 printf "${tCYAN}%-30s${tNORM} : %s\n" "CPRELEASEVERSION" 'Generate Check Point release version' >> ${tempENVHELPFILEalias}
@@ -677,7 +677,7 @@ docset2dumpnow ()
 
 #========================================================================================
 #========================================================================================
-# 2020-12-31
+# 2020-12-01
 #
 
 # Add function to show status of CPUSE and upgrade tools
@@ -690,13 +690,6 @@ CPUSE_status ()
     echo
     echo 'Show status of CPUSE and upgrade tools'
     echo
-    
-    echo 'Document clish Installer status and packages: '
-    clish -i -c "show installer status all"
-    echo
-    clish -i -c "show installer packages all"
-    echo
-    
     # properly handle current product version
     echo 'Try to get Upgrade Tools version: '
     cpprod_util CPPROD_GetValue CPupgrade-tools-`CPRELEASEVERSION` BuildNumber 1
@@ -709,11 +702,11 @@ CPUSE_status ()
     fi
     echo
     
-    echo 'Last 20 of /opt/CPInstLog/DA_Actions.xml : '
-    tail -n 20 /opt/CPInstLog/DA_Actions.xml
-    
-    echo 'Last 10 of /opt/CPInstLog/DA_Actions_Messages.json : '
-    tail -n 10 /opt/CPInstLog/DA_Actions_Messages.json
+    echo 'Document clish Installer status and packages: '
+    clish -i -c "show installer status all"
+    echo
+    clish -i -c "show installer packages all"
+    echo
 }
 
 
@@ -736,17 +729,6 @@ da_cli_status ()
     echo
     da_cli packages_info status=all
     echo
-    
-    # properly handle current product version
-    echo 'Try to get Upgrade Tools version: '
-    cpprod_util CPPROD_GetValue CPupgrade-tools-`CPRELEASEVERSION` BuildNumber 1
-    echo
-    
-    echo 'Last 20 of /opt/CPInstLog/DA_Actions.xml : '
-    tail -n 20 /opt/CPInstLog/DA_Actions.xml
-    
-    echo 'Last 10 of /opt/CPInstLog/DA_Actions_Messages.json : '
-    tail -n 10 /opt/CPInstLog/DA_Actions_Messages.json
 }
 
 
@@ -831,8 +813,6 @@ echo
 echo 'Configuration of User Environment completed!'
 echo 'Display help regarding configured variables and aliases with command :  show_environment_help'
 echo
-
-timecheck
 
 #========================================================================================
 #========================================================================================

@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-12-31
-ScriptVersion=05.03.00
+ScriptDate=2020-12-22
+ScriptVersion=05.02.00
 ScriptRevision=000
-TemplateVersion=05.03.00
+TemplateVersion=05.02.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
