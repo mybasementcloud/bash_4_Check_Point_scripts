@@ -2,7 +2,7 @@
 #
 # SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
 #
-# (C) 2016-2020 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -13,10 +13,10 @@
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
 #
-ScriptDate=2020-12-31
-ScriptVersion=05.03.00
-ScriptRevision=000
-TemplateVersion=05.03.00
+ScriptDate=2021-01-21
+ScriptVersion=05.04.00
+ScriptRevision=020
+TemplateVersion=05.04.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
