@@ -3,12 +3,11 @@ Collection of bash scripts for use on Check Point Gaia systems
 
 mybasementcloud operational implemented working Gaia and bash script examples
 
-NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
+### NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER !!!!
 
-NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
+### NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details !!
 
-Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R80.40 and R81 EA.  R80.40 GA and R81.
-Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R81.
+Scripts should handle all installation types from R77.30 and higher, potential function on pre-R77.30 versions possible.  This set handles R8X varriants up to R81 and R81.10 EA.
 
 These scripts are currently in deployment in the mybasementcloud environment and used to operate, document, and administer the mybasementcloud Check Point systems.
 
