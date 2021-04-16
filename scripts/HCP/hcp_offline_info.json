@@ -1,0 +1,16 @@
+{ "file_meta_info" : {
+	"filetype" : "hcp_offline_info",
+	"fileversion" : "01.00.00",
+	"filerevision" : "000",
+	"filedate" : "2021-04-09",
+	"fileinformationlevel" : "000"
+}, 
+"hcp_info" : {
+	"foldername" : "\"HCP_Take_029_2021-03-14\"",
+	"installerfile" : "\"Check_Point_HCP_AUTOUPDATE_Bundle_T29_AutoUpdate.tar\"",
+	"FileDate" : "2021-01-26",
+	"FileVersion" : "T24",
+	"md5hash" : "2766c4a675495d6ffbf9cf261582b5b4",
+	"sha1hash" : "31ac7e53399d4d424f4396b0ea9e33f210518b31"
+} 
+}
