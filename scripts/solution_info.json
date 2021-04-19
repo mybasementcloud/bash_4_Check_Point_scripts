@@ -1,0 +1,21 @@
+{ "file_meta_info" : {
+	"filetype" : "solution_info",
+	"fileversion" : "01.00.00",
+	"filerevision" : "000",
+	"filedate" : "2021-04-17",
+	"fileinformationlevel" : "000"
+}, 
+"solution_info" : {
+	"ScriptSeries" : "\"bash 4 Check Point\"",
+	"ScriptSeriesShort" : "b4CP",
+	"ScriptDate" : "2021-04-17",
+	"ScriptVersion" : "05.11.00",
+	"ScriptRevision" : "000",
+	"TemplateVersion" : "05.11.00",
+	"TemplateLevel" : "006",
+	"SubScriptsLevel" : "010",
+	"SubScriptsVersion" : "05.11.00",
+	"APISubScriptsVersion" : "00.60.05",
+	"APISubScriptsRevision" : "000"
+} 
+}
