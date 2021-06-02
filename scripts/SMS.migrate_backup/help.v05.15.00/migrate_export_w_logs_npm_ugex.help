@@ -1,0 +1,10 @@
+  Export Tool version name   --toolversion <export_tool_version_name> | --toolversion=<export_tool_version_name>
+  Export Tool version path   --toolpath <export_tool_path> | --toolpath=<export_tool_path>
+
+  Export to version(1)       --exportversion <target_version> | --exportversion=<target_version>
+                             Versions:  R80.20.M1|R80.20.M2|R80.20|R80.30|R80.40|R81
+  Export FORCE migrate(2)    --forcemigrate | --FORCEMIGRATE
+
+  Do not start Services     --NOCPSTART
+
+  export_tool_path = fully qualified folder path for export tools

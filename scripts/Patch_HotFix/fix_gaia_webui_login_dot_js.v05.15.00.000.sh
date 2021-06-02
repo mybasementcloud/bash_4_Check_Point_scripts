@@ -152,7 +152,7 @@ if [ -r "${scriptspathroot}/$rootscriptconfigfile" ] ; then
     # Found the Root Script Configuration File in the folder for scripts
     # So let's call that script to configure what we need
     
-        . ${scriptspathroot}/$rootscriptconfigfile "$@"
+    . ${scriptspathroot}/$rootscriptconfigfile "$@"
     errorreturn=$?
 elif [ -r "../$rootscriptconfigfile" ] ; then
     # Found the Root Script Configuration File in the folder above the executiong script

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
+# Watch Firewall Cluster[XL] Status (-s)
 #
 # (C) 2016-2021 Eric James Beasley, @mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
@@ -38,13 +38,13 @@ export BASHSubScriptsVersionX=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersionX=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersionX=${SubScriptsLevel}.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js_generic
-export BASHScriptShortName=fix_gaia_webui_login_dot_js_generic.v${ScriptVersion}
+export BASHScriptName=watch_cluster_stats
+export BASHScriptShortName=watch_cluster_stats.v${ScriptVersion}
 export BASHScriptnohupName=${BASHScriptShortName}
-export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
+export BASHScriptDescription="Watch Firewall Cluster[XL] Status"
 
 #export BASHScriptName=${BASHScriptFileNameRoot}.${TemplateLevel}.v${ScriptVersion}
-export BASHScriptName=${BASHScriptFileNameRoot}
+export BASHScriptName=${BASHScriptFileNameRoot}.v${ScriptVersion}
 
 export BASHScriptHelpFilePath=help.v${ScriptVersion}
 export BASHScriptHelpFileName=${BASHScriptFileNameRoot}.help
@@ -53,47 +53,14 @@ export BASHScriptHelpFileExamplesName=${BASHScriptFileNameRoot}.examples.help
 export BASHScriptHelpExamplesFile=${BASHScriptHelpFilePath}/${BASHScriptHelpFileExamplesName}
 
 # _api_subscripts|_hostsetupscripts|_hostupdatescripts|_scripting_tools|_subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|HCP|Health_Check|MDM|MGMT|Patch_Hotfix|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
-export BASHScriptsFolder=Patch_Hotfix
+export BASHScriptsFolder=GW
 
 export BASHScripttftptargetfolder="_template"
 
 
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-# START: Basic Configuration
-# -------------------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------------------
-# Date variable configuration
-# -------------------------------------------------------------------------------------------------
-
-
-export DATE=`date +%Y-%m-%d-%H%M%Z`
-export DATEDTG=`date +%Y-%m-%d-%H%M%Z`
-export DATEDTGS=`date +%Y-%m-%d-%H%M%S%Z`
-export DATEYMD=`date +%Y-%m-%d`
-
-export DATEUTC=`date -u +%Y-%m-%d-%H%M%Z`
-export DATEUTCDTG=`date -u +%Y-%m-%d-%H%M%Z`
-export DATEUTCDTGS=`date -u +%Y-%m-%d-%H%M%S%Z`
-export DATEUTCYMD=`date -u +%Y-%m-%d`
-
-
-# -------------------------------------------------------------------------------------------------
-# Other variable configuration
-# -------------------------------------------------------------------------------------------------
-
-
-# WAITTIME in seconds for read -t commands
-export WAITTIME=60
-
-export outputpathroot=/var/tmp/Change_Log
-export outputpathbase=${outputpathroot}/${DATEDTGS}
-
-
-# -------------------------------------------------------------------------------------------------
-# Start Script
+# START: Script
 # -------------------------------------------------------------------------------------------------
 
 
@@ -111,29 +78,32 @@ echo
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -r ${outputpathroot} ] 
-then
-    mkdir -pv ${outputpathroot}
+if [[ $(cpconfig <<< 10 | grep cluster) == *"Disable"* ]]; then
+    # is a cluster
+    
+    watchcommands="echo 'chphaprob state';cphaprob state"
+    watchcommands=${watchcommands}";echo;echo;echo 'cphaprob syncstat';cphaprob syncstat"
+    #watchcommands=${watchcommands}";echo;echo;echo 'cphaprob -a if';cphaprob -a if"
+    
+    watch -d -n 1 "${watchcommands}"
+    
+    echo 'chphaprob state';cphaprob state
+    echo
+    echo 'cphaprob syncstat';cphaprob syncstat
+    echo
+    echo 'cphaprob -a if';cphaprob -a if
+    
+else
+    
+    echo 'Not a cluster!'
+    echo
+    
 fi
-if [ ! -r ${outputpathbase} ] 
-then
-    mkdir -pv ${outputpathbase}
-fi
-
-sed -i.bak '/form.isValid/s/$/\nform.el.dom.action=formAction;\n/' /web/htdocs2/login/login.js
-cp /web/htdocs2/login/login.js* ${outputpathbase}
-
-
-echo 'Created folder :  '${outputpathbase}
-echo
-ls -al ${outputpathbase}
-echo
-
 
 # -------------------------------------------------------------------------------------------------
-# End of script
+# End of script Operations
 # -------------------------------------------------------------------------------------------------
-
+# -------------------------------------------------------------------------------------------------
 
 if [ -r nul ] ; then
     rm nul
@@ -145,4 +115,3 @@ fi
 
 echo
 echo 'Script Completed, exiting...';echo
-

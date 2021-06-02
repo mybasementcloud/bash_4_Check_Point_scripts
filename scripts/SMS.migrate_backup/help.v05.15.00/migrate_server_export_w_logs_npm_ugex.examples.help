@@ -1,0 +1,5 @@
+ ]# script_name -v --toolversion R80.30_EA_T106 --toolpath "./migration_tools/R80.30_EA_T106"
+ ]# script_name -v --exportversion R80.40
+
+(1):  Export to version stipulates a version using migrate_server or alternative migration tools on the host
+(2):  Force the use of migrate versus migrate_server, stipulating required migration tools on host
