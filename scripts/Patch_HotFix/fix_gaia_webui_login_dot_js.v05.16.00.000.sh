@@ -38,8 +38,8 @@ export BASHSubScriptsVersionX=v${SubScriptsVersion//./x}
 export BASHSubScriptTemplateVersionX=v${TemplateVersion//./x}
 export BASHExpectedSubScriptsVersionX=${SubScriptsLevel}.v${SubScriptsVersion//./x}
 
-export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js_generic
-export BASHScriptShortName=fix_gaia_webui_login_dot_js_generic.v${ScriptVersion}
+export BASHScriptFileNameRoot=fix_gaia_webui_login_dot_js
+export BASHScriptShortName=fix_gaia_webui_login_dot_js.v${ScriptVersion}
 export BASHScriptnohupName=${BASHScriptShortName}
 export BASHScriptDescription="Execute operation to fix Gaia webUI logon problem for Chrome and FireFox"
 
@@ -81,42 +81,112 @@ export DATEUTCYMD=`date -u +%Y-%m-%d`
 
 
 # -------------------------------------------------------------------------------------------------
-# Other variable configuration
 # -------------------------------------------------------------------------------------------------
 
-
-# WAITTIME in seconds for read -t commands
-export WAITTIME=60
-
-export outputpathroot=/var/tmp/Change_Log
-export outputpathbase=${outputpathroot}/${DATEDTGS}
-
-
 # -------------------------------------------------------------------------------------------------
-# Start Script
+# Script intro
 # -------------------------------------------------------------------------------------------------
 
-
-# UPDATED 2020-09-17 -
-# -------------------------------------------------------------------------------------------------
-# Announce Script, this should also be the first log entry!
-# -------------------------------------------------------------------------------------------------
 
 echo
 echo ${BASHScriptDescription}', script version '${ScriptVersion}', revision '${ScriptRevision}' from '${ScriptDate}
 echo
 
+echo 'Date Time Group   :  '${DATEDTGS}
+echo
 
+
+# -------------------------------------------------------------------------------------------------
+# JQ and json related
+# -------------------------------------------------------------------------------------------------
+
+# points to where jq is installed
+export JQ=${CPDIR_PATH}/jq/jq
+    
+# -------------------------------------------------------------------------------------------------
+# END:  Basic Configuration
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
 
-if [ ! -r ${outputpathroot} ] 
-then
-    mkdir -pv ${outputpathroot}
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# START: Root Script Configuration
+# -------------------------------------------------------------------------------------------------
+
+export customerpathroot=/var/log/__customer
+export customerworkpathroot=${customerpathroot}/upgrade_export
+
+export scriptspathroot=${customerworkpathroot}/scripts
+
+export subscriptsfolder=_subscripts
+
+
+# -------------------------------------------------------------------------------------------------
+# localrootscriptconfiguration - Local Root Script Configuration setup
+# -------------------------------------------------------------------------------------------------
+
+localrootscriptconfiguration () {
+    #
+    # Local Root Script Configuration setup
+    #
+    
+    # WAITTIME in seconds for read -t commands
+    export WAITTIME=60
+    
+    export customerpathroot=/var/log/__customer
+    export customerworkpathroot=${customerpathroot}/upgrade_export
+    export outputpathroot=${customerworkpathroot}
+    export dumppathroot=${customerworkpathroot}/dump
+    export changelogpathroot=${customerworkpathroot}/Change_Log
+    
+    echo
+    return 0
+}
+
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+if [ -r "${scriptspathroot}/$rootscriptconfigfile" ] ; then
+    # Found the Root Script Configuration File in the folder for scripts
+    # So let's call that script to configure what we need
+    
+    . ${scriptspathroot}/$rootscriptconfigfile "$@"
+    errorreturn=$?
+elif [ -r "../$rootscriptconfigfile" ] ; then
+    # Found the Root Script Configuration File in the folder above the executiong script
+    # So let's call that script to configure what we need
+    
+    . ../$rootscriptconfigfile "$@"
+    errorreturn=$?
+elif [ -r "$rootscriptconfigfile" ] ; then
+    # Found the Root Script Configuration File in the folder with the executiong script
+    # So let's call that script to configure what we need
+    
+    . $rootscriptconfigfile "$@"
+    errorreturn=$?
+else
+    # Did not the Root Script Configuration File
+    # So let's call local configuration
+    
+    localrootscriptconfiguration "$@"
+    errorreturn=$?
 fi
-if [ ! -r ${outputpathbase} ] 
-then
+
+
+# -------------------------------------------------------------------------------------------------
+# END:  Root Script Configuration
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+
+export outputpathbase=${changelogpathroot}/${DATEDTGS}
+
+if [ ! -r ${changelogpathroot} ]; then
+    mkdir -pv ${changelogpathroot}
+fi
+if [ ! -r ${outputpathbase} ]; then
     mkdir -pv ${outputpathbase}
 fi
 
