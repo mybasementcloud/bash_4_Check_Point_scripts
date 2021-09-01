@@ -13,10 +13,10 @@
 # SCRIPT execute operation to fix Gaia webUI logon problem for Chrome and FireFox
 #
 #
-ScriptDate=2021-08-12
-ScriptVersion=05.18.00
+ScriptDate=2021-08-30
+ScriptVersion=05.20.00
 ScriptRevision=000
-TemplateVersion=05.18.00
+TemplateVersion=05.20.00
 TemplateLevel=006
 SubScriptsLevel=NA
 SubScriptsVersion=NA
