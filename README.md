@@ -2,7 +2,7 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2022-02
+## UPDATED 2022-03
 
 ## Overview
 
