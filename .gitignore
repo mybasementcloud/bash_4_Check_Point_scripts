@@ -139,7 +139,9 @@ ehthumbs_vista.db
 *.stackdump
 
 # Folder config file
-[Dd]esktop.ini
+[Dd]esktop.[Ii][Nn][Ii]
+RELEASE_INFORMATION.*.[Mm][Dd]
+*.[Xx][Ll][Ss][Xx]
 
 # History Folders from EditPad
 /__history
