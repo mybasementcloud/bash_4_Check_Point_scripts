@@ -2,7 +2,7 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2022-03
+## UPDATED 2022-05-26
 
 ## Overview
 
@@ -66,6 +66,37 @@ In the current incarnation, so version 4.26 and later, a change is made to addre
 - Added --NOSTART CLI parameter to where cpstart or mdsstart was executed in scripts, to not execute the restart of Check Point services
 - if $MYTFTPSERVER is set to IPv4 Address of a TFTP server, config_capture, healthdump, interface_info, and check_point_service_status_check will tftp their archived results to a folder defined in _root_script_config.sh.  If the value is not set, then only an archive is created at the root of the working folder.
 - Updated Common/do_scripts_nohup.sh and scripts with CLI parameter handling to expand capabilities to document nohup progress, show diskspace usage.  Use ./do_scripts_nohup --help to see parameters and options.  Scripts with CLI parameter handling create their own cleanup script.
+
+## THANKS
+
+Thank you to those who have assisted with feedback and utilization reports and issues.
+
+## QUICK START
+
+To quickly start working with the scripts, do the following.
+
+- Download the release tgz file (b4CP.scripts.v05.30.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
+- Expand the TGZ file, e.g.
+
+    Example:  `tar -xf b4CP.scripts.{version}.tgz`
+    `tar -xf b4CP.scripts.v05.30.00.000.tg`
+
+- Goto the scripts folder
+
+   `cd ./scripts`
+
+- Execute desired script with help parameter to show command options, e.g.
+
+   Example:  `./generate_script_links.{version}.sh --help`
+   `./generate_script_links.v05.30.00.sh --help`
+
+## Key File Hashes
+
+b4CP.scripts.v05.30.00.000.tgz
+
+- MD5     : C40E266AADAE22085FE839A3CD1AB9B4
+- SHA-1   : 24EE8BCC5EC61A5ECE52E225CC90400FD413D765
+- SHA-256 : FF754E00EF889CD01D6A55F2C42969460BD3920539B906E1654CBB7F2E69B12B
 
 ## REFERENCES
 

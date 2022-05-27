@@ -2162,18 +2162,18 @@ check_debugs()
             printf '<span><b>CPM Debugs - </b></span><b>' >> $html_file
 
             #Check to see if CPM debugs are enabled in tdlog.cpm
-            if [[ $(grep TOPIC-DEBUG $MDS_FWDIR/conf/tdlog.cpm) ]]; then
+            if [[ $(grep TOPIC-DEBUG ${MDS_FWDIR}/conf/tdlog.cpm) ]]; then
                 result_check_failed
                 printf "Debugs,CPM Debugs,WARNING,sk115557\n" >> $csv_log
                 printf "CPM Debugs are present for the following modules:\n" >> $logfile
-                grep TOPIC-DEBUG $MDS_FWDIR/conf/tdlog.cpm | awk -F: '{print $2}' >> $logfile
+                grep TOPIC-DEBUG ${MDS_FWDIR}/conf/tdlog.cpm | awk -F: '{print $2}' >> $logfile
                 printf "If these debugs are no longer needed, please follow the steps from sk115557 to disable them.\n" >> $logfile
 
                 #Build HTML file for active CPM debugs
                 printf "<span>CPM Debugs are present for the following modules:</span><br>\n<span>" >> $html_file
                 while read cpm_debugs_active; do
                     printf "$cpm_debugs_active<br>"  >> $html_file
-                done <<< $(grep TOPIC-DEBUG $MDS_FWDIR/conf/tdlog.cpm | awk -F: '{print $2}')
+                done <<< $(grep TOPIC-DEBUG ${MDS_FWDIR}/conf/tdlog.cpm | awk -F: '{print $2}')
                 printf "</span><br>\n" >> $html_file
                 printf "<span>If these debugs are no longer needed, please follow the steps from sk115557 to disable them.</span><br>\n" >> $html_file
             else
@@ -2760,7 +2760,7 @@ check_known_issues()
         grep -A5000 ^/var/log/messages $cpinfo_file | grep -B5000 /var/log/dmesg | grep -v /var/log | grep -v '\-\-\-' >> $messages_tmp_file 2> /dev/null
     else
         messages_tmp_file="/var/tmp/messages_check.tmp"
-        cat /var/log/messages* /var/log/dmesg  $FWDIR/log/cloud_proxy.elg >> $messages_tmp_file 2> /dev/null
+        cat /var/log/messages* /var/log/dmesg  ${FWDIR}/log/cloud_proxy.elg >> $messages_tmp_file 2> /dev/null
     fi
 
     printf "| Known Issues\t\t| Issues found in logs\t\t|" | tee -a $output_log
@@ -3998,21 +3998,21 @@ check_logging()
     current_check_message="Logging\t\t"
 
     #Find starting size of fw.log
-    log_start_size=$(ls -l $FWDIR/log/fw.log | awk '{print $5}')
+    log_start_size=$(ls -l ${FWDIR}/log/fw.log | awk '{print $5}')
     printf "| Logging\t\t| Local Logging\t\t\t|" | tee -a $output_log
     printf '<tr class="sectionTableBorder"><td class="sectionTableBorder"><p class="paragraphSpacing"><span class="checkNameBlue"><b>Logging</b></span><br>\n' >> $html_file
     printf '<span><b>Local Logging - </b></span><b>' >> $html_file
     sleep 5
 
     #Find end size of fw.log
-    log_stop_size=$(ls -l $FWDIR/log/fw.log | awk '{print $5}')
+    log_stop_size=$(ls -l ${FWDIR}/log/fw.log | awk '{print $5}')
 
     #Compare sizes and log
     if [[ $log_stop_size -gt $log_start_size ]]; then
         result_check_failed
         printf "Logging,Local Logging,WARNING,\n" >> $csv_log
-        printf "Local Logging Fail:\nThe /$FWDIR/log/fw.log file is increasing in size.\n" >> $logfile
-        printf "<span>Local Logging Fail:<br>The /$FWDIR/log/fw.log file is increasing in size.</span><br><br>\n" >> $html_file
+        printf "Local Logging Fail:\nThe /${FWDIR}/log/fw.log file is increasing in size.\n" >> $logfile
+        printf "<span>Local Logging Fail:<br>The /${FWDIR}/log/fw.log file is increasing in size.</span><br><br>\n" >> $html_file
     else
         result_check_passed
         printf "Logging,Local Logging,OK,\n" >> $csv_log
@@ -4382,7 +4382,7 @@ check_mgmt_status()
     printf "|\t\t\t| CPM\t\t\t\t|" | tee -a $output_log
     printf '<span><b>CPM - </b></span><b>' >> $html_file
     
-    cpm_status=$($MDS_FWDIR/scripts/cpm_status.sh)
+    cpm_status=$(${MDS_FWDIR}/scripts/cpm_status.sh)
     if [[ $cpm_status == *"running and ready"* ]]; then
         result_check_passed
         printf "Mgmt Status,CPM,OK,\n" >> $csv_log
