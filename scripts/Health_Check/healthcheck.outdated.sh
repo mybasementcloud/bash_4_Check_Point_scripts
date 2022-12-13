@@ -10,9 +10,7 @@
 # CODE CONTRIBUTORS:        Brandon Pace, Russell Seifert, Joshua Hatter, Kevin Hoffman, Michael Bybee
 #                           Brian Sterne, Yevgeniy Yeryomin
 # SPECIAL THANKS:           Jonathan Passmore, Jamie Davieau, Corey Taylor
-# Ad-hoc modification for R81.20
-#                           Eric Beasley
-# VERSION:                  7.17.1
+# VERSION:                  7.17
 # SK:                       sk121447
 #
 # VLAN/IP overlap and Any GUI Client checks courtesy of ccc created by Danny Jung.
@@ -49,7 +47,7 @@ device_manufacturer=$(dmidecode -t system 2>/dev/null | grep Manufacturer | awk 
 summary_error=0
 vs_error=0
 all_checks_passed=true
-script_ver="7.17.1 12-09-2022"
+script_ver="7.17 09-17-2021"
 collection_mode="local"
 domain_specified=false
 remote_operations=false
@@ -64,15 +62,14 @@ headerCheck=""
 #  Version Information
 #====================================================================================================
 r7730_ga_jumbo="351"
-r8010_ga_jumbo="298"
-r8020_ga_jumbo="230"
-r8030_ga_jumbo="255"
-r8040_ga_jumbo="180"
-r81_ga_jumbo="74"
-r8110_ga_jumbo="79"
-r8120_ga_jumbo="0"
-latest_cpinfo_build="914000231"
-latest_cpuse_build="2255"
+r8010_ga_jumbo="290"
+r8020_ga_jumbo="202"
+r8030_ga_jumbo="237"
+r8040_ga_jumbo="120"
+r81_ga_jumbo="36"
+r8110_ga_jumbo="0"
+latest_cpinfo_build="914000219"
+latest_cpuse_build="2047"
 
 
 #====================================================================================================
@@ -117,12 +114,9 @@ if [[ -e /etc/cp-release ]]; then
         current_version="8100"
     elif [[ $(echo $cp_underscore_version | grep -ow R81_10) ]]; then
         current_version="8110"
-    elif [[ $(echo $cp_underscore_version | grep -ow R81_20) ]]; then
-        current_version="8120"
     else
         yesno_loop=1
         printf "\nSupported Versions:\n" | tee -a $output_log
-        printf "\tR81.20 work-in-progress\n" | tee -a $output_log
         printf "\tR81.10\n" | tee -a $output_log
         printf "\tR81\n" | tee -a $output_log
         printf "\tR80.xx\n" | tee -a $output_log
@@ -1883,9 +1877,6 @@ check_cp_software()
         jumbo_sk="sk170114"
     elif [[ $current_version -eq "8110" ]]; then
         latest_ga_jumbo=$r8110_ga_jumbo
-        jumbo_sk="sk175186"
-    elif [[ $current_version -eq "8120" ]]; then
-        latest_ga_jumbo=$r8120_ga_jumbo
         jumbo_sk="TBD"
     else
         latest_ga_jumbo="Unsupported"
@@ -1981,7 +1972,6 @@ check_cp_software()
     unset r8040_ga_jumbo
     unset r81_ga_jumbo
     unset r8110_ga_jumbo
-    unset r8120_ga_jumbo
     unset jumbo_sk
     unset installed_jumbo_version
     unset latest_ga_jumbo
@@ -5243,89 +5233,86 @@ check_updates()
                     echo "Failed to determine latest online verison."
                 fi
             fi
-            
-            
-            # 7.17.1 This no longer works as programmed because of the changes to how JHF information is provided!
-            
+
+
             #  Jumbo Version Update
             #====================================================================================================
             echo "Checking for CP software version updates."
             #Temp files
-            #r77_30_temp=/var/tmp/r77_30.tmp
-            #r80_10_temp=/var/tmp/r80_10.tmp
-            #r80_20_temp=/var/tmp/r80_20.tmp
-            #r80_30_temp=/var/tmp/r80_30.tmp
-            #r80_40_temp=/var/tmp/r80_40.tmp
-            #r81_temp=/var/tmp/r81.tmp
-            #r81_10_temp=/var/tmp/r81_10.tmp
-            #r81_20_temp=/var/tmp/r81_20.tmp
+            r77_30_temp=/var/tmp/r77_30.tmp
+            r80_10_temp=/var/tmp/r80_10.tmp
+            r80_20_temp=/var/tmp/r80_20.tmp
+            r80_30_temp=/var/tmp/r80_30.tmp
+            r80_40_temp=/var/tmp/r80_40.tmp
+            r81_temp=/var/tmp/r81.tmp
+            r81_10_temp=/var/tmp/r81_10.tmp
 
             #Pull down each jumbo SK
-            #$curl_cmd -o $r77_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk106162' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r80_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk116380' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r80_20_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk137592' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r80_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk153152' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r80_40_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk165456' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r81_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk170114' --insecure > /dev/null 2>&1
-            #$curl_cmd -o $r81_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk175186' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r77_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk106162' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r80_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk116380' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r80_20_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk137592' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r80_30_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk153152' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r80_40_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk165456' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r81_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk170114' --insecure > /dev/null 2>&1
+            $curl_cmd -o $r81_10_temp 'https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk175186' --insecure > /dev/null 2>&1
 
             #Find the jumbo versions
-            #online_latest_R77_30=$(grep -i latest $r77_30_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R80_10=$(grep -i latest $r80_10_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R80_20=$(grep -i latest $r80_20_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R80_30=$(grep -i latest $r80_30_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R80_40=$(grep -i latest $r80_40_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R81=$(grep -i latest $r81_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #online_latest_R81_10=$(grep -i latest $r81_10_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
-            #if [[ -z $online_latest_R81_10 ]]; then
-                #online_latest_R81_10="0"
-            #fi
+            online_latest_R77_30=$(grep -i latest $r77_30_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R80_10=$(grep -i latest $r80_10_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R80_20=$(grep -i latest $r80_20_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R80_30=$(grep -i latest $r80_30_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R80_40=$(grep -i latest $r80_40_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R81=$(grep -i latest $r81_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            online_latest_R81_10=$(grep -i latest $r81_10_temp | grep -Eiow 'take_[0-9]{1,3}' | head -n1 | grep -Eo '[0-9]{1,3}')
+            if [[ -z $online_latest_R81_10 ]]; then
+                online_latest_R81_10="0"
+            fi
 
             #Remove temp files
-            #rm -rf $r77_30_temp 2>/dev/null
-            #rm -rf $r80_10_temp 2>/dev/null
-            #rm -rf $r80_20_temp 2>/dev/null
-            #rm -rf $r80_30_temp 2>/dev/null
-            #rm -rf $r80_40_temp 2>/dev/null
-            #rm -rf $r81_temp 2>/dev/null
-            #rm -rf $r81_10_temp 2>/dev/null
+            rm -rf $r77_30_temp 2>/dev/null
+            rm -rf $r80_10_temp 2>/dev/null
+            rm -rf $r80_20_temp 2>/dev/null
+            rm -rf $r80_30_temp 2>/dev/null
+            rm -rf $r80_40_temp 2>/dev/null
+            rm -rf $r81_temp 2>/dev/null
+            rm -rf $r81_10_temp 2>/dev/null
 
             #Set versions
-            #if [[ $online_latest_R77_30 -gt $r7730_ga_jumbo ]]; then
-                #sed -i "s/r7730_ga_jumbo=\"${r7730_ga_jumbo}\"/r7730_ga_jumbo=\"${online_latest_R77_30}\"/" $executed_script_path
-                #r7730_ga_jumbo=$online_latest_R77_30
-                #echo "GA jumbo for R77.30 updated."
-            #fi
-            #if [[ $online_latest_R80_10 -gt $r8010_ga_jumbo ]]; then
-                #sed -i "s/r8010_ga_jumbo=\"${r8010_ga_jumbo}\"/r8010_ga_jumbo=\"${online_latest_R80_10}\"/" $executed_script_path
-                #r8010_ga_jumbo=$online_latest_R80_10
-                #echo "GA jumbo for R80.10 updated."
-            #fi
-            #if [[ $online_latest_R80_20 -gt $r8020_ga_jumbo ]]; then
-                #sed -i "s/r8020_ga_jumbo=\"${r8020_ga_jumbo}\"/r8020_ga_jumbo=\"${online_latest_R80_20}\"/" $executed_script_path
-                #r8020_ga_jumbo=$online_latest_R80_20
-                #echo "GA jumbo for R80.20 updated."
-            #fi
-            #if [[ $online_latest_R80_30 -gt $r8030_ga_jumbo ]]; then
-                #sed -i "s/r8030_ga_jumbo=\"${r8030_ga_jumbo}\"/r8030_ga_jumbo=\"${online_latest_R80_30}\"/" $executed_script_path
-                #r8030_ga_jumbo=$online_latest_R80_30
-                #echo "GA jumbo for R80.30 updated."
-            #fi
-            #if [[ $online_latest_R80_40 -gt $r8040_ga_jumbo ]]; then
-                #sed -i "s/r8040_ga_jumbo=\"${r8040_ga_jumbo}\"/r8040_ga_jumbo=\"${online_latest_R80_40}\"/" $executed_script_path
-                #r8040_ga_jumbo=$online_latest_R80_40
-                #echo "GA jumbo for R80.40 updated."
-            #fi
-            #if [[ $online_latest_R81 -gt $r81_ga_jumbo ]]; then
-                #sed -i "s/r81_ga_jumbo=\"${r81_ga_jumbo}\"/r81_ga_jumbo=\"${online_latest_R81}\"/" $executed_script_path
-                #r81_ga_jumbo=$online_latest_R81
-                #echo "GA jumbo for R81 updated."
-            #fi
-            #if [[ $online_latest_R81_10 -gt $r8110_ga_jumbo ]]; then
-                #sed -i "s/r8110_ga_jumbo=\"${r8110_ga_jumbo}\"/r8110_ga_jumbo=\"${online_latest_R81_10}\"/" $executed_script_path
-                #r8110_ga_jumbo=$online_latest_R81_10
-                #echo "GA jumbo for R81.10 updated."
-            #fi
+            if [[ $online_latest_R77_30 -gt $r7730_ga_jumbo ]]; then
+                sed -i "s/r7730_ga_jumbo=\"${r7730_ga_jumbo}\"/r7730_ga_jumbo=\"${online_latest_R77_30}\"/" $executed_script_path
+                r7730_ga_jumbo=$online_latest_R77_30
+                echo "GA jumbo for R77.30 updated."
+            fi
+            if [[ $online_latest_R80_10 -gt $r8010_ga_jumbo ]]; then
+                sed -i "s/r8010_ga_jumbo=\"${r8010_ga_jumbo}\"/r8010_ga_jumbo=\"${online_latest_R80_10}\"/" $executed_script_path
+                r8010_ga_jumbo=$online_latest_R80_10
+                echo "GA jumbo for R80.10 updated."
+            fi
+            if [[ $online_latest_R80_20 -gt $r8020_ga_jumbo ]]; then
+                sed -i "s/r8020_ga_jumbo=\"${r8020_ga_jumbo}\"/r8020_ga_jumbo=\"${online_latest_R80_20}\"/" $executed_script_path
+                r8020_ga_jumbo=$online_latest_R80_20
+                echo "GA jumbo for R80.20 updated."
+            fi
+            if [[ $online_latest_R80_30 -gt $r8030_ga_jumbo ]]; then
+                sed -i "s/r8030_ga_jumbo=\"${r8030_ga_jumbo}\"/r8030_ga_jumbo=\"${online_latest_R80_30}\"/" $executed_script_path
+                r8030_ga_jumbo=$online_latest_R80_30
+                echo "GA jumbo for R80.30 updated."
+            fi
+            if [[ $online_latest_R80_40 -gt $r8040_ga_jumbo ]]; then
+                sed -i "s/r8040_ga_jumbo=\"${r8040_ga_jumbo}\"/r8040_ga_jumbo=\"${online_latest_R80_40}\"/" $executed_script_path
+                r8040_ga_jumbo=$online_latest_R80_40
+                echo "GA jumbo for R80.40 updated."
+            fi
+            if [[ $online_latest_R81 -gt $r81_ga_jumbo ]]; then
+                sed -i "s/r81_ga_jumbo=\"${r81_ga_jumbo}\"/r81_ga_jumbo=\"${online_latest_R81}\"/" $executed_script_path
+                r81_ga_jumbo=$online_latest_R81
+                echo "GA jumbo for R81 updated."
+            fi
+            if [[ $online_latest_R81_10 -gt $r8110_ga_jumbo ]]; then
+                sed -i "s/r8110_ga_jumbo=\"${r8110_ga_jumbo}\"/r8110_ga_jumbo=\"${online_latest_R81_10}\"/" $executed_script_path
+                r8110_ga_jumbo=$online_latest_R81_10
+                echo "GA jumbo for R81.10 updated."
+            fi
 
 
             #  CPInfo Version Update
