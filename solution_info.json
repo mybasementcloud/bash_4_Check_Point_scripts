@@ -1,11 +1,11 @@
 { "file_meta_info" : {
 	"filetype" : "solution_info.api_scripts",
-	"fileversion" : "06.08.04",
+	"fileversion" : "07.00.00",
 	"filerevision" : "000",
 	"filesubrevision" : "000",
-	"filedate" : "2022-06-29",
+	"filedate" : "2022-12-09",
 	"fileinformationlevel" : "000",
-	"MinCMDTemplateVersion" : "06.03.01"
+	"MinCMDTemplateVersion" : "07.00.00"
 	}, 
 "solution_info" : {
 	"ScriptSeries" : "\"bash 4 Check Point\"",
@@ -16,37 +16,41 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2022-05-30",
-	"ScriptVersion" : "06.08.04",
+	"ScriptDate" : "2022-12-09",
+	"ScriptVersion" : "07.00.00",
 	"ScriptRevision" : "000",
-	"TemplateVersion" : "06.08.04"
+	"ScriptSubRevision" : "010",
+	"ScriptTweak" : "305",
+	"TemplateVersion" : "07.00.00"
 	},
 "script_details" : { 
 	"ScriptType" : {
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-29",
-	"ScriptVersion" : "05.31.00",
+	"ScriptDate" : "2022-12-09",
+	"ScriptVersion" : "05.32.00",
 	"ScriptRevision" : "000",
-	"ScriptSubRevision" : "000",
-	"TemplateVersion" : "05.31.00",
+	"ScriptSubRevision" : "010",
+	"ScriptTweak" : "00",
+	"TemplateVersion" : "05.32.00",
 	"TemplateLevel" : "006",
 	"SubScriptsLevel" : "010",
-	"SubScriptsVersion" : "05.31.00"
+	"SubScriptsVersion" : "05.32.00"
 	},
 "api_script_details" : {
 	"ScriptType" : {
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2022-06-24",
-	"ScriptVersion" : "00.60.11",
-	"ScriptRevision" : "000",
-	"ScriptSubRevision" : "030",
-	"TemplateVersion" : "00.60.11",
+	"ScriptDate" : "2022-12-09",
+	"ScriptVersion" : "05.60.12",
+	"ScriptRevision" : "100",
+	"ScriptSubRevision" : "010",
+	"ScriptTweak" : "000",
+	"TemplateVersion" : "00.60.12",
 	"APISubScriptsLevel" : "010",
-	"APISubScriptsVersion" : "00.60.11",
-	"APISubScriptsRevision" : "000"
+	"APISubScriptsVersion" : "00.60.12",
+	"APISubScriptsRevision" : "100"
 	}
 }
