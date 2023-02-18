@@ -2,7 +2,7 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2023-01-18
+## UPDATED 2023-03-17
 
 ## Overview
 
@@ -75,11 +75,11 @@ Thank you to those who have assisted with feedback and utilization reports and i
 
 To quickly start working with the scripts, do the following.
 
-- Download the release tgz file (b4CP.scripts.v05.33.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
+- Download the release tgz file (b4CP.scripts.v05.33.01.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
 - Expand the TGZ file, e.g.
 
     Example:  `tar -xf b4CP.scripts.{version}.tgz`
-    `tar -xf b4CP.scripts.v05.33.00.000.tg`
+    `tar -xf b4CP.scripts.v05.33.01.000.tg`
 
 - Goto the scripts folder
 
@@ -88,7 +88,7 @@ To quickly start working with the scripts, do the following.
 - Execute desired script with help parameter to show command options, e.g.
 
    Example:  `./generate_script_links.{version}.sh --help`
-   `./generate_script_links.v05.32.00.sh --help`
+   `./generate_script_links.v05.33.01.sh --help`
 
 ## REFERENCES
 
