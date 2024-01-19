@@ -2,7 +2,7 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2024-01-19
+## UPDATED 2024-01-19 #2
 
 ## Overview
 
@@ -75,11 +75,11 @@ Thank you to those who have assisted with feedback and utilization reports and i
 
 To quickly start working with the scripts, do the following.
 
-- Download the release tgz file (b4CP.scripts.v05.35.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
+- Download the release tgz file (b4CP.scripts.v05.36.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
 - Expand the TGZ file, e.g.
 
     Example:  `tar -xf b4CP.scripts.{version}.tgz`
-    `tar -xf b4CP.scripts.v05.35.00.000.tgz`
+    `tar -xf b4CP.scripts.v05.36.00.000.tgz`
 
 - Goto the scripts folder
 
@@ -88,9 +88,10 @@ To quickly start working with the scripts, do the following.
 - Execute desired script with help parameter to show command options, e.g.
 
    Example:  `./generate_script_links.{version}.sh --help`
-   `./generate_script_links.v05.35.00.sh --help`
+   `./generate_script_links.v05.36.00.sh --help`
 
 ## REFERENCES
 
-Reference Check Point Secure Knowledge (SK) articles:
-sk121447 Health Check (<https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447>)
+Reference Check Point Secure Knowledge (SK) articles: [sk121447 Health Check]
+
+[sk121447 Health Check]: https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk12144

@@ -16,4 +16,4 @@ This solution focuses on the latest version in release and main/master repositor
 
 Suspected vulnerabilities are reported via [Issues] and are addressed in order received and based on resource availability.
 
-[Issues]: ttps://github.com/mybasementcloud/bash_4_Check_Point_scripts/issue
+[Issues]: https://github.com/mybasementcloud/bash_4_Check_Point_scripts/issue
