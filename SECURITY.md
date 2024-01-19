@@ -1,21 +1,19 @@
-# Security Policy
+# Security Policy - bash_4_Check_Point_scripts
+
+Updated 2024-01-19
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+This solution focuses on the latest version in release and main/master repository.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 5.36.00.000   | :white_check_mark:                |
+| 5.35.00.000   | :white_check_mark: |
+| < 5.35.00.000   | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Suspected vulnerabilities are reported via [Issues] and are addressed in order received and based on resource availability.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+[Issues]: ttps://github.com/mybasementcloud/bash_4_Check_Point_scripts/issue
