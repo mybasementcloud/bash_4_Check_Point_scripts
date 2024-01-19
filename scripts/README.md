@@ -2,13 +2,13 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2023-03-17
+## UPDATED 2024-01-19 #2
 
 ## Overview
 
 mybasementcloud operational implemented working Gaia and bash script examples
 
-### NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/<user> FOLDER
+### NOTE:  !!!!! TO USE THESE SCRIPTS DO NOT PLACE IN /home/${user} FOLDER
 
 ### NOTE:  !! Provided AS-IS and mostly for reference on scripting approach.  No implied Support, SLA, or help, but might address issues identified if provided with enough details
 
@@ -35,7 +35,7 @@ Specific examples and operation for:
 - MDM - Multi-Domain Management Server systems
 - MGMT - Common Security Management scripts
 - Patch_HotFix - scripts that fix things
-- Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, with version 2018-11-21-1055CST using API script template so full access to CLI configuration of mgmt_cli authentication and access parameters run with --help to get CLI help; MDM specific scripts were removed, so use the -d <domain> parameter to identify the domain.
+- Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, with version 2018-11-21-1055CST using API script template so full access to CLI configuration of mgmt_cli authentication and access parameters run with --help to get CLI help; MDM specific scripts were removed, so use the -d ${domain} parameter to identify the domain.
 - SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
 - SMS - Security Management Server systems
 - SMS.migrate_backup - Security Management Server scripts specific to migrate and migrate server operations
@@ -75,11 +75,11 @@ Thank you to those who have assisted with feedback and utilization reports and i
 
 To quickly start working with the scripts, do the following.
 
-- Download the release tgz file (b4CP.scripts.v05.33.01.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
+- Download the release tgz file (b4CP.scripts.v05.36.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
 - Expand the TGZ file, e.g.
 
     Example:  `tar -xf b4CP.scripts.{version}.tgz`
-    `tar -xf b4CP.scripts.v05.33.01.000.tg`
+    `tar -xf b4CP.scripts.v05.36.00.000.tgz`
 
 - Goto the scripts folder
 
@@ -88,9 +88,10 @@ To quickly start working with the scripts, do the following.
 - Execute desired script with help parameter to show command options, e.g.
 
    Example:  `./generate_script_links.{version}.sh --help`
-   `./generate_script_links.v05.33.01.sh --help`
+   `./generate_script_links.v05.36.00.sh --help`
 
 ## REFERENCES
 
-Reference Check Point Secure Knowledge (SK) articles:
-sk121447 Health Check (<https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk121447>)
+Reference Check Point Secure Knowledge (SK) articles: [sk121447 Health Check]
+
+[sk121447 Health Check]: https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk12144
