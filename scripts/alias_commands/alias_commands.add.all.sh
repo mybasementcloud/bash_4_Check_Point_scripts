@@ -13,14 +13,14 @@
 # SCRIPT  Alias commands and variables configuration for bash shell launch
 #
 #
-ScriptDate=2024-01-19
-ScriptVersion=05.36.00
+ScriptDate=2024-01-28
+ScriptVersion=05.36.01
 ScriptRevision=000
 ScriptSubRevision=000
-TemplateVersion=05.36.00
+TemplateVersion=05.36.01
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=05.36.00
+SubScriptsVersion=05.36.01
 AliasCommandsLevel=090
 #
 
@@ -364,7 +364,7 @@ printf "${tCYAN}%-35s${tNORM} : %s\n" "userhosttoday" 'Name Today - Generate use
 
 
 #========================================================================================
-# UPDATED 2021-06-23 -
+# UPDATED 2024-01-28 -
 
 #Generate Check Point release version
 CPRELEASEVERSION ()
@@ -385,6 +385,8 @@ alias vnamenow='echo `CPRELEASEVERSION`.${HOSTNAME}.`DTGSDATE`'
 alias vnametoday='echo `CPRELEASEVERSION`.${HOSTNAME}.`DAYDATE`'
 alias namevnow='echo ${HOSTNAME}.`CPRELEASEVERSION`.`DTGSDATE`'
 alias namevtoday='echo ${HOSTNAME}.`CPRELEASEVERSION`.`DAYDATE`'
+alias vernow='echo `CPRELEASEVERSION`.`DTGSDATE`'
+alias vertoday='echo `CPRELEASEVERSION`.`DAYDATE`'
 
 printf "${tCYAN}%-35s${tNORM} : %s\n" "CPVERSIONNOW" 'Generate Check Point release version . (dot) Date Time Group :  release_version.YYYY-mm-dd-HHMMTZ3' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "CPVERSIONHOSTNOW" 'Generate Check Point release version . (dot) hostname . (dot) Date Time Group with Seconds :  release_version.${HOSTNAME}.YYYY-mm-dd-HHMMSSTZ3' >> ${tempENVHELPFILEalias}
@@ -393,6 +395,8 @@ printf "${tCYAN}%-35s${tNORM} : %s\n" "vnamenow" 'Version Name Now - Generate Ch
 printf "${tCYAN}%-35s${tNORM} : %s\n" "vnametoday" 'Version Name Today - Generate Check Point release version . (dot) hostname . (dot) Date Group :  release_version.${HOSTNAME}.YYYY-mm-dd' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "namevnow" 'Name Version Now - Generate hostname . (dot) Check Point release version . (dot) Date Time Group with Seconds :  ${HOSTNAME}.release_version.YYYY-mm-dd-HHMMSSTZ3' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "namevtoday" 'Name Version Today - Generate Check Point release version . (dot) hostname . (dot) Date Group :  ${HOSTNAME}.release_version.YYYY-mm-dd' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "vernow" 'Version Now - Generate Check Point release version . (dot) Date Time Group with Seconds :  release_version.YYYY-mm-dd-HHMMSSTZ3' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "vertoday" 'Version Today - Generate Check Point release version . (dot) Date Group :  release_version.YYYY-mm-dd' >> ${tempENVHELPFILEalias}
 
 
 #========================================================================================
@@ -643,27 +647,35 @@ if [ -r ${MYWORKFOLDER}/_testing ] ; then
 fi
 
 #========================================================================================
-# 2023-01-24
+# UPDATED 2024-01-28 -
 
 alias godumpnow='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;cd "${WORKNOWFOLDER}";echo;echo Current path = `pwd`;echo'
 alias godumpdtg='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;cd "${WORKNOWFOLDER}";echo;echo Current path = `pwd`;echo'
+alias godumptoday='godumpdtg'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "godumpnow" 'Create a dump folder with current Date Time Group (DTGS) and change to that folder' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "godumpdtg" 'Create a dump folder with current Date Time Group (DTG) and change to that folder' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "godumptoday" 'Create a dump folder with current Date Time Group (DTG) and change to that folder' >> ${tempENVHELPFILEalias}
 
 alias makedumpnow='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;echo "New dump folder = ${MYWORKFOLDERDUMP}";echo Current path = `pwd`;echo'
 alias makedumpdtg='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;echo "New dump folder = ${MYWORKFOLDERDUMP}";echo Current path = `pwd`;echo'
+alias makedumptoday='makedumpdtg'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "makedumpnow" 'Create a dump folder with current Date Time Group (DTGS) and show that folder' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "makedumpdtg" 'Create a dump folder with current Date Time Group (DTG) and show that folder' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "makedumptoday" 'Create a dump folder with current Date Time Group (DTG) and show that folder' >> ${tempENVHELPFILEalias}
 
 alias gochangelognow='WORKNOWFOLDER="${MYWORKFOLDERCHANGE}/`date +%Y`/`DTGSDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;cd "${WORKNOWFOLDER}";echo;echo Current path = `pwd`;echo'
 alias gochangelogdtg='WORKNOWFOLDER="${MYWORKFOLDERCHANGE}/`date +%Y`/`DTGDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;cd "${WORKNOWFOLDER}";echo;echo Current path = `pwd`;echo'
+alias gochangelogtoday='gochangelogdtg'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "gochangelognow" 'Create a Change Log folder with current Date Time Group (DTGS) and change to that folder' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "gochangelogdtg" 'Create a Change Log folder with current Date Time Group (DTG) and change to that folder' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "gochangelogtoday" 'Create a Change Log folder with current Date Time Group (DTG) and change to that folder' >> ${tempENVHELPFILEalias}
 
 alias makechangelognow='WORKNOWFOLDER="${MYWORKFOLDERCHANGE}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;echo "New dump folder = ${WORKNOWFOLDER}";echo Current path = `pwd`;echo'
 alias makechangelogdtg='WORKNOWFOLDER="${MYWORKFOLDERCHANGE}/`date +%Y`/`date +%Y-%m`/`DTGDATE`";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;echo "New dump folder = ${WORKNOWFOLDER}";echo Current path = `pwd`;echo'
+alias makechangelogtoday='makechangelogdtg'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "makechangelognow" 'Create a Change Log folder with current Date Time Group (DTGS) and show that folder' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "makechangelogdtg" 'Create a Change Log folder with current Date Time Group (DTG) and show that folder' >> ${tempENVHELPFILEalias}
+printf "${tCYAN}%-35s${tNORM} : %s\n" "makechangelogtoday" 'Create a Change Log folder with current Date Time Group (DTG) and show that folder' >> ${tempENVHELPFILEalias}
 
 #========================================================================================
 # 2021-06-01

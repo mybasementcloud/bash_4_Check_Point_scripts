@@ -3,7 +3,7 @@
 	"fileversion" : "08.01.00",
 	"filerevision" : "000",
 	"filesubrevision" : "000",
-	"filedate" : "2024-01-19",
+	"filedate" : "2024-01-28",
 	"fileinformationlevel" : "000",
 	"MinCMDTemplateVersion" : "08.01.00"
 	}, 
@@ -16,7 +16,7 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"TemplateDate" : "2024-01-19",
+	"TemplateDate" : "2024-01-28",
 	"TemplateVersion" : "08.01.00",
 	"TemplateRevision" : "000",
 	"TemplateSubRevision" : "000",
@@ -27,7 +27,7 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"ScriptDate" : "2024-01-19",
+	"ScriptDate" : "2024-01-28",
 	"ScriptVersion" : "08.01.00",
 	"ScriptRevision" : "000",
 	"ScriptSubRevision" : "000",
@@ -40,23 +40,23 @@
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2024-01-19",
-	"ScriptVersion" : "05.36.00",
+	"ScriptDate" : "2024-01-28",
+	"ScriptVersion" : "05.36.01",
 	"ScriptRevision" : "000",
 	"ScriptSubRevision" : "000",
 	"ScriptTweak" : "000",
-	"TemplateVersion" : "05.36.00",
+	"TemplateVersion" : "05.36.01",
 	"TemplateRevision" : "000",
 	"TemplateLevel" : "006",
 	"SubScriptsLevel" : "010",
-	"SubScriptsVersion" : "05.36.00"
+	"SubScriptsVersion" : "05.36.01"
 	},
 "api_script_details" : {
 	"ScriptType" : {
 		"Language" : "bash",
 		"Extension" : "sh"
 		},
-	"ScriptDate" : "2024-01-19",
+	"ScriptDate" : "2024-01-28",
 	"ScriptVersion" : "05.60.12",
 	"ScriptRevision" : "000",
 	"ScriptSubRevision" : "000",

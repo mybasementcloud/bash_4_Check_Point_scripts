@@ -18,14 +18,14 @@
 # SCRIPT Root Script Configuration Parameters
 #
 #
-ScriptDate=2024-01-19
-ScriptVersion=05.36.00
+ScriptDate=2024-01-28
+ScriptVersion=05.36.01
 ScriptRevision=000
 ScriptSubRevision=000
-TemplateVersion=05.36.00
+TemplateVersion=05.36.01
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=05.36.00
+SubScriptsVersion=05.36.01
 #
 
 RootScriptVersion=v${ScriptVersion}
