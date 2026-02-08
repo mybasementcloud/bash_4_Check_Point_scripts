@@ -2,7 +2,7 @@
 
 Collection of bash scripts for use on Check Point Gaia systems
 
-## UPDATED 2024-06-11
+## UPDATED 2026-02-08
 
 ## Overview
 
@@ -35,6 +35,7 @@ Specific examples and operation for:
 - MDM - Multi-Domain Management Server systems
 - MGMT - Common Security Management scripts
 - Patch_HotFix - scripts that fix things
+- SD-WAN - SD-WAN supporting scripts, especially for use with gateways that are have interfaces with DHCP and fixed configuration for DNS
 - Session_Cleanup - Example of how to execute a session clean-up script to remove dead, zerolock sessions that might accumulate in API enabled R8X management systems, with version 2018-11-21-1055CST using API script template so full access to CLI configuration of mgmt_cli authentication and access parameters run with --help to get CLI help; MDM specific scripts were removed, so use the -d ${domain} parameter to identify the domain.
 - SmartEvent - SmartEvent related scripts for common operations, e.g. backup SmartEvent index and database files
 - SMS - Security Management Server systems
@@ -75,11 +76,11 @@ Thank you to those who have assisted with feedback and utilization reports and i
 
 To quickly start working with the scripts, do the following.
 
-- Download the release tgz file (b4CP.scripts.v05.37.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
+- Download the release tgz file (b4CP.scripts.v05.38.00.000.tgz) and deploy to a work folder on the target management host, like /var/log/__customer [recommended location], the folder should be under the /var/log folder to ensure survival during upgrades and patches (Jumbo Hotfix accumulator installation)
 - Expand the TGZ file, e.g.
 
     Example:  `tar -xf b4CP.scripts.{version}.tgz`
-    `tar -xf b4CP.scripts.v05.37.00.000.tgz`
+    `tar -xf b4CP.scripts.v05.38.00.000.tgz`
 
 - Goto the scripts folder
 
@@ -88,7 +89,7 @@ To quickly start working with the scripts, do the following.
 - Execute desired script with help parameter to show command options, e.g.
 
    Example:  `./generate_script_links.{version}.sh --help`
-   `./generate_script_links.v05.37.00.sh --help`
+   `./generate_script_links.v05.38.00.sh --help`
 
 ## REFERENCES
 

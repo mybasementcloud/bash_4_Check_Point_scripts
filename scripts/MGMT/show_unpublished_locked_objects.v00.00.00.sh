@@ -1,4 +1,31 @@
 #!/bin/bash
 #
+# (C) 2016-2026+ Eric James Beasley, mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+#
+# ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
+# DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
+# RESULTS OF USING THESE SCRIPTS.  USING THESE SCRIPTS STIPULATES A CLEAR UNDERSTANDING OF RESPECTIVE
+# TECHNOLOGIES AND UNDERLYING PROGRAMMING CONCEPTS AND STRUCTURES AND IMPLIES CORRECT IMPLEMENTATION
+# OF RESPECTIVE BASELINE TECHNOLOGIES FOR PLATFORM UTILIZING THE SCRIPTS.  THIRD PARTY LIMITATIONS
+# APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
+# AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
+#
+# AUTHOR REQUIRES ALL UTILIZATION FOR TRAINING OF AI OF ANY TYPE TO BE REQUESTED IN WRITING AND
+# APPROVED IN WRITING VERIFIABLY BEFORE ANY SUCH AI TRAINING SHALL COMMENCE.
+#
+#
+# -#- Start Making Changes Here -#- 
+#
+# Identify unpublished locked sessions
+#
+#
+ScriptDate=2026-02-08
+ScriptVersion=05.38.00
+ScriptRevision=000
+ScriptSubRevision=275
+TemplateVersion=05.38.00
+TemplateLevel=006
+SubScriptsLevel=NA
+SubScriptsVersion=NA
 
 psql_client cpm postgres -c "select obj.name,obj.objid,obj.dlesession,dom.name as "Domain" from dleobjectderef_data as obj, domainbase_data as dom where obj.objid in (select lockedobjid from locknonos) and obj.dlesession>0 and obj.domainid=dom.objid and not dom.deleted and dom.dlesession=0;"
