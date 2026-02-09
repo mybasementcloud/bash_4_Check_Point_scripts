@@ -20,7 +20,7 @@
 ScriptDate=2026-02-08
 ScriptVersion=05.38.00
 ScriptRevision=000
-ScriptSubRevision=275
+ScriptSubRevision=300
 TemplateVersion=05.38.00
 TemplateLevel=006
 SubScriptsLevel=010
@@ -236,13 +236,13 @@ export JQ16Required=false
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=true
+export OutputToDump=false
 export OutputToChangeLog=false
-export OutputToOther=false
+export OutputToOther=true
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=Specify_The_Folder_Here
+export OtherOutputFolder=./host_interface_info
 
 # -------------------------------------------------------------------------------------------------
 
@@ -1283,7 +1283,7 @@ if ${R8XRequired} && ! ${IsR8XVersion}; then
     echo "This script is not meant for versions prior to R80, exiting!" | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
-    echo 'Output location for all results is here : '${outputpathbase} | tee -a -i ${logfilepath}
+    echo 'Output location for all results is here : '${host_interface_info} | tee -a -i ${logfilepath}
     echo 'Log results documented in this log file : '${logfilepath} | tee -a -i ${logfilepath}
     echo | tee -a -i ${logfilepath}
     

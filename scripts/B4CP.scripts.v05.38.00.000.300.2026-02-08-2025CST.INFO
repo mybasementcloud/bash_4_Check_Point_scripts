@@ -21,16 +21,16 @@ exit
 #
 #
 # Version created 2026-MM-DD-HHMM hrs TZN
-# Version created 2026-02-08-1745 hrs CST
+# Version created 2026-02-08-2025 hrs CST
 #ScriptDTG=2026-MM-DD-HHMM
-ScriptDTG=2026-02-08-1745
+ScriptDTG=2026-02-08-2025
 ScriptTZ=CST
 ScriptDTGTZ=${ScriptDTG}${ScriptTZ}
 #
 ScriptDate=2026-02-08
 ScriptVersion=05.38.00
 ScriptRevision=000
-ScriptSubRevision=275
+ScriptSubRevision=300
 TemplateVersion=05.38.00
 TemplateLevel=006
 SubScriptsLevel=010
@@ -39,7 +39,7 @@ SubScriptsVersion=05.38.00
 ScriptDate=2026-02-08
 ScriptVersion=05.38.00
 ScriptRevision=000
-ScriptSubRevision=275
+ScriptSubRevision=300
 TemplateVersion=05.38.00
 TemplateLevel=006
 SubScriptsLevel=NA

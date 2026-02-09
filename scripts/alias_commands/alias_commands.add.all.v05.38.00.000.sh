@@ -22,7 +22,7 @@
 ScriptDate=2026-02-08
 ScriptVersion=05.38.00
 ScriptRevision=000
-ScriptSubRevision=275
+ScriptSubRevision=300
 TemplateVersion=05.38.00
 TemplateLevel=006
 SubScriptsLevel=010
@@ -89,7 +89,7 @@ export bkDEFAULT=`tput setab 9`
 echo ${tRED}'==============================================================================='${tDEFAULT}
 echo ${tCYAN}'==============================================================================='${tDEFAULT}
 echo ${tCYAN}' MyBasementCloud bash 4 Check Point Environmen'${tDEFAULT}
-echo ${tCYAN}' Scripts :  Version '${tYELLOW}'v'${ScriptVersion}${tCYAN}', Revision '${tYELLOW}${ScriptRevision}${tCYAN}', Level '${tYELLOW}${AliasCommandsLevel}${tCYAN}' from Date '${tYELLOW}${ScriptDate}${tDEFAULT}
+echo ${tCYAN}' Scripts :  Version '${tYELLOW}'v'${ScriptVersion}${tCYAN}', Revision '${tYELLOW}${ScriptRevision}:${ScriptSubRevision}${tCYAN}', Level '${tYELLOW}${AliasCommandsLevel}${tCYAN}' from Date '${tYELLOW}${ScriptDate}${tDEFAULT}
 echo ${tCYAN}'==============================================================================='${tDEFAULT}
 echo
 echo ${tCYAN}'Configuring User Environment...'${tDEFAULT}
@@ -120,7 +120,7 @@ echo >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo 'MyBasementCloud bash 4 Check Point Environment' >> ${ENVIRONMENTHELPFILE}
-echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTHELPFILE}
+echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}':'${ScriptSubRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo >> ${ENVIRONMENTHELPFILE}
 
@@ -135,7 +135,7 @@ echo >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo 'MyBasementCloud bash 4 Check Point Environment' >> ${ENVIRONMENTVARSFILE}
-echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTVARSFILE}
+echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}':'${ScriptSubRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo >> ${ENVIRONMENTVARSFILE}
 
@@ -464,10 +464,21 @@ fi
 
 
 #========================================================================================
-# Updated 2020-11-26
+# Updated 2026-02-08
+
 #alias list='ls -alh'
 alias list='ls -alh --color=auto --group-directories-first'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "list" 'display folder content with -alh --color=auto --group-directories-first' >> ${tempENVHELPFILEalias}
+
+alias listR='ls -alhR --color=auto --group-directories-first'
+printf "${tCYAN}%-35s${tNORM} : %s\n" "listR" 'recursive display folders content with -alhR --color=auto --group-directories-first' >> ${tempENVHELPFILEalias}
+
+
+#========================================================================================
+# Added 2026-02-08
+
+alias ReAlias='cd ~ ; source .bash_profile'
+printf "${tCYAN}%-35s${tNORM} : %s\n" "ReAlias" 'Re-execute the ~/.bash_profile to reset profile based aliases' >> ${tempENVHELPFILEalias}
 
 
 #========================================================================================
@@ -1821,7 +1832,7 @@ tempENVHELPFILEalias=
 echo >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo 'MyBasementCloud bash 4 Check Point Environment' >> ${ENVIRONMENTHELPFILE}
-echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTHELPFILE}
+echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}':'${ScriptSubRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo '===============================================================================' >> ${ENVIRONMENTHELPFILE}
 echo >> ${ENVIRONMENTHELPFILE}
@@ -1829,7 +1840,7 @@ echo >> ${ENVIRONMENTHELPFILE}
 echo >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo 'MyBasementCloud bash 4 Check Point Environment' >> ${ENVIRONMENTVARSFILE}
-echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTVARSFILE}
+echo 'Scripts :  Version '${ScriptVersion}', Revision '${ScriptRevision}':'${ScriptSubRevision}', Level '${AliasCommandsLevel}' from Date '${ScriptDate} >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo '===============================================================================' >> ${ENVIRONMENTVARSFILE}
 echo >> ${ENVIRONMENTVARSFILE}
