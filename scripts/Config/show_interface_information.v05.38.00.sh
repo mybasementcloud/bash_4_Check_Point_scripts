@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (C) 2016-2024 Eric James Beasley, mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
+# (C) 2016-2026+ Eric James Beasley, mybasementcloud, https://github.com/mybasementcloud/bash_4_Check_Point_scripts
 #
 # ALL SCRIPTS ARE PROVIDED AS IS WITHOUT EXPRESS OR IMPLIED WARRANTY OF FUNCTION OR POTENTIAL FOR 
 # DAMAGE Or ABUSE.  AUTHOR DOES NOT ACCEPT ANY RESPONSIBILITY FOR THE USE OF THESE SCRIPTS OR THE 
@@ -10,20 +10,21 @@
 # APPLY WITHIN THE SPECIFICS THEIR RESPECTIVE UTILIZATION AGREEMENTS AND LICENSES.  AUTHOR DOES NOT
 # AUTHORIZE RESALE, LEASE, OR CHARGE FOR UTILIZATION OF THESE SCRIPTS BY ANY THIRD PARTY.
 #
+# AUTHOR REQUIRES ALL UTILIZATION FOR TRAINING OF AI OF ANY TYPE TO BE REQUESTED IN WRITING AND
+# APPROVED IN WRITING VERIFIABLY BEFORE ANY SUCH AI TRAINING SHALL COMMENCE.
 #
-# -#- Start Making Changes Here -#- 
 #
 # SCRIPT Collect and show interface related information for all interfaces
 #
 #
-ScriptDate=2024-06-11
-ScriptVersion=05.37.00
+ScriptDate=2026-02-08
+ScriptVersion=05.38.00
 ScriptRevision=000
-ScriptSubRevision=025
-TemplateVersion=05.37.00
+ScriptSubRevision=275
+TemplateVersion=05.38.00
 TemplateLevel=006
 SubScriptsLevel=010
-SubScriptsVersion=05.37.00
+SubScriptsVersion=05.38.00
 #
 
 export BASHScriptVersion=v${ScriptVersion}
@@ -56,7 +57,7 @@ export BASHScriptHelpFile=${BASHScriptHelpFilePath}/${BASHScriptHelpFileName}
 export BASHScriptHelpFileExamplesName=${BASHScriptFileNameRoot}.examples.help
 export BASHScriptHelpExamplesFile=${BASHScriptHelpFilePath}/${BASHScriptHelpFileExamplesName}
 
-# _api_subscripts|_hostsetupscripts|_hostupdatescripts|_scripting_tools|_subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|HCP|Health_Check|MDM|MGMT|Patch_Hotfix|scripts_tools|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
+# _api_subscripts|_hostsetupscripts|_hostupdatescripts|_scripting_tools|_subscripts|_template|Common|Config|GAIA|GW|[GW.CORE]|HCP|Health_Check|MDM|MGMT|Patch_Hotfix|scripts_tools|SD-WAN|[SD-WAN.CORE]|Session_Cleanup|SmartEvent|SMS|[SMS.CORE]|SMS.migrate_backup|UserConfig|[UserConfig.CORE_G2.NPM]
 export BASHScriptsFolder=Config
 
 export BASHScripttftptargetfolder="host_interface_info"
@@ -161,7 +162,7 @@ B4CPSCRIPTVERBOSE=false
 # -------------------------------------------------------------------------------------------------
 
 
-# MODIFIED 2022-10-27 -
+# MODIFIED 2026-02-01:01 -
 # R80           version 1.0
 # R80.10        version 1.1
 # R80.20.M1     version 1.2
@@ -175,6 +176,10 @@ B4CPSCRIPTVERBOSE=false
 # R81.10        version 1.8
 # R81.10 JHF 79 version 1.8.1
 # R81.20        version 1.9
+# R81.20 JHF 43 version 1.9.1
+# R82.00        version 2.0
+# R82.00 JHF 41 version 2.0.1
+# R82.10        version 2.1
 #
 # For common scripts minimum API version at 1.1 should suffice, otherwise get explicit
 # To enable use of API Key authentication, at least version 1.6 is required
@@ -194,16 +199,21 @@ export MinAPIVersionRequired=1.1
 #
 export APICLIconntimeout=600
 
-# ADDED 2021-11-09 - 
+# MODIFIED 2026-02-01:01 -
 # MaaS (Smart-1 Cloud) current versions
 # R81           version 1.7
 # R81 JHF 34    version 1.7.1  !! ????
 # R81.10        version 1.8
+# R81.20        version 1.9
+# R81.20 JHF 43 version 1.9.1
+# R82.00        version 2.0
+# R82.00 JHF 41 version 2.0.1
+# R82.10        version 2.1
 #
 # for MaaS (Smart-1 Cloud) operation assume at least the minimum API version as 1.7 for R81
 #
 export MinMaaSAPIVersion=1.7
-export MaxMaaSAPIVersion=1.8
+export MaxMaaSAPIVersion=2.1
 
 # If the API version needs to be enforced in commands set this to true
 # NOTE not currently used!
@@ -226,13 +236,13 @@ export JQ16Required=false
 # One of these needs to be set to true, just one
 #
 export OutputToRoot=false
-export OutputToDump=false
+export OutputToDump=true
 export OutputToChangeLog=false
-export OutputToOther=true
+export OutputToOther=false
 #
 # if OutputToOther is true, then this next value needs to be set
 #
-export OtherOutputFolder=./host_interface_info
+export OtherOutputFolder=Specify_The_Folder_Here
 
 # -------------------------------------------------------------------------------------------------
 
@@ -260,7 +270,7 @@ export OutputYearSubfolder=true
 export OutputYMSubfolder=false
 export OutputDTGSSubfolder=true
 export OutputSubfolderScriptName=false
-export OutputSubfolderScriptShortName=false
+export OutputSubfolderScriptShortName=true
 
 export OutputDTGTZinUTC=false
 
@@ -1258,7 +1268,7 @@ case "${gaiaversion}" in
     R81 | R81.10 | R81.20 ) 
         export IsR8XVersion=true
         ;;
-    R82 ) 
+    R82 | R82.10 | R82.20 ) 
         export IsR8XVersion=true
         ;;
     *)
@@ -1284,14 +1294,6 @@ fi
 # -------------------------------------------------------------------------------------------------
 
 
-#==================================================================================================
-#==================================================================================================
-# End of template 
-#==================================================================================================
-#==================================================================================================
-#==================================================================================================
-
-
 #----------------------------------------------------------------------------------------
 # Setup Basic Parameters
 #----------------------------------------------------------------------------------------
@@ -1300,7 +1302,7 @@ fi
 #==================================================================================================
 #==================================================================================================
 #
-# START :  Collect and Capture Interface(s) Configuration and Information data
+# START :  Collect and Capture Configuration and Information data
 #
 #==================================================================================================
 #==================================================================================================
@@ -1683,7 +1685,7 @@ FindFilesAndCollectIntoArchiveAllVariants () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
-#export file2find=cpm.elg
+#export file2find=
 
 #FindFilesAndCollectIntoArchiveAllVariants
 
@@ -2428,5 +2430,9 @@ echo
 # End of Script
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+
+
+echo
+echo 'Script Completed, exiting...';echo
 
 

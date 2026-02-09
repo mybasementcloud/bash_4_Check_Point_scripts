@@ -1687,7 +1687,85 @@ FindFilesAndCollectIntoArchiveAllVariants () {
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 
+#export file2find=
+
 #FindFilesAndCollectIntoArchiveAllVariants
+
+
+# -------------------------------------------------------------------------------------------------
+# FindFilesAndCollectIntoArchiveSpecific - Document identified file locations to output file path and also collect into archive specific variants
+# -------------------------------------------------------------------------------------------------
+
+# MODIFIED 2019-10-05 -\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+#
+
+FindFilesAndCollectIntoArchiveSpecific () {
+    #
+    # Document identified file locations to output file path and also collect into archive specific variants
+    #
+    
+    export file2findpath="/"
+    export file2findname=${file2find/\*/(star)}
+    export command2run=find
+    export outputfile=${outputfileprefix}'_'${command2run}'_'${file2findname}'_specific_variants'${outputfilesuffix}${outputfiletype}
+    if [ -z ${command2folder} ] ; then
+        export outputfilefqdn=${outputfilepath}
+        export outputfilefqfn=${outputfilepath}${outputfile}
+    else
+        export outputfilefqdn=${outputfilepath}${command2folder}/
+        export outputfilefqfn=${outputfilepath}${command2folder}/${outputfile}
+    fi
+    
+    if [ ! -r ${outputfilefqdn} ] ; then
+        mkdir -pv ${outputfilefqdn} >> ${logfilepath} 2>&1
+        chmod 775 ${outputfilefqdn} >> ${logfilepath} 2>&1
+    else
+        chmod 775 ${outputfilefqdn} >> ${logfilepath} 2>&1
+    fi
+    
+    echo | tee -a -i ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' | tee -a -i ${outputfilefqfn}
+    echo 'Find file : '${file2find}'* and document locations' | tee -a -i ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' | tee -a -i ${outputfilefqfn}
+    echo >> ${outputfilefqfn}
+    
+    find / -name "${file2find}*" 2> /dev/null >> ${outputfilefqfn}
+    
+    export archivefile='archive_'${file2findname}'_specific_variants'${outputfilesuffix}'.tgz'
+    export archivefqfn=${outputfilefqdn}${archivefile}
+    
+    echo >> ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' | tee -a -i ${outputfilefqfn}
+    echo 'Archive all found Files* to Target Archive' | tee -a -i ${outputfilefqfn}
+    echo ' - Found Files    : '${file2findname} | tee -a -i ${outputfilefqfn}
+    echo ' - Exclude        : '${file2findstartpath}'/' | tee -a -i ${outputfilefqfn}
+    echo ' - Start Path     : '${file2findexclude}'/*' | tee -a -i ${outputfilefqfn}
+    echo ' - Target Archive : '${archivefqfn} | tee -a -i ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' | tee -a -i ${outputfilefqfn}
+    echo >> ${outputfilefqfn}
+    
+    tar czvf ${archivefqfn} --exclude=${file2findexclude}/* $(find ${file2findstartpath}/ -name "${file2find}*" 2> /dev/null) >> ${outputfilefqfn}
+    
+    echo >> ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' >> ${outputfilefqfn}
+    echo '----------------------------------------------------------------------------' | tee -a -i ${outputfilefqfn}
+    echo | tee -a -i ${outputfilefqfn}
+    
+    return 0
+}
+
+#
+# \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/-  MODIFIED 2019-01-31
+
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
+#export file2find=cpm.elg
+#export file2findstartpath=${MDS_FWDIR}/log
+#export file2findexclude=${MDS_FWDIR}/log/imported_logs
+
+#FindFilesAndCollectIntoArchiveSpecific
+
 
 # -------------------------------------------------------------------------------------------------
 # CopyFiles2CaptureFolder - repeated proceedure

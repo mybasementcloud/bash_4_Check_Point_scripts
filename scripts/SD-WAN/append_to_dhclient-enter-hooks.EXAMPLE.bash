@@ -1,7 +1,7 @@
 #******************************************************
 # SD-WAN Fix for DHCP Issue when DNS is set for Internal DNS Servers
 # Gateway      :  EXAMPLE
-# Last Modified:  2026-02-01:01
+# Last Modified:  2026-02-08:01
 #
 case ${interface} in
    ( 'eth0' | 'eth1' | 'eth2' | 'eth3' | 'eth4' | 'eth5' | 'eth6' | 'eth7' | 'eth8' | 'eth9' )

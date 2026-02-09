@@ -28,11 +28,11 @@
 		"Language" : "Windows_CMD",
 		"Extension" : "CMD"
 		},
-	"CMDScriptDate" : "2026-02-01",
+	"CMDScriptDate" : "2026-02-08",
 	"CMDScriptVersion" : "10.00.00",
 	"CMDScriptRevision" : "000",
 	"CMDScriptSubRevision" : "000",
-	"CMDScriptTweak" : "B4CP-325",
+	"CMDScriptTweak" : "B4CP-350",
 	"CMDTemplateVersion" : "10.00.00",
 	"CMDTemplateRevision" : "000"
 	},

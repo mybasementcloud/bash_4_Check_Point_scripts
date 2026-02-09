@@ -1048,8 +1048,8 @@ printf "${tCYAN}%-35s${tNORM} : %s\n" "makeReference" 'Create the Reference fold
 printf "${tCYAN}%-35s${tNORM} : %s\n" "clearReference" 'Remove and Remake the Reference folder '${MYWORKFOLDERUGEX}/Reference >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "cleanReference" 'Remove the Reference folder '${MYWORKFOLDERUGEX}/Reference >> ${tempENVHELPFILEalias}
 
-alias makestandard='makeconf_files;makedump;makehomebackup;makehealthchecks;;makehost_data;makehost_interface_info;makeReference;echo;list ${MYWORKFOLDERUGEX};echo'
-alias clearbraindumpfolders='clearconf_files;cleardump;clearhomebackup;clearhealthchecks;;clearhost_data;clearhost_interface_info;clearReference;echo;list ${MYWORKFOLDERUGEX};echo'
+alias makestandard='makeconf_files;makedump;makehomebackup;makehealthchecks;makehost_data;makehost_interface_info;makeReference;echo;list ${MYWORKFOLDERUGEX};echo'
+alias clearbraindumpfolders='clearconf_files;cleardump;clearhomebackup;clearhealthchecks;clearhost_data;clearhost_interface_info;clearReference;echo;list ${MYWORKFOLDERUGEX};echo'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "makestandard" 'Create the standard folders for dumps, information, and reference' >> ${tempENVHELPFILEalias}
 printf "${tCYAN}%-35s${tNORM} : %s\n" "clearbraindumpfolders" 'Remove and Remake the folders used in a braindump' >> ${tempENVHELPFILEalias}
 
@@ -1109,7 +1109,7 @@ printf "${tCYAN}%-35s${tNORM} : %s\n" "collect_core_dumps_now" 'Collect current 
 #========================================================================================
 # 2023-01-24
 
-alias collect_cpview_periodic_export='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`_cpview_periodic_export";mkdir -pv "${WORKNOWFOLDER}";list "${MYWORKFOLDERDUMP}/";echo;cd "${WORKNOWFOLDER}";echo;;cpview -p | ${JQ} -s . > cpview_data_`DTGSDATE`.json;echo;ls -alh --color=auto .;echo;echo Current path = `pwd`;echo'
+alias collect_cpview_periodic_export='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`_cpview_periodic_export";mkdir -pv "${WORKNOWFOLDER}";list "${MYWORKFOLDERDUMP}/";echo;cd "${WORKNOWFOLDER}";echo;cpview -p | ${JQ} -s . > cpview_data_`DTGSDATE`.json;echo;ls -alh --color=auto .;echo;echo Current path = `pwd`;echo'
 printf "${tCYAN}%-35s${tNORM} : %s\n" "collect_cpview_periodic_export" 'Generate cpview -p output to Dump folder now with DTGSDATE' >> ${tempENVHELPFILEalias}
 
 alias collect_cpview_export='WORKNOWFOLDER="${MYWORKFOLDERDUMP}/`date +%Y`/`date +%Y-%m`/`DTGSDATE`_cpview_export";mkdir -pv "${WORKNOWFOLDER}";list "${WORKNOWFOLDER}/";echo;cpview -s export;read lastfilefound < <(ls -t /var/log/cpview_export/*.gz);echo "Last File Found ="${lastfilefound}; cp ${lastfilefound} ${WORKNOWFOLDER}/;echo;echo;ls -alh --color=auto ${WORKNOWFOLDER};echo;echo Current path = `pwd`;echo'
